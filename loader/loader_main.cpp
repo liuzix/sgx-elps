@@ -26,7 +26,7 @@ void loadMain(const string &filename)
         exit(-1);
     }
 
-    EnclaveManager enclaveManager((void *)0x10000000, 0x8000);
+    auto enclaveManager = new EnclaveManager((void *)0x10000000, 0x8000);
 }
 
 

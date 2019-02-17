@@ -35,4 +35,21 @@ EnclaveManager::EnclaveManager(void *base, size_t len)
         exit(-1);
     }
 
+    memset(&this->secs, 0, sizeof(this->secs));
+
+    secs.base = (uint64_t)this->enclaveBase;
+    secs.size = this->enclaveMemoryLen;
+    secs.ssaframesize = NUM_SSAFRAME;
+    secs.attributes = SGX_FLAGS_MODE64BIT | SGX_FLAGS_DEBUG;
+    secs.xfrm = 3;
+
+    struct sgx_enclave_create param = { .src = (uint64_t)(&this->secs) };
+
+    int ret = ioctl(deviceHandle(), SGX_IOC_ENCLAVE_CREATE, &param);
+    if (ret) {
+        console->error("Creating enclave ioctl failed. error code = {}.", ret);
+        exit(-1);
+    }
+
+    console->info("Creating enclave successful.");
 }
