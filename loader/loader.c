@@ -14,6 +14,18 @@
 #define _ElfW_1(e,w,t)	e##w##t
 
 #define PRESET_PAGESIZE (1 << 12)
+
+#ifndef O_CLOEXEC
+#define O_CLOEXEC 0
+#endif
+
+#undef INTERNAL_SYSCALL_ERROR_P
+#define INTERNAL_SYSCALL_ERROR_P(val) \
+  ((unsigned long) (val) >= (unsigned long)-4095L)
+
+#define IS_ERR_P INTERNAL_SYSCALL_ERROR_P
+
+
 unsigned long pagemask  = ~(PRESET_PAGESIZE - 1);
 unsigned long pageshift = PRESET_PAGESIZE - 1;
 
@@ -25,14 +37,14 @@ int load_static(const char *filename, void **load_addr, void **entry,
 	int maplength, nloadcmds = 0, ret;
 
 	if (fd == -1) {
-		ret = errno
+		ret = errno;
 		printf("file open failed.\n");
 		return ret;
 	}
 
 	ret = read(fd, filebuf, 512);
 	if (ret == -1) {
-		ret = errno
+		ret = errno;
 		printf("file read failed.\n");
 		goto out;
 	}
@@ -90,7 +102,7 @@ int load_static(const char *filename, void **load_addr, void **entry,
 
 	base = (ElfW(Addr))mmap(NULL, maplength, c->prot, MAP_PRIVATE | MAP_FILE,
 		 fd, c->mapoff);
-	if (base == -1) {
+	if (IS_ERR_P(base)) {
 		ret = errno;
 		goto out;
 	}
@@ -102,7 +114,7 @@ int load_static(const char *filename, void **load_addr, void **entry,
 		   c->mapend - c->mapstart, c->prot,
 		   MAP_PRIVATE|MAP_FILE|MAP_FIXED,
 		   fd, c->mapoff);
-		if (addr == -1) {
+		if (IS_ERR_P(addr)) {
 			ret = errno;
 			goto out;
 		}
@@ -130,8 +142,8 @@ postmap:
 			continue;
 
 		addr = (ElfW(Addr))mmap((void *)zeropage, zeroend - zeropage,
-			c->prot, MAP_PRIVATE|MAP_ANON|MAP_FIXED, -1, 0);
-		if (addr == -1) {
+			c->prot, MAP_PRIVATE|MAP_ANONYMOUS|MAP_FIXED, -1, 0);
+		if (IS_ERR_P(addr)) {
 			ret = errno;
 			goto out;
 		}

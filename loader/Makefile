@@ -6,7 +6,7 @@ CXX = g++
 INCLUDE = -I../deps -I../include
 
 CXXFLAGS = -Wall -Wextra -std=c++17 -g
-CFLAGS = -Wall -Wextra -std=c99
+CFLAGS = -Wall -Wextra -std=gnu99
 
 ##=====================================================
 
