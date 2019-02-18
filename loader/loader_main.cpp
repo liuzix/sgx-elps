@@ -26,13 +26,15 @@ void loadMain(const string &filename)
         exit(-1);
     }
 
-    auto enclaveManager = new EnclaveManager((void *)0x10000000, 0x8000);
+    auto enclaveManager = new EnclaveManager(0x10000000, 0x8000);
+    enclaveManager->addPages(0x10000000, (void *)((uint64_t)&loadMain & ~0xFFF), 0x1000);
 }
 
 
 
 int main(int argc, char **argv)
 {
+    console->set_level(spdlog::level::trace);
     if (argc < 2) {
         console->error("Usage: loader [binary file name]");
         return -1;
