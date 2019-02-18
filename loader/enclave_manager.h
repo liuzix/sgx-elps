@@ -27,17 +27,18 @@ private:
 
     secs_t secs;
 public:
+    /* `base` is only a hint. In case of mmap conflicts, base might be altered */
     EnclaveManager(vaddr base, size_t len);
+    
+    /* You must use getBase() to calculate the dest for addPages() */
+    vaddr getBase() const {
+        return this->enclaveBase;
+    }
+
     bool addPages(vaddr dest, void *src, size_t len);
     bool addPages(vaddr dest, void *src, size_t len, bool writable, bool executable, bool isTCS);
     EnclaveThreadHandle *createThread(vaddr entry);
     void makeHeap(vaddr base, size_t len);
-};
-
-
-struct EnclaveSegment {
-    size_t fileOffset;
-    void *data;
 };
 
 #endif
