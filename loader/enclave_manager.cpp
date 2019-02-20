@@ -132,6 +132,10 @@ vaddr EnclaveManager::allocate(size_t len)
     }
 
     size_t last_len = this->enclaveBase + this->enclaveMemoryLen - prev;
-
-    return last_len > len ? prev : (this->enclaveBase + this->enclaveMemoryLen);
+    
+    if (last_len < len) {
+        console->error("Not enough space for 0x{:x}", len);
+        exit(-1);
+    }
+    return prev;
 }
