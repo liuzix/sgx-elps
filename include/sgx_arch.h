@@ -109,4 +109,19 @@ typedef struct _sec_info_t
    uint64_t          reserved[7];
 } sec_info_t;
 
+typedef struct _tcs_t
+{
+    uint64_t state;
+	uint64_t flags;
+	uint64_t ossa;
+	uint32_t cssa;
+	uint32_t nssa;
+	uint64_t oentry;
+	uint64_t aep;
+	uint64_t ofsbase;
+	uint64_t ogsbase;
+	uint32_t fslimit;
+	uint32_t gslimit;
+	uint64_t reserved[503];
+} tcs_t;
 #endif

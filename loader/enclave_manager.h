@@ -14,6 +14,7 @@ using vaddr = uint64_t;
 #define PTR_VADDR(x) ((vaddr)x)
 
 #define NUM_SSAFRAME 4
+#define NUM_SSA 2
 
 struct EnclaveThreadHandle {
     vaddr tcs;
@@ -42,6 +43,7 @@ public:
     bool addPages(vaddr dest, void *src, size_t len, bool writable, bool executable, bool isTCS);
     EnclaveThreadHandle *createThread(vaddr entry);
     void makeHeap(vaddr base, size_t len);
+    bool addTCS(vaddr dest);
 };
 
 #endif
