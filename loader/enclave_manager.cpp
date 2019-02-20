@@ -117,3 +117,21 @@ good:
 
 }
 
+vaddr EnclaveManager::allocate(size_t len)
+{
+    if (this->mappings.empty())
+        return this->enclaveBase;
+
+    auto it = this->mappings.begin();
+    vaddr prev = this->enclaveBase;
+
+    for (; it != this->mappings.end(); it++) {
+        if (it->first - prev > len)
+            return prev;
+        prev = it->first + it->second;
+    }
+
+    size_t last_len = this->enclaveBase + this->enclaveMemoryLen - prev;
+
+    return last_len > len ? prev : (this->enclaveBase + this->enclaveMemoryLen);
+}
