@@ -111,6 +111,8 @@ good:
 
         console->trace("Mapping 0x{:x} to 0x{:x} succeeded.", addp.src, addp.addr);
     }
+
+    this->mappings[dest] = len;
     return true;
 
 }
