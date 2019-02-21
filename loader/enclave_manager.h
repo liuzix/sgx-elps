@@ -2,6 +2,7 @@
 #define ENCLAVE_MANAGER_H
 
 #include <map>
+#include <memory>
 #include <stddef.h>
 #include <sgx_arch.h>
 #include <sgx_user.h>
@@ -16,8 +17,12 @@ using vaddr = uint64_t;
 #define NUM_SSAFRAME 4
 #define NUM_SSA 2
 
-struct EnclaveThreadHandle {
+struct EnclaveThread {
+private:
     vaddr tcs;
+    vaddr stacktop;
+public:
+   void run();
 };
 
 class EnclaveManager {
@@ -41,7 +46,7 @@ public:
 
     bool addPages(vaddr dest, void *src, size_t len);
     bool addPages(vaddr dest, void *src, size_t len, bool writable, bool executable, bool isTCS);
-    EnclaveThreadHandle *createThread(vaddr entry);
+    unique_ptr<EnclaveThread> createThread(vaddr entry);
     void makeHeap(vaddr base, size_t len);
     bool addTCS(vaddr entry_addr);
 };
