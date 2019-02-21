@@ -43,7 +43,7 @@ public:
     bool addPages(vaddr dest, void *src, size_t len, bool writable, bool executable, bool isTCS);
     EnclaveThreadHandle *createThread(vaddr entry);
     void makeHeap(vaddr base, size_t len);
-    bool addTCS(vaddr dest);
+    bool addTCS(vaddr entry_addr);
 };
 
 #endif

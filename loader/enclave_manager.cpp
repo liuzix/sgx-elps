@@ -139,3 +139,56 @@ vaddr EnclaveManager::allocate(size_t len)
     }
     return prev;
 }
+
+bool EnclaveManager::addTCS(vaddr entry_addr)
+{
+    size_t thread_len = SGX_PAGE_SIZE * (5 + THREAD_STACK_SIZE +
+                              secs.ssaframesize * NUM_SSA);
+    void *thread_mem = mmap(NULL, thread_len, PROT_READ|PROT_WRITE,
+                            MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
+    if (thread_mem == MAP_FAILED) {
+        console->error("thread_mem mmap failed");
+        exit(-1);
+    }
+    vaddr base = allocate(thread_len);
+    vaddr offset = base - enclaveBase;
+
+    tcs_t *tcs = (tcs_t*)((char*)thread_mem +
+                           SGX_PAGE_SIZE * (2 + THREAD_STACK_SIZE));
+    memset(tcs, 0, SGX_PAGE_SIZE);
+    tcs->ossa = SGX_PAGE_SIZE * (3 + THREAD_STACK_SIZE) + offset;
+    tcs->nssa = NUM_SSA;
+    tcs->oentry = entry_addr;
+    tcs->ofsbase = offset + thread_len - SGX_PAGE_SIZE;
+    tcs->ogsbase = tcs->ofsbase;
+    tcs->fslimit = 0xfff;
+    tcs->gslimit = 0xfff;
+
+    enclave_tls *tls = (enclave_tls*)((char*)thread_mem +
+                                       thread_len - SGX_PAGE_SIZE);
+    tls->enclave_size = enclaveMemoryLen;
+    tls->tcs_offset = offset + SGX_PAGE_SIZE * (2 + THREAD_STACK_SIZE);
+    tls->initial_stack_offset = offset + SGX_PAGE_SIZE;
+    tls->ssa = (void*)(base + SGX_PAGE_SIZE * (3 + THREAD_STACK_SIZE));
+    tls->stack = (void*)(base + SGX_PAGE_SIZE);
+
+    size_t tmp = SGX_PAGE_SIZE * (2 + THREAD_STACK_SIZE);
+    if (!addPages(base, thread_mem, tmp)) {
+        console->error("Adding pages before TCS failed");
+        exit(-1);
+    }
+    if (!addPages(base + tmp, (char*)thread_mem + tmp, SGX_PAGE_SIZE,
+                  true, true, true)) {
+        console->error("Adding TCS page failed");
+        exit(-1);
+    }
+    tmp += SGX_PAGE_SIZE;
+    if (!addPages(base + tmp, (char*)thread_mem + tmp, thread_len - tmp)) {
+        console->error("Adding pages after TCS failed");
+        exit(-1);
+    }
+    
+    munmap(thread_mem, thread_len);
+    console->trace("Adding tcs succeed!");
+    return true;
+}

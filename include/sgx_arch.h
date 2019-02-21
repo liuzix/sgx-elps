@@ -76,6 +76,8 @@ typedef uint64_t si_flags_t;
 #define SI_MASK_TCS                 (SI_FLAG_PT_MASK)
 #define SI_MASK_MEM_ATTRIBUTE       (0x7)
 
+#define THREAD_STACK_SIZE 2
+
 /*SECS data structure*/
 typedef struct _secs_t
 {
@@ -109,6 +111,7 @@ typedef struct _sec_info_t
    uint64_t          reserved[7];
 } sec_info_t;
 
+/* TCS data structure */
 typedef struct _tcs_t
 {
     uint64_t state;
@@ -117,11 +120,19 @@ typedef struct _tcs_t
 	uint32_t cssa;
 	uint32_t nssa;
 	uint64_t oentry;
-	uint64_t aep;
+    uint64_t aep;
 	uint64_t ofsbase;
 	uint64_t ogsbase;
 	uint32_t fslimit;
 	uint32_t gslimit;
 	uint64_t reserved[503];
 } tcs_t;
+
+typedef struct {
+    uint64_t enclave_size;
+    uint64_t tcs_offset;
+    uint64_t initial_stack_offset;
+    void*   ssa;
+    void*   stack;
+} enclave_tls;
 #endif
