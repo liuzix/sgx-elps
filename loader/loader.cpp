@@ -7,6 +7,7 @@
 #include <fstream>
 #include <sys/mman.h>
 #include <elfio/elfio.hpp>
+#include "enclave_manager.h"
 
 using namespace ELFIO;
 
@@ -39,10 +40,11 @@ int load_static(const char *filename)
 
 	Elf_Half seg_num = reader.segments.size();
 
+	auto enclaveManager = new EnclaveManager((vaddr)NULL, 0x80000);
+
 	for (i = 0; i < seg_num; i++) {
 		const segment* pseg = reader.segments[i];
 
-		std::cout << i << std::endl;
 		switch (pseg->get_type()) {
 		case PT_DYNAMIC:
 			//TODO: dyn
@@ -70,21 +72,18 @@ int load_static(const char *filename)
 			}
 			/* Copy the segment data */
 			memcpy(base, pseg->get_data(), p_memsz);
+#ifdef __DEBUG__
 			std::ofstream f;
 			f.open("dump.data", std::ios::out|std::ios::binary|std::ios::app);
 			f.write((const char *)base, p_memsz);
 			f.close();
+#endif
 			/* Fill unused memory with 0*/
 
 			if (allocend <= dataend)
 				goto do_map;
 			unsigned long zero, zeroend, zeropage;
-/*
-			zero = (unsigned long)base + (unsigned long)dataend;
-			zeroend = ((unsigned long)base + (unsigned long)allocend
-				  + pageshift) & pagemask;
-			zeropage = ((unsigned long)zero + pageshift) & pagemask;
-*/
+
 			zero = (unsigned long)base + p_filesz;
 			zeroend = ((unsigned long)base + (unsigned long)p_memsz +
 				   pageshift) & pagemask;
@@ -92,17 +91,18 @@ int load_static(const char *filename)
 
 			if (zeroend < zeropage)
 				zeropage = zeroend;
-
+#ifdef __DEBUG_
 			std::cout << "zeropage: " << std::hex << zeropage << std::endl;
 			std::cout << "zeroend: " << std::hex << zeroend << std::endl;
 			std::cout << "dataend: " << std::hex << dataend << std::endl;
 			std::cout << "memsz: " << std::hex << p_memsz << std::endl;
 			std::cout << "base: " << std::hex <<(unsigned long)base << std::endl;
 			std::cout << "zero: " << std::hex << zero << std::endl;
+#endif
+
 			if (zeropage > zero)
 				memset((void *) zero, 0, zeropage - zero);
 
-			std::cout << "memeset 0" << std::endl;
 			if (zeroend <= zeropage)
 				goto do_map;
 
@@ -114,14 +114,15 @@ int load_static(const char *filename)
 			}
 			/* Add pages to SGX*/
 do_map:
+			mprotect(base, p_memsz, prot);
+#ifdef __DEBUG__
 			f.open("padded_dump.data", std::ios::out|std::ios::binary|std::ios::app);
 			f.write((const char *)base, p_memsz);
 			f.close();
-			break;
-/*
-			auto enclaveManager = new EnclaveManager(NULL, 0x80000);
+#endif
 			enclaveManager->addPages(p_vaddr, base, p_memsz);
-*/
+
+			break;
 		}
 	}
 
@@ -129,7 +130,7 @@ out:
 	return ret;
 }
 
-#ifdef __DEBUG_
+#ifdef __DEBUG__
 int main(int argc, char **argv)
 {
 	if (argc < 2) {

@@ -9,6 +9,7 @@
 using namespace std;
 using namespace ELFIO;
 
+extern int load_static(const char *filename);
 auto console = spdlog::stdout_color_mt("console");
 
 void loadMain(const string &filename)
@@ -45,7 +46,10 @@ int main(int argc, char **argv)
     console->info("Welcome to the Loader");
     console->info("Start loading binary file: {}", argv[1]);
 
-    loadMain(argv[1]);
+    //loadMain(argv[1]);
+
+    load_static(argv[1]);
+
     return 0;
 }
 
