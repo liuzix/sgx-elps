@@ -9,7 +9,7 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include "enclave_manager.h"
-
+#include <memory>
 using namespace ELFIO;
 #define PRESET_PAGESIZE (1 << 12)
 
@@ -27,15 +27,15 @@ using namespace ELFIO;
 unsigned long pagemask  = ~(PRESET_PAGESIZE - 1);
 unsigned long pageshift = PRESET_PAGESIZE - 1;
 
-int load_static(const char *filename)
+std::shared_ptr<EnclaveManager> load_static(const char *filename)
 {
 	elfio reader;
-	int ret, i;
+	int i;
 
 	if ( !reader.load( filename ) ) {
 		std::cout << "Can't find or process ELF file "
 			  << filename << std::endl;
-		return 2;
+		return nullptr;
 	}
 
 	Elf_Half seg_num = reader.segments.size();
@@ -64,7 +64,7 @@ int load_static(const char *filename)
 			void *t;
 
 			if (enclaveManager == nullptr)
-				enclaveManager = new EnclaveManager(p_vaddr - 0x1000, 0x800000000);
+				enclaveManager = new EnclaveManager(p_vaddr, 0x400000);
 			if (p_vaddr < enclaveManager->getBase()) {
 				cout << "Bad base address. Base: " << std::hex << enclaveManager->getBase() << ", vaddr: "
 				     << std::hex << p_vaddr << endl;
@@ -73,7 +73,7 @@ int load_static(const char *filename)
 			base = mmap(NULL, p_memsz, PROT_READ | PROT_WRITE,
 				    MAP_PRIVATE | MAP_ANONYMOUS, -1, mapoff);
 			if (IS_ERR_P(base)) {
-				ret = errno;
+				enclaveManager = nullptr;
 				goto out;
 			}
 			/* Copy the segment data */
@@ -115,7 +115,7 @@ int load_static(const char *filename)
 			t = mmap((void *)zeropage, zeroend - zeropage,
 				prot, MAP_PRIVATE|MAP_ANONYMOUS|MAP_FIXED, -1, 0);
 			if (IS_ERR_P(t)) {
-				ret = errno;
+				enclaveManager = nullptr;
 				goto out;
 			}
 			/* Add pages to SGX*/
@@ -133,7 +133,7 @@ do_map:
 	}
 
 out:
-	return ret;
+	return std::shared_ptr<EnclaveManager>(enclaveManager);
 }
 
 #ifdef __DEBUG__

@@ -3,13 +3,13 @@
 #include <elfio/elfio.hpp>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
-
+#include <memory>
 #include "enclave_manager.h"
 
 using namespace std;
 using namespace ELFIO;
 
-extern int load_static(const char *filename);
+extern std::shared_ptr<EnclaveManager> load_static(const char *filename);
 auto console = spdlog::stdout_color_mt("console");
 
 void loadMain(const string &filename)
