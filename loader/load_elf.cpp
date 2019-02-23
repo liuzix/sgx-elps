@@ -8,10 +8,14 @@
 #include <unistd.h>
 
 #include <elfio/elfio.hpp>
-#include <spdlog/sinks/stdout_color_sinks.h>
-#include <spdlog/spdlog.h>
+#include <logging.h>
 
+#include "load_elf.h"
 #include "enclave_manager.h"
+
+#define LOAD_ELF_DUMP
+
+using namespace std;
 using namespace ELFIO;
 
 #define PRESET_PAGESIZE (1 << 12)
@@ -29,18 +33,32 @@ using namespace ELFIO;
 const unsigned long pagemask = ~(PRESET_PAGESIZE - 1);
 const unsigned long pageshift = PRESET_PAGESIZE - 1;
 
-std::shared_ptr<EnclaveManager> load_static(const char *filename) {
+static elfio elfReadAndCheck(const string &filename) {
     elfio reader;
-    int i;
 
     if (!reader.load(filename)) {
-        std::cout << "Can't find or process ELF file " << filename << std::endl;
-        return nullptr;
+        console->error("Unable to load {}", filename);
+        exit(-1);
     }
 
-    Elf_Half seg_num = reader.segments.size();
+    if (reader.get_class() != ELFCLASS64 || reader.get_machine() != EM_X86_64) {
+        console->error("Unsupported architecture");
+        exit(-1);
+    }
 
-    EnclaveManager *enclaveManager = nullptr;
+    return reader;
+}
+
+shared_ptr<EnclaveManager> load_one(const char *filename) {
+    return load_static(filename);
+}
+
+shared_ptr<EnclaveManager> load_static(const char *filename) {
+    elfio reader = elfReadAndCheck(filename);
+    Elf_Half seg_num = reader.segments.size();
+    shared_ptr<EnclaveManager> enclaveManager = nullptr;
+    
+    int i;
     for (i = 0; i < seg_num; i++) {
         const segment *pseg = reader.segments[i];
 
@@ -63,12 +81,12 @@ std::shared_ptr<EnclaveManager> load_static(const char *filename) {
             Elf64_Addr dataend = p_vaddr + p_filesz;
             void *t;
 
-            if (enclaveManager == nullptr)
-                enclaveManager = new EnclaveManager(p_vaddr, 0x400000);
+            if (!enclaveManager)
+                enclaveManager = make_shared<EnclaveManager>(p_vaddr, 0x400000);
+
             if (p_vaddr < enclaveManager->getBase()) {
-                cout << "Bad base address. Base: " << std::hex
-                     << enclaveManager->getBase() << ", vaddr: " << std::hex
-                     << p_vaddr << endl;
+                console->critical("Bad base address 0x{:x}, first load 0x{:x}",
+                                  enclaveManager->getBase(), p_vaddr);
                 goto out;
             }
             base = mmap(NULL, p_memsz, PROT_READ | PROT_WRITE,
@@ -79,7 +97,7 @@ std::shared_ptr<EnclaveManager> load_static(const char *filename) {
             }
             /* Copy the segment data */
             memcpy(base, pseg->get_data(), p_memsz);
-#ifdef __DEBUG__
+#ifdef LOAD_ELF_DUMP
             std::ofstream f;
             f.open("dump.data",
                    std::ios::out | std::ios::binary | std::ios::app);
@@ -100,7 +118,8 @@ std::shared_ptr<EnclaveManager> load_static(const char *filename) {
 
             if (zeroend < zeropage)
                 zeropage = zeroend;
-#ifdef __DEBUG_
+
+            // TODO: these should be console->trace
             std::cout << "zeropage: " << std::hex << zeropage << std::endl;
             std::cout << "zeroend: " << std::hex << zeroend << std::endl;
             std::cout << "dataend: " << std::hex << dataend << std::endl;
@@ -108,7 +127,6 @@ std::shared_ptr<EnclaveManager> load_static(const char *filename) {
             std::cout << "base: " << std::hex << (unsigned long)base
                       << std::endl;
             std::cout << "zero: " << std::hex << zero << std::endl;
-#endif
 
             if (zeropage > zero)
                 memset((void *)zero, 0, zeropage - zero);
@@ -124,13 +142,16 @@ std::shared_ptr<EnclaveManager> load_static(const char *filename) {
             }
             /* Add pages to SGX*/
         do_map:
-            mprotect(base, p_memsz, prot);
-#ifdef __DEBUG__
+            /* not necessary */
+            //mprotect(base, p_memsz, prot);
+
+#ifdef LOAD_ELF_DUMP
             f.open("padded_dump.data",
                    std::ios::out | std::ios::binary | std::ios::app);
             f.write((const char *)base, p_memsz);
             f.close();
 #endif
+            // TODO: might want to set protection according to load segments
             enclaveManager->addPages(p_vaddr, base, p_memsz);
 
             break;
@@ -138,16 +159,5 @@ std::shared_ptr<EnclaveManager> load_static(const char *filename) {
     }
 
 out:
-    return std::shared_ptr<EnclaveManager>(enclaveManager);
+    return enclaveManager;
 }
-
-#ifdef __DEBUG__
-int main(int argc, char **argv) {
-    if (argc < 2) {
-        std::cout << "usage: ./a.out [bianry_file]" << std::endl;
-        return -1;
-    }
-    load_static(argv[1]);
-    return 0;
-}
-#endif

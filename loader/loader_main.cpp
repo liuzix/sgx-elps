@@ -1,15 +1,18 @@
 #include "enclave_manager.h"
-#include <elfio/elfio.hpp>
+
 #include <iostream>
 #include <memory>
+#include <string>
+
+#include <elfio/elfio.hpp>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
-#include <string>
+
+#include "load_elf.h"
 
 using namespace std;
 using namespace ELFIO;
 
-extern std::shared_ptr<EnclaveManager> load_static(const char *filename);
 auto console = spdlog::stdout_color_mt("console");
 
 void loadMain(const string &filename) {
@@ -43,7 +46,7 @@ int main(int argc, char **argv) {
 
     // loadMain(argv[1]);
 
-    load_static(argv[1]);
+    load_one(argv[1]);
 
     return 0;
 }
