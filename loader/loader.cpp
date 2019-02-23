@@ -2,15 +2,15 @@
 #include <cerrno>
 #include <cstdlib>
 #include <unistd.h>
-
 #include <iostream>
 #include <fstream>
 #include <sys/mman.h>
 #include <elfio/elfio.hpp>
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 #include "enclave_manager.h"
 
 using namespace ELFIO;
-
 #define PRESET_PAGESIZE (1 << 12)
 
 #ifndef O_CLOEXEC
@@ -40,8 +40,7 @@ int load_static(const char *filename)
 
 	Elf_Half seg_num = reader.segments.size();
 
-	auto enclaveManager = new EnclaveManager((vaddr)NULL, 0x80000);
-
+	EnclaveManager *enclaveManager = nullptr;
 	for (i = 0; i < seg_num; i++) {
 		const segment* pseg = reader.segments[i];
 
@@ -64,6 +63,13 @@ int load_static(const char *filename)
 			Elf64_Addr dataend = p_vaddr + p_filesz;
 			void *t;
 
+			if (enclaveManager == nullptr)
+				enclaveManager = new EnclaveManager(p_vaddr - 0x1000, 0x800000000);
+			if (p_vaddr < enclaveManager->getBase()) {
+				cout << "Bad base address. Base: " << std::hex << enclaveManager->getBase() << ", vaddr: "
+				     << std::hex << p_vaddr << endl;
+				goto out;
+			}
 			base = mmap(NULL, p_memsz, PROT_READ | PROT_WRITE,
 				    MAP_PRIVATE | MAP_ANONYMOUS, -1, mapoff);
 			if (IS_ERR_P(base)) {
