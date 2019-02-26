@@ -9,21 +9,14 @@
 
 using namespace std;
 
-using vaddr = uint64_t;
-#define VADDR_VOIDP(x) ((void *)x)
-#define VADDR_PTR(x, t) ((t *)x)
-#define PTR_VADDR(x) ((vaddr)x)
-
 #define NUM_SSAFRAME 4
 #define NUM_SSA 2
 
 struct EnclaveThread {
-  private:
-    vaddr tcs;
-    vaddr stacktop;
+   vaddr entry;
+   vaddr stack;
 
-  public:
-    void run();
+   void run();
 };
 
 class EnclaveManager {
@@ -50,7 +43,6 @@ class EnclaveManager {
                   bool executable, bool isTCS);
     unique_ptr<EnclaveThread> createThread(vaddr entry);
     void makeHeap(vaddr base, size_t len);
-    bool addTCS(vaddr entry_addr);
 };
 
 #endif

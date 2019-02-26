@@ -31,7 +31,7 @@ void loadMain(const string &filename) {
     auto enclaveManager = new EnclaveManager(0x10000000, 0x80000);
     enclaveManager->addPages(0x10000000, (void *)((uint64_t)&loadMain & ~0xFFF),
                              0x1000);
-    enclaveManager->addTCS(enclaveManager->getBase());
+    enclaveManager->createThread(enclaveManager->getBase());
 }
 
 int main(int argc, char **argv) {

@@ -5,6 +5,7 @@
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 
+
 extern std::shared_ptr<spdlog::logger> console;
 
 static int deviceHandle() {
@@ -141,7 +142,7 @@ vaddr EnclaveManager::allocate(size_t len) {
     return prev;
 }
 
-bool EnclaveManager::addTCS(vaddr entry_addr) {
+unique_ptr<EnclaveThread> EnclaveManager::createThread(vaddr entry_addr) {
     size_t thread_len =
         SGX_PAGE_SIZE * (5 + THREAD_STACK_SIZE + secs.ssaframesize * NUM_SSA);
     void *thread_mem = mmap(NULL, thread_len, PROT_READ | PROT_WRITE,
@@ -190,5 +191,10 @@ bool EnclaveManager::addTCS(vaddr entry_addr) {
 
     munmap(thread_mem, thread_len);
     console->trace("Adding tcs succeed!");
-    return true;
+    
+    auto ret = make_unique<EnclaveThread>();
+    ret->entry = entry_addr;
+    ret->stack = (vaddr)tls->stack + THREAD_STACK_SIZE;
+
+    return ret;
 }
