@@ -58,7 +58,7 @@ typedef uint64_t si_flags_t;
 #define SI_MASK_TCS (SI_FLAG_PT_MASK)
 #define SI_MASK_MEM_ATTRIBUTE (0x7)
 
-#define THREAD_STACK_SIZE 2
+#define THREAD_STACK_NUM 2
 
 /*SECS data structure*/
 typedef struct _secs_t {
