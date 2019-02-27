@@ -6,6 +6,8 @@
 #include <sgx_arch.h>
 #include <sgx_user.h>
 #include <stddef.h>
+#include <string>
+#include <cstdint>
 
 using namespace std;
 
@@ -43,6 +45,8 @@ class EnclaveManager {
                   bool executable, bool isTCS);
     unique_ptr<EnclaveThread> createThread(vaddr entry);
     void makeHeap(vaddr base, size_t len);
+    string do_create(uint64_t size);
+    string do_eadd(uint64_t offset, uint64_t flags);
 };
 
 #endif

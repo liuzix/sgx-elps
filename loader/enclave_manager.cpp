@@ -4,6 +4,7 @@
 #include <spdlog/spdlog.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
+#include <picosha2.h>
 
 extern std::shared_ptr<spdlog::logger> console;
 
@@ -197,4 +198,19 @@ unique_ptr<EnclaveThread> EnclaveManager::createThread(vaddr entry_addr) {
     console->trace("Adding tcs succeed!");
 
     return ret;
+}
+
+string EnclaveManager::do_create(uint64_t size) {
+    string tmp = "ECREATE01000";
+    tmp += to_string(size);
+    tmp += "00000000000000000000000000000000000000000000";
+    return picosha2::hash256_hex_string(tmp);
+}
+
+string EnclaveManager::do_eadd(uint64_t offset, uint64_t flags) {
+    string tmp = "EADD0000";
+    tmp += to_string(offset);
+    tmp += to_string(flags);
+    tmp += "0000000000000000000000000000000000000000";
+    return picosha2::hash256_hex_string(tmp);
 }
