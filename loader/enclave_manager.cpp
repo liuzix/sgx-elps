@@ -200,17 +200,34 @@ unique_ptr<EnclaveThread> EnclaveManager::createThread(vaddr entry_addr) {
     return ret;
 }
 
-string EnclaveManager::do_create(uint64_t size) {
-    string tmp = "ECREATE01000";
-    tmp += to_string(size);
-    tmp += "00000000000000000000000000000000000000000000";
-    return picosha2::hash256_hex_string(tmp);
+void HashGenerator::doEcreate(uint64_t size) {
+    char cmd[] = "ECREATE";
+    memcpy(create.cmd, cmd, strlen(cmd) + 1);
+    create.fst = 1;
+    create.size = size;
+    memcpy(create.suffix, "", 44);
 }
 
-string EnclaveManager::do_eadd(uint64_t offset, uint64_t flags) {
-    string tmp = "EADD0000";
-    tmp += to_string(offset);
-    tmp += to_string(flags);
-    tmp += "0000000000000000000000000000000000000000";
-    return picosha2::hash256_hex_string(tmp);
+void HashGenerator::doEadd(uint64_t offset, uint64_t flags) {
+    char cmd[] = "EADD";
+    memcpy(add.cmd, cmd, strlen(cmd) + 1);
+    add.offset = offset;
+    add.flags = flags;
+    memcpy(add.suffix, "", 40);
+}
+
+char *HashGenerator::getDigest(Ecreate create) {
+    char text[sizeof(struct Ecreate)], hash[64];
+    memcpy(text, &create, sizeof(struct Ecreate));
+    string tmp = picosha2::hash256_hex_string(string(text));
+    strcpy(hash, tmp.c_str());
+    return hash;
+}
+
+char *HashGenerator::getDigest(Eadd add) {
+    char text[sizeof(struct Eadd)], hash[64];
+    memcpy(text, &add, sizeof(struct Eadd));
+    string tmp = picosha2::hash256_hex_string(string(text));
+    strcpy(hash, tmp.c_str());
+    return hash;
 }
