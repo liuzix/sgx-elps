@@ -1,7 +1,16 @@
 #include "signature.h"
+#include <openssl/rsa.h>
+#include <openssl/pem.h>
+#include <openssl/ssl.h>
+#include <openssl/bio.h>
+#include <openssl/err.h>
+#include <openssl/sha.h>
+#include <openssl/aes.h>
+#include <openssl/evp.h>
 #include <cstdint>
 #include <cstring>
 #include <ctime>
+#include <string>
 
 #define SIGSTRUCT_RESERVED_SIZE1 84
 #define MASK_INIT_VALUE 0xffffffffffffffff
@@ -193,7 +202,7 @@ int SigstructGenerator::RSASign(RSA *rsa, const unsigned char *Msg,\
     if (EVP_DigestSignFinal(m_RSASignCtx, *EncMsg, EncMsgLen) <= 0) {
         return false;
     }
-    EVP_MD_CTX_cleanup(m_RSASignCtx);
+    EVP_MD_CTX_free(m_RSASignCtx);
     return true;
 }
 

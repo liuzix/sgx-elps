@@ -7,6 +7,8 @@ INCLUDE = -I../deps -I../include
 
 CXXFLAGS = -Wall -Wextra -std=c++17 -g
 CFLAGS = -Wall -Wextra -std=gnu99
+LDFLAGS = -lssl -lcrypto
+
 
 ##=====================================================
 
