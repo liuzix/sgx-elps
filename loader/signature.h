@@ -4,6 +4,7 @@
 #include <sgx_arch.h>
 #include <openssl/sha.h>
 #include <openssl/rsa.h>
+#include <openssl/bn.h>
 #include <string>
 
 using namespace std;
@@ -38,6 +39,7 @@ public:
     void digestFinal();
     sigstruct *getSigstruct();
     RSA *generatePriRSA(string key);
+    RSA *generatePubRSA(string key);
     int RSASign(RSA *rsa, const unsigned char *Msg,\
     size_t MsgLen, unsigned char** EncMsg, size_t* EncMsgLen);
     void base64Encode(unsigned char* buffer,\

@@ -149,8 +149,8 @@ struct sigstruct {
     uint16_t isvprodid;
     uint16_t isvsvn;
     uint8_t reserved4[12];
-    char q1[384];
-    char q2[384];
+    uint8_t q1[384];
+    uint8_t q2[384];
 } __attribute__((packed));
 
 #endif
