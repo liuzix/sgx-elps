@@ -1,4 +1,7 @@
 #include "signature.h"
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <unistd.h>
 #include <openssl/rsa.h>
 #include <openssl/pem.h>
 #include <openssl/ssl.h>
@@ -11,6 +14,9 @@
 #include <cstring>
 #include <ctime>
 #include <string>
+
+#include "aesm.pb.h"
+#include "logging.h"
 
 #define SIGSTRUCT_RESERVED_SIZE1 84
 #define MASK_INIT_VALUE 0xffffffffffffffff
@@ -233,4 +239,91 @@ char* SigstructGenerator::signMsg(string plainText) {
     base64Encode(encMessage, encMessageLength, &base64Text);
     free(encMessage);
     return base64Text;
+}
+
+
+//=======================================================
+// the following code is responsible for getting the 
+// launch token from intel's psw service
+//
+
+
+TokenGetter::TokenGetter(const string &filename)
+{
+    struct sockaddr_un serveraddr = {};
+
+    this->sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (this->sockfd < 0) {
+        console->error("Cannot open socket to aems");
+        exit(-1);
+    }
+    
+    serveraddr.sun_family = AF_UNIX;
+    strcpy(serveraddr.sun_path, filename.c_str());
+
+    if (connect(this->sockfd, (struct sockaddr *)&serveraddr, SUN_LEN(&serveraddr)) < 0) {
+        console->error("Cannot connect to aems {}", strerror(errno));
+        exit(-1);
+    }
+    
+    console->trace("Successfully connected to aems at {}", filename);
+}
+
+string TokenGetter::getToken(const sigstruct *sig)
+{
+    string ret;
+
+    aesm::message::Request request;
+    request.mutable_getlictokenreq()->set_mr_enclave(sig->signature, 384);
+    request.mutable_getlictokenreq()->set_mr_signer(sig->modulus);
+    request.mutable_getlictokenreq()->set_se_attributes(&sig->attributes1, 16);
+    request.mutable_getlictokenreq()->set_timeout(1000);
+    console->debug("Dump protobuf send message: {}", request.DebugString());
+    string sendBuf = request.SerializeAsString();
+    uint32_t sendLen = sendBuf.length();
+    console->trace("aems: sendLen = {}", sendLen);
+    if (write(this->sockfd, &sendLen, 4) != 4) {
+        console->error("Cannot write sendLen to aems");
+        exit(-1);
+    }
+    size_t beginInd = 0;
+    while (beginInd < sendBuf.length()) {
+        ssize_t nbytes = write(this->sockfd, sendBuf.data(), sendBuf.length() - beginInd);
+        if (nbytes <= 0) {
+            console->error("Cannot write to aems socket {}", strerror(errno));
+            exit(-1);
+        }
+        beginInd += nbytes;
+    }
+
+    uint32_t recvLen = 0;
+    if (read(this->sockfd, &recvLen, 4) != 4) {
+        console->error("Cannot read recvLen from aems");
+        exit(-1);
+    }
+    console->trace("aems: recvLen = {}", recvLen);
+    
+    char *recvBuf = new char[recvLen];
+    while (beginInd < recvLen) {
+        ssize_t nbytes = read(this->sockfd, recvBuf + beginInd, recvLen - beginInd); 
+        if (nbytes < 0) {
+            console->error("Cannot write to aems socket {}", strerror(errno));
+            exit(-1);
+        }
+        beginInd += nbytes;
+    }
+
+    aesm::message::Response response;
+    response.ParseFromArray(recvBuf, recvLen);
+    console->debug("Dump protobuf recv message: {}", response.DebugString());
+
+    auto err = response.getlictokenres().errorcode();
+    if (err) {
+        console->error("Cannot get launch token: {}", err);
+        exit(-1);
+    }
+
+    ret = response.getlictokenres().token();
+    return ret;
+
 }

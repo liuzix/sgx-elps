@@ -46,4 +46,13 @@ public:
     void finalize();
 };
 
+class TokenGetter {
+private:
+    int sockfd;
+
+public:
+    TokenGetter(const string &filename);
+    string getToken(const sigstruct *sig);
+};
+
 #endif

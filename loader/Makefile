@@ -7,7 +7,7 @@ INCLUDE = -I../deps -I../include
 
 CXXFLAGS = -Wall -Wextra -std=c++17 -g
 CFLAGS = -Wall -Wextra -std=gnu99
-LDFLAGS = -lssl -lcrypto
+LDFLAGS = -lssl -lcrypto -lprotobuf
 
 
 ##=====================================================
@@ -26,6 +26,7 @@ ifeq ($(SRCDIRS),)
 endif
 
 SOURCES = $(foreach d,$(SRCDIRS),$(wildcard $(addprefix $(d)/*,$(SRCEXTS))))
+SOURCES += aesm.pb.cc
 HEADERS = $(foreach d,$(SRCDIRS),$(wildcard $(addprefix $(d)/*,$(HDREXTS))))
 SRC_CXX = $(filter-out %.c,$(SOURCES))
 OBJS    = $(addsuffix .o, $(basename $(SOURCES)))
@@ -59,8 +60,11 @@ objs:$(OBJS)
 %.o:%.cpp
 	$(COMPILE.cxx) $< -o $@
 
-$(PROGRAM):$(OBJS)
+%.o:%.cc
+	$(COMPILE.cxx) $< -o $@
+
+$(PROGRAM):objs
 	$(CXX) $(OBJS) $(LDFLAGS) -o $@
 
 clean:
-	rm -f $(OBJS) $(DEPS) $(PROGRAM)
+	rm -f $(OBJS) $(DEPS) $(PROGRAM) aesm.pb.*
