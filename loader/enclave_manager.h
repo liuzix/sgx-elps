@@ -20,21 +20,6 @@ struct EnclaveThread {
 
    void run();
 };
-struct Ecreate
-{
-  char cmd[8];
-  uint32_t fst;
-  uint64_t size;
-  char suffix[44];
-};
-
-struct Eadd
-{
-  char cmd[8];
-  uint64_t offset;
-  uint64_t flags;
-  char suffix[40];
-};
 
 class EnclaveManager {
   private:
@@ -63,18 +48,6 @@ class EnclaveManager {
     
 };
 
-class HashGenerator
-{
-private:
-  Ecreate create;
-  Eadd add;
-  /* data */
-public:
-  void doEcreate(uint64_t size);
-  void doEadd(uint64_t offset, uint64_t flags);
-  char *getDigest(Ecreate create);
-  char *getDigest(Eadd add);
-};
 
 
 

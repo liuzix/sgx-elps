@@ -4,7 +4,7 @@
 #include <spdlog/spdlog.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
-#include <picosha2.h>
+
 
 extern std::shared_ptr<spdlog::logger> console;
 
@@ -200,34 +200,4 @@ unique_ptr<EnclaveThread> EnclaveManager::createThread(vaddr entry_addr) {
     return ret;
 }
 
-void HashGenerator::doEcreate(uint64_t size) {
-    char cmd[] = "ECREATE";
-    memcpy(create.cmd, cmd, strlen(cmd) + 1);
-    create.fst = 1;
-    create.size = size;
-    memcpy(create.suffix, "", 44);
-}
 
-void HashGenerator::doEadd(uint64_t offset, uint64_t flags) {
-    char cmd[] = "EADD";
-    memcpy(add.cmd, cmd, strlen(cmd) + 1);
-    add.offset = offset;
-    add.flags = flags;
-    memcpy(add.suffix, "", 40);
-}
-
-char *HashGenerator::getDigest(Ecreate create) {
-    char text[sizeof(struct Ecreate)], hash[64];
-    memcpy(text, &create, sizeof(struct Ecreate));
-    string tmp = picosha2::hash256_hex_string(string(text));
-    strcpy(hash, tmp.c_str());
-    return hash;
-}
-
-char *HashGenerator::getDigest(Eadd add) {
-    char text[sizeof(struct Eadd)], hash[64];
-    memcpy(text, &add, sizeof(struct Eadd));
-    string tmp = picosha2::hash256_hex_string(string(text));
-    strcpy(hash, tmp.c_str());
-    return hash;
-}

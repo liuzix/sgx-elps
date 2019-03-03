@@ -76,7 +76,7 @@ typedef struct _secs_t {
     uint16_t isvprodid;
     uint16_t isvsvn;
     uint8_t reserved4[SGX_SECS_RESERVED4_SIZE];
-} secs_t;
+} __attribute__((packed)) secs_t;
 
 typedef enum {
     ENCLAVE_PAGE_READ =
@@ -95,7 +95,7 @@ typedef enum {
 typedef struct _sec_info_t {
     si_flags_t flags;
     uint64_t reserved[7];
-} sec_info_t;
+} __attribute__((packed)) sec_info_t;
 
 /* TCS data structure */
 typedef struct _tcs_t {
@@ -111,7 +111,7 @@ typedef struct _tcs_t {
     uint32_t fslimit;
     uint32_t gslimit;
     uint64_t reserved[503];
-} tcs_t;
+} __attribute__((packed)) tcs_t;
 
 typedef struct {
     uint64_t enclave_size;
@@ -120,4 +120,37 @@ typedef struct {
     void *ssa;
     void *stack;
 } enclave_tls;
+
+struct sigstruct {
+    uint64_t header11;
+    uint64_t header12;
+    uint32_t vendor;
+    uint32_t date;
+    uint64_t header21;
+    uint64_t header22;
+    uint32_t swdefined;
+    uint8_t reserved1[84];
+    char modulus[384];
+    uint32_t exponent;
+    char signature[384];
+    uint32_t miscselect;
+    uint32_t micsmask;
+    uint32_t reserved2;
+    uint64_t isvfamilyid1;
+    uint64_t isvfamilyid2;
+    uint64_t attributes1;
+    uint64_t attributes2;
+    uint64_t attributemask1;
+    uint64_t attributemask2;
+    unsigned char enclavehash[32];
+    uint8_t reserved3[16];
+    uint64_t isvextprodid1;
+    uint64_t isvextprodid2;
+    uint16_t isvprodid;
+    uint16_t isvsvn;
+    uint8_t reserved4[12];
+    char q1[384];
+    char q2[384];
+} __attribute__((packed));
+
 #endif
