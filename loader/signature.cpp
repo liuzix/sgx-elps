@@ -1,4 +1,6 @@
 #include "signature.h"
+#include <fstream>
+#include <sstream>
 #include <cstdint>
 #include <cstring>
 #include <ctime>
@@ -27,44 +29,49 @@ using namespace std;
 SigstructGenerator::SigstructGenerator(secs_t *secs) {
     scs = secs;
     SHA256_Init(&c);
-    privateKey =
-        "-----BEGIN RSA PRIVATE KEY-----\n"
-        "MIIEpQIBAAKCAQEAxAswxiZfE/mHVI2nhdKJ1UAoTGRNXkExrs5prQJ7rATiKWM9\n"
-        "L+s/df7nsfShZudLmpzlBQPUxi38ucVpvC5hn5D9whBuk2IVWF+yh3GEx1/9/iZU\n"
-        "EdntrNRGIku4TGKrOAu9aYp+6o2HCkqw6v1ryie3xvsFbUQBh/ngwG8p53BlUeTO\n"
-        "5lDCHCmlBK9FTTZwPs4856sa9VC+GZ7fEXW3WRJu94mKuFrtyWLNt60fu2izqd66\n"
-        "IVNxm1rrDbOyEIind2hRaUJm3bv6cCoHLsr0aw9PK6VHqrRh9SaKjUH3U0nBEcAX\n"
-        "m4OfavPQv4SuGdAiormBscWDNU1V+76A96hndQIDAQABAoIBAFF0TNmny81i2kXZ\n"
-        "bYd+yOIf/B5xdmv5LolxHhtScswwYz/LCftFBWMjfGVGPWGiLJmbItUImHmXVfBi\n"
-        "A+K6arl/5s+hQDBginnjmSwJkJ++VKwqhLe+ErDCqjlJuNOUE4v/5L1bXAxcrYUr\n"
-        "L4MTtJuUERnN5p1VqkUzH50VExYjtNcrU8v4pvU+fz+rmYSuDb8Hge7TOOKN9ven\n"
-        "iDCnU1Wb2pz79Q5fuoblbmeRu9ivgnTSBVbd05o0b+NeU4htmSgyom8u7UrIdUno\n"
-        "s8jsd1ekrYbcCZSzOsw0eAxtGdKwjuljRyeOb5oa21YLhSEIKBLNvTGNaYqKr1PH\n"
-        "Ut15LYECgYEA5q4jlxXs+dyiijNOZplGtZB2XxWNFUWLFW7gUyF0ZI2umJlxPWNi\n"
-        "ftXpfe2JcvigVnfnYpyGHfi9hFu3ZHIvGyJetKx4IDrs30+AwcI03BksCmdl4CG+\n"
-        "rqXtmcEauBZ+9Y+1u/8CgCPRKUScw5dXJn3W9snjbn6UBXPDBEGkrdECgYEA2Y/N\n"
-        "rNlkYAtHqNVzXFcq4PjdntjbSzivoGDmrFoOtguvMmY7Lk3f2YT4YzQXfwJ+GeDK\n"
-        "QFOaXeHnmJmFZ5jPpwPnzIRedMyvZ16UMjYTHLzM3Q4D3uNf8OAHlLY37DmhNPks\n"
-        "VFOqjXnXmUaIN7VvVCaippcU83O6N+UpssfDlGUCgYEAswT5gcr2OYJMccwXT/Ar\n"
-        "u8P82RW0g4mQwnVliZ4w4chCcxLBms6CJcSEi8HIJX1lkTVEUHcAbkoXaZxz2nPy\n"
-        "srAdp0EhiIGySis81SGOPDEcyIYtvZ7yiD8lAWmm/q4WoSOB+f+RRTiGnewtbG0K\n"
-        "qUiHhsZuxdVdsk2ATtFSp8ECgYEAirkC8D/9nLAUlTblQ+/gy2pkBbFIwwH2GlEv\n"
-        "RJ532uRAZeaBvdix70S2DKtegAHa3i1TSQkF2O7+eXMKeTAa1+fJmcKdZ+RLw6Gu\n"
-        "5QVN0nkgN6OEHE7nEfQHYW9+4QUuIVTwSyS+D0+thXJP0RXDUuj/tTGIjmMwTgu1\n"
-        "NuXhc3ECgYEA0AZdDL9g0mwxQTzitA3YTAuVM/nvvzy9MqcPZO8uiA7PKIYQ9ip/\n"
-        "jfQSVhP2Q6hCyhwKNUUwBxhqQSlNgILdia3OExj95+g+pCfUIhl0bfZGCLEMAH+5\n"
-        "fmRT8xhUIqmVdaMLeVFXtmcmhF082zSeq+E8dw1c5OvxuZ4TVkonHrM=\n"
-        "-----END RSA PRIVATE KEY-----\n\0";
-    publicKey =
-        "-----BEGIN PUBLIC KEY-----\n"
-        "AAAAB3NzaC1yc2EAAAADAQABAAABAQDECzDGJl8T+YdUjaeF0onV\n"
-        "QChMZE1eQTGuzmmtAnusBOIpYz0v6z91/uex9KFm50uanOUFA9TGLfy5xWm8LmGfk\n"
-        "P3CEG6TYhVYX7KHcYTHX/3+JlQR2e2s1EYiS7hMYqs4C71pin7qjYcKSrDq/WvKJ7f\n"
-        "G+wVtRAGH+eDAbynncGVR5M7mUMIcKaUEr0VNNnA+zjznqxr1UL4Znt8RdbdZEm73iY\n"
-        "q4Wu3JYs23rR+7aLOp3rohU3GbWusNs7IQiKd3aFFpQmbdu/"
-        "pwKgcuyvRrD08rpUeqtGH\n"
-        "1JoqNQfdTScERwBebg59q89C/hK4Z0CKiuYGxxYM1TVX7voD3qGd1\n"
-        "-----END PUBLIC KEY-----\n";
+    this->readPublicKeyFile("publickey");
+    this->readPrivateKeyFile("privatekey");
+    if (privateKey == "" || publicKey == "") {
+        privateKey =
+            "-----BEGIN RSA PRIVATE KEY-----\n"
+            "MIIEpQIBAAKCAQEAxAswxiZfE/mHVI2nhdKJ1UAoTGRNXkExrs5prQJ7rATiKWM9\n"
+            "L+s/df7nsfShZudLmpzlBQPUxi38ucVpvC5hn5D9whBuk2IVWF+yh3GEx1/9/iZU\n"
+            "EdntrNRGIku4TGKrOAu9aYp+6o2HCkqw6v1ryie3xvsFbUQBh/ngwG8p53BlUeTO\n"
+            "5lDCHCmlBK9FTTZwPs4856sa9VC+GZ7fEXW3WRJu94mKuFrtyWLNt60fu2izqd66\n"
+            "IVNxm1rrDbOyEIind2hRaUJm3bv6cCoHLsr0aw9PK6VHqrRh9SaKjUH3U0nBEcAX\n"
+            "m4OfavPQv4SuGdAiormBscWDNU1V+76A96hndQIDAQABAoIBAFF0TNmny81i2kXZ\n"
+            "bYd+yOIf/B5xdmv5LolxHhtScswwYz/LCftFBWMjfGVGPWGiLJmbItUImHmXVfBi\n"
+            "A+K6arl/5s+hQDBginnjmSwJkJ++VKwqhLe+ErDCqjlJuNOUE4v/5L1bXAxcrYUr\n"
+            "L4MTtJuUERnN5p1VqkUzH50VExYjtNcrU8v4pvU+fz+rmYSuDb8Hge7TOOKN9ven\n"
+            "iDCnU1Wb2pz79Q5fuoblbmeRu9ivgnTSBVbd05o0b+NeU4htmSgyom8u7UrIdUno\n"
+            "s8jsd1ekrYbcCZSzOsw0eAxtGdKwjuljRyeOb5oa21YLhSEIKBLNvTGNaYqKr1PH\n"
+            "Ut15LYECgYEA5q4jlxXs+dyiijNOZplGtZB2XxWNFUWLFW7gUyF0ZI2umJlxPWNi\n"
+            "ftXpfe2JcvigVnfnYpyGHfi9hFu3ZHIvGyJetKx4IDrs30+AwcI03BksCmdl4CG+\n"
+            "rqXtmcEauBZ+9Y+1u/8CgCPRKUScw5dXJn3W9snjbn6UBXPDBEGkrdECgYEA2Y/N\n"
+            "rNlkYAtHqNVzXFcq4PjdntjbSzivoGDmrFoOtguvMmY7Lk3f2YT4YzQXfwJ+GeDK\n"
+            "QFOaXeHnmJmFZ5jPpwPnzIRedMyvZ16UMjYTHLzM3Q4D3uNf8OAHlLY37DmhNPks\n"
+            "VFOqjXnXmUaIN7VvVCaippcU83O6N+UpssfDlGUCgYEAswT5gcr2OYJMccwXT/Ar\n"
+            "u8P82RW0g4mQwnVliZ4w4chCcxLBms6CJcSEi8HIJX1lkTVEUHcAbkoXaZxz2nPy\n"
+            "srAdp0EhiIGySis81SGOPDEcyIYtvZ7yiD8lAWmm/q4WoSOB+f+RRTiGnewtbG0K\n"
+            "qUiHhsZuxdVdsk2ATtFSp8ECgYEAirkC8D/9nLAUlTblQ+/gy2pkBbFIwwH2GlEv\n"
+            "RJ532uRAZeaBvdix70S2DKtegAHa3i1TSQkF2O7+eXMKeTAa1+fJmcKdZ+RLw6Gu\n"
+            "5QVN0nkgN6OEHE7nEfQHYW9+4QUuIVTwSyS+D0+thXJP0RXDUuj/tTGIjmMwTgu1\n"
+            "NuXhc3ECgYEA0AZdDL9g0mwxQTzitA3YTAuVM/nvvzy9MqcPZO8uiA7PKIYQ9ip/\n"
+            "jfQSVhP2Q6hCyhwKNUUwBxhqQSlNgILdia3OExj95+g+pCfUIhl0bfZGCLEMAH+5\n"
+            "fmRT8xhUIqmVdaMLeVFXtmcmhF082zSeq+E8dw1c5OvxuZ4TVkonHrM=\n"
+            "-----END RSA PRIVATE KEY-----\n\0";
+        publicKey =
+            "-----BEGIN PUBLIC KEY-----\n"
+            "AAAAB3NzaC1yc2EAAAADAQABAAABAQDECzDGJl8T+YdUjaeF0onV\n"
+            "QChMZE1eQTGuzmmtAnusBOIpYz0v6z91/uex9KFm50uanOUFA9TGLfy5xWm8LmGfk\n"
+            "P3CEG6TYhVYX7KHcYTHX/3+JlQR2e2s1EYiS7hMYqs4C71pin7qjYcKSrDq/WvKJ7f\n"
+            "G+wVtRAGH+eDAbynncGVR5M7mUMIcKaUEr0VNNnA+zjznqxr1UL4Znt8RdbdZEm73iY\n"
+            "q4Wu3JYs23rR+7aLOp3rohU3GbWusNs7IQiKd3aFFpQmbdu/"
+            "pwKgcuyvRrD08rpUeqtGH\n"
+            "1JoqNQfdTScERwBebg59q89C/hK4Z0CKiuYGxxYM1TVX7voD3qGd1\n"
+            "-----END PUBLIC KEY-----\n";
+    }
+
 }
 void SigstructGenerator::doEcreate(uint64_t size) {
     Ecreate ecreate = {};
@@ -91,7 +98,7 @@ void SigstructGenerator::digestFinal() { SHA256_Final(m, &c); }
 sigstruct *SigstructGenerator::getSigstruct() {
     time_t now = time(0);
     tm *ltm = localtime(&now);
-    char *signBuffer = (char *)malloc(128 * sizeof(char) * 2);
+    char *signBuffer = (char *)malloc(4096);
     char *p = signBuffer;
     RSA *pub = generatePubRSA(publicKey);
     const BIGNUM *modulusBN = BN_new();
@@ -184,11 +191,14 @@ sigstruct *SigstructGenerator::getSigstruct() {
     memcpy(p, &sstruct.isvsvn, sizeof(uint16_t));
     p += sizeof(uint16_t);
     memcpy(p, sstruct.reserved4, sizeof(uint8_t) * 12);
+    p += sizeof(uint8_t) * 12;
 
-
-    string plainTxt(signBuffer);
+    string plainTxt(signBuffer, p);
     string signature = signMsg(plainTxt);
-    BN_lebin2bn((unsigned char *)signature.data(), signature.length(), signatureBN);
+    assert(signature.length() == 384);
+    if (!(signatureBN = BN_lebin2bn((unsigned char *)signature.data(), signature.length(), NULL))) {
+        console->critical("BN_lebin2bn failed: {}", ERR_error_string(ERR_get_error(), NULL));
+    }
 
     BN_add(tmp1, signatureBN, modulusBN);
     BN_div(q1BN, tmp2, tmp1, modulusBN, ctx);
@@ -204,6 +214,7 @@ sigstruct *SigstructGenerator::getSigstruct() {
 
     //modulus = BN_bn2hex(modulusBN);
     auto *modulus = new unsigned char[BN_num_bytes(modulusBN)];
+    assert(BN_num_bytes(modulusBN) == 384);
     BN_bn2lebinpad(modulusBN, modulus, BN_num_bytes(modulusBN));
 
     memcpy(sstruct.modulus, modulus, sizeof(uint8_t) * 384);
@@ -276,6 +287,25 @@ string SigstructGenerator::signMsg(string plainText) {
     return ret;
 }
 
+static string readFileToString(const string &filename) {
+    ifstream ins(filename);
+    if (!ins.is_open()) {
+        console->critical("Cannot open key file {}", filename);
+        return "";
+    }
+    stringstream buffer;
+    buffer << ins.rdbuf();
+    return buffer.str();
+}
+
+void SigstructGenerator::readPrivateKeyFile(const string &filename) {
+    this->privateKey = readFileToString(filename);
+}
+
+void SigstructGenerator::readPublicKeyFile(const string &filename) {
+    this->publicKey = readFileToString(filename);
+}
+
 //=======================================================
 // the following code is responsible for getting the
 // launch token from intel's psw service
@@ -307,7 +337,7 @@ string TokenGetter::getToken(const sigstruct *sig) {
 
     aesm::message::Request request;
     request.mutable_getlictokenreq()->set_mr_enclave(sig->signature, 384);
-    request.mutable_getlictokenreq()->set_mr_signer(sig->modulus);
+    request.mutable_getlictokenreq()->set_mr_signer(sig->modulus, 384);
     request.mutable_getlictokenreq()->set_se_attributes(&sig->attributes1, 16);
     request.mutable_getlictokenreq()->set_timeout(1000);
     console->debug("Dump protobuf send message: {}", request.DebugString());
@@ -337,11 +367,12 @@ string TokenGetter::getToken(const sigstruct *sig) {
     console->trace("aems: recvLen = {}", recvLen);
 
     char *recvBuf = new char[recvLen];
+    beginInd = 0;
     while (beginInd < recvLen) {
         ssize_t nbytes =
             read(this->sockfd, recvBuf + beginInd, recvLen - beginInd);
         if (nbytes < 0) {
-            console->error("Cannot write to aems socket {}", strerror(errno));
+            console->error("Cannot read from aems socket {}", strerror(errno));
             exit(-1);
         }
         beginInd += nbytes;
@@ -351,6 +382,8 @@ string TokenGetter::getToken(const sigstruct *sig) {
     response.ParseFromArray(recvBuf, recvLen);
     console->debug("Dump protobuf recv message: {}", response.DebugString());
 
+    if (!response.getlictokenres().has_errorcode())
+        console->critical("aesmd didn't give an errorcode!");
     auto err = response.getlictokenres().errorcode();
     if (err) {
         console->error("Cannot get launch token: {}", err);

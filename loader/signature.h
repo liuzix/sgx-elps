@@ -45,6 +45,9 @@ public:
     void doEadd(uint64_t offset, sec_info_t &sec_info);
     void digestFinal();
     sigstruct *getSigstruct();
+
+    void readPrivateKeyFile(const string &filename);
+    void readPublicKeyFile(const string &filename);
 };
 
 class TokenGetter {
