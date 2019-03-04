@@ -336,12 +336,13 @@ string TokenGetter::getToken(const sigstruct *sig) {
     string ret;
 
     aesm::message::Request request;
-    request.mutable_getlictokenreq()->set_mr_enclave(sig->signature, 384);
+    request.mutable_getlictokenreq()->set_mr_enclave(sig->enclavehash, 32);
     request.mutable_getlictokenreq()->set_mr_signer(sig->modulus, 384);
     request.mutable_getlictokenreq()->set_se_attributes(&sig->attributes1, 16);
     request.mutable_getlictokenreq()->set_timeout(1000);
     console->debug("Dump protobuf send message: {}", request.DebugString());
-    string sendBuf = request.SerializeAsString();
+    
+    string sendBuf = request.SerializeAsString(); 
     uint32_t sendLen = sendBuf.length();
     console->trace("aems: sendLen = {}", sendLen);
     if (write(this->sockfd, &sendLen, 4) != 4) {
@@ -351,7 +352,8 @@ string TokenGetter::getToken(const sigstruct *sig) {
     size_t beginInd = 0;
     while (beginInd < sendBuf.length()) {
         ssize_t nbytes =
-            write(this->sockfd, sendBuf.data(), sendBuf.length() - beginInd);
+            write(this->sockfd, sendBuf.data() + beginInd, sendBuf.length() - beginInd);
+        console->info("wrote {} bytes to aesmd", nbytes);
         if (nbytes <= 0) {
             console->error("Cannot write to aems socket {}", strerror(errno));
             exit(-1);
