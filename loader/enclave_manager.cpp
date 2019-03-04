@@ -24,7 +24,7 @@ static int deviceHandle() {
     return fd;
 }
 
-EnclaveManager::EnclaveManager(vaddr base, size_t len) {
+EnclaveManager::EnclaveManager(vaddr base, size_t len) : siggen(&this->secs) {
     for (this->enclaveMemoryLen = 1; this->enclaveMemoryLen < len;)
         this->enclaveMemoryLen <<= 1;
 
@@ -53,6 +53,7 @@ EnclaveManager::EnclaveManager(vaddr base, size_t len) {
         exit(-1);
     }
 
+    siggen.doEcreate(this->enclaveMemoryLen);
     console->info("Creating enclave successful.");
 }
 
@@ -112,6 +113,7 @@ good:
             return false;
         }
 
+        siggen.doEadd(addp.addr - this->enclaveBase, sec_info);
         console->trace("Mapping 0x{:x} to 0x{:x} succeeded.", addp.src,
                        addp.addr);
     }
@@ -200,4 +202,13 @@ unique_ptr<EnclaveThread> EnclaveManager::createThread(vaddr entry_addr) {
     return ret;
 }
 
+void EnclaveManager::prepareLaunch()
+{
+    siggen.digestFinal();
+    auto sigstruct = siggen.getSigstruct();
+    
+    TokenGetter getter("/var/run/aesmd/aesm.socket");
+    string token = getter.getToken(sigstruct);
 
+    console->trace("launch token = {}", token);
+}

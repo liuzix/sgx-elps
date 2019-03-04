@@ -56,13 +56,15 @@ SigstructGenerator::SigstructGenerator(secs_t *secs) {
         "fmRT8xhUIqmVdaMLeVFXtmcmhF082zSeq+E8dw1c5OvxuZ4TVkonHrM=\n"
         "-----END RSA PRIVATE KEY-----\n\0";
     publicKey =
+        "-----BEGIN PUBLIC KEY-----\n"
         "AAAAB3NzaC1yc2EAAAADAQABAAABAQDECzDGJl8T+YdUjaeF0onV\n"
         "QChMZE1eQTGuzmmtAnusBOIpYz0v6z91/uex9KFm50uanOUFA9TGLfy5xWm8LmGfk\n"
         "P3CEG6TYhVYX7KHcYTHX/3+JlQR2e2s1EYiS7hMYqs4C71pin7qjYcKSrDq/WvKJ7f\n"
         "G+wVtRAGH+eDAbynncGVR5M7mUMIcKaUEr0VNNnA+zjznqxr1UL4Znt8RdbdZEm73iY\n"
         "q4Wu3JYs23rR+7aLOp3rohU3GbWusNs7IQiKd3aFFpQmbdu/"
         "pwKgcuyvRrD08rpUeqtGH\n"
-        "1JoqNQfdTScERwBebg59q89C/hK4Z0CKiuYGxxYM1TVX7voD3qGd1\n";
+        "1JoqNQfdTScERwBebg59q89C/hK4Z0CKiuYGxxYM1TVX7voD3qGd1\n"
+        "-----END PUBLIC KEY-----\n";
 }
 void SigstructGenerator::doEcreate(uint64_t size) {
     Ecreate ecreate = {};
@@ -91,22 +93,18 @@ sigstruct *SigstructGenerator::getSigstruct() {
     tm *ltm = localtime(&now);
     char *signBuffer = (char *)malloc(128 * sizeof(char) * 2);
     char *p = signBuffer;
-    char *q1;
-    char *q2;
-    unsigned char *signature;
-    char *modulus;
     RSA *pub = generatePubRSA(publicKey);
-    const BIGNUM *modulusBN;
+    const BIGNUM *modulusBN = BN_new();
     RSA_get0_key(pub, &modulusBN, NULL, NULL); 
     
-    BIGNUM *signatureBN;
-    BIGNUM *tmp1;
-    BIGNUM *tmp2;
-    BIGNUM *q1BN;
-    BIGNUM *q2BN;
-    BIGNUM *q2TMP;
-    BIGNUM *rem2;
-    BN_CTX *ctx;
+    BIGNUM *signatureBN = NULL;
+    BIGNUM *tmp1 = BN_new();
+    BIGNUM *tmp2 = BN_new();
+    BIGNUM *q1BN = BN_new();
+    BIGNUM *q2BN = BN_new();
+    BIGNUM *q2TMP = BN_new();
+    BIGNUM *rem2 = BN_new();
+    BN_CTX *ctx = BN_CTX_new();
     unsigned short year = 1900 + ltm->tm_year;
     unsigned char month = (1 + ltm->tm_mon);
     unsigned char day = ltm->tm_mday;
@@ -186,22 +184,34 @@ sigstruct *SigstructGenerator::getSigstruct() {
     memcpy(p, &sstruct.isvsvn, sizeof(uint16_t));
     p += sizeof(uint16_t);
     memcpy(p, sstruct.reserved4, sizeof(uint8_t) * 12);
+
+
     string plainTxt(signBuffer);
-    signMsg(plainTxt, signature);
+    string signature = signMsg(plainTxt);
+    BN_lebin2bn((unsigned char *)signature.data(), signature.length(), signatureBN);
+
     BN_add(tmp1, signatureBN, modulusBN);
     BN_div(q1BN, tmp2, tmp1, modulusBN, ctx);
     BN_mul(q2TMP, tmp2, signatureBN, ctx);
     BN_div(q2BN, rem2, q2TMP, modulusBN, ctx);
-    q1 = BN_bn2hex(q1BN);
-    q2 = BN_bn2hex(q2BN);
-    modulus = BN_bn2hex(modulusBN);
+    //q1 = BN_bn2hex(q1BN);
+    auto *q1 = new unsigned char[BN_num_bytes(q1BN)];
+    BN_bn2lebinpad(q1BN, q1, BN_num_bytes(q1BN));
+    
+    //q2 = BN_bn2hex(q2BN);
+    auto *q2 = new unsigned char[BN_num_bytes(q2BN)];
+    BN_bn2lebinpad(q2BN, q2, BN_num_bytes(q2BN));
+
+    //modulus = BN_bn2hex(modulusBN);
+    auto *modulus = new unsigned char[BN_num_bytes(modulusBN)];
+    BN_bn2lebinpad(modulusBN, modulus, BN_num_bytes(modulusBN));
+
     memcpy(sstruct.modulus, modulus, sizeof(uint8_t) * 384);
     sstruct.exponent = 3;
-    memcpy(sstruct.signature, signature, sizeof(uint8_t) * 384);
+    memcpy(sstruct.signature, signature.data(), sizeof(uint8_t) * 384);
     memcpy(sstruct.q1, q1, sizeof(uint8_t) * 384);
     memcpy(sstruct.q2, q2, sizeof(uint8_t) * 384);
     free(signBuffer);
-    free(signature);
     return &sstruct;
 }
 
@@ -224,9 +234,12 @@ RSA *SigstructGenerator::generatePubRSA(string key) {
     if (keybio == NULL) {
         return 0;
     }
-    rsa = PEM_read_bio_RSA_PUBKEY(keybio, &rsa, NULL, NULL);
+    rsa = PEM_read_bio_RSA_PUBKEY(keybio, NULL, NULL, NULL);
+    if (!rsa)
+        console->critical("generatePubRSA failed {}", ERR_error_string(ERR_get_error(), NULL));
     return rsa;
 }
+
 int SigstructGenerator::RSASign(RSA *rsa, const unsigned char *Msg,
                                 size_t MsgLen, unsigned char **EncMsg,
                                 size_t *EncMsgLen) {
@@ -251,11 +264,16 @@ int SigstructGenerator::RSASign(RSA *rsa, const unsigned char *Msg,
     return true;
 }
 
-void SigstructGenerator::signMsg(string plainText, unsigned char *encMsg) {
+string SigstructGenerator::signMsg(string plainText) {
     RSA *privateRSA = generatePriRSA(privateKey);
+    unsigned char *encMsg;
     size_t encMessageLength;
     RSASign(privateRSA, (unsigned char *)plainText.c_str(), plainText.length(),
             &encMsg, &encMessageLength);
+
+    string ret(encMsg, encMsg + encMessageLength);
+    free(encMsg);
+    return ret;
 }
 
 //=======================================================

@@ -9,6 +9,7 @@
 #include <string>
 #include <cstdint>
 
+#include "signature.h"
 using namespace std;
 
 #define NUM_SSAFRAME 4
@@ -27,6 +28,8 @@ class EnclaveManager {
     size_t enclaveMemoryLen;
     map<vaddr, size_t> mappings;
 
+    SigstructGenerator siggen;
+
     secs_t secs;
 
     /*allocate will find a hole in mappings that can accommodate len bytes*/
@@ -44,6 +47,8 @@ class EnclaveManager {
     bool addPages(vaddr dest, void *src, size_t len, bool writable,
                   bool executable, bool isTCS);
     unique_ptr<EnclaveThread> createThread(vaddr entry);
+    
+    void prepareLaunch();
     void makeHeap(vaddr base, size_t len);
     
 };

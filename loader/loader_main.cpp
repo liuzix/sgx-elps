@@ -49,10 +49,5 @@ int main(int argc, char **argv) {
 
     load_one(argv[1]);
 
-    TokenGetter test("/var/run/aesmd/aesm.socket");
-    sigstruct test_sig = {};
-    auto token = test.getToken(&test_sig);
-    
-    console->info("Launch token is {}", token);
     return 0;
 }

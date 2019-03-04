@@ -156,6 +156,8 @@ shared_ptr<EnclaveManager> load_static(const char *filename) {
 
             break;
         }
+
+        enclaveManager->prepareLaunch();
     }
 
 out:
