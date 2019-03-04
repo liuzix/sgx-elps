@@ -92,7 +92,7 @@ sigstruct *SigstructGenerator::getSigstruct() {
     char *p = signBuffer;
     char *q1;
     char *q2;
-    char *signature;
+    unsigned char *signature;
     char *modulus;
     RSA *pub = generatePubRSA(publicKey);
     BIGNUM *modulusBN = pub->n;
@@ -183,8 +183,8 @@ sigstruct *SigstructGenerator::getSigstruct() {
     memcpy(p, &sstruct.isvsvn, sizeof(uint16_t));
     p += sizeof(uint16_t);
     memcpy(p, sstruct.reserved4, sizeof(uint8_t) * 12);
-    string plainText(signBuffer);
-    signature = signMsg(plainText);
+    string plainTxt(signBuffer);
+    signMsg(plainTxt, signature);
     BN_hex2bn(&signatureBN, signature);
     BN_add(tmp1, signatureBN, modulusBN);
     BN_div(q1BN, tmp2, tmp1, modulusBN, ctx);
@@ -198,6 +198,8 @@ sigstruct *SigstructGenerator::getSigstruct() {
     memcpy(sstruct.signature, signature, sizeof(uint8_t) * 384);
     memcpy(sstruct.q1, q1, sizeof(uint8_t) * 384);
     memcpy(sstruct.q2, q2, sizeof(uint8_t) * 384);
+    free(signBuffer);
+    free(signature);
     return &sstruct;
 }
 
@@ -247,34 +249,11 @@ int SigstructGenerator::RSASign(RSA *rsa, const unsigned char *Msg,
     return true;
 }
 
-void SigstructGenerator::base64Encode(unsigned char *buffer, size_t length,
-                                      char **base64Text) {
-    BIO *bio, *b64;
-    BUF_MEM *bufferPtr;
-
-    b64 = BIO_new(BIO_f_base64());
-    bio = BIO_new(BIO_s_mem());
-    bio = BIO_push(b64, bio);
-
-    BIO_write(bio, buffer, length);
-    BIO_flush(bio);
-    BIO_get_mem_ptr(bio, &bufferPtr);
-    BIO_set_close(bio, BIO_NOCLOSE);
-    BIO_free_all(bio);
-
-    *base64Text = (*bufferPtr).data;
-}
-
-char *SigstructGenerator::signMsg(string plainText) {
+void SigstructGenerator::signMsg(string plainText, unsigned char *encMsg) {
     RSA *privateRSA = generatePriRSA(privateKey);
-    unsigned char *encMessage;
-    char *base64Text;
     size_t encMessageLength;
     RSASign(privateRSA, (unsigned char *)plainText.c_str(), plainText.length(),
-            &encMessage, &encMessageLength);
-    base64Encode(encMessage, encMessageLength, &base64Text);
-    free(encMessage);
-    return base64Text;
+            &encMsg, &encMessageLength);
 }
 
 //=======================================================

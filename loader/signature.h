@@ -42,10 +42,7 @@ public:
     RSA *generatePubRSA(string key);
     int RSASign(RSA *rsa, const unsigned char *Msg,\
     size_t MsgLen, unsigned char** EncMsg, size_t* EncMsgLen);
-    void base64Encode(unsigned char* buffer,\
-    size_t length, char** base64Text);
-    char* signMsg(string plainText);
-    void finalize();
+    void signMsg(string plainText, unsigned char *encMsg);
 };
 
 class TokenGetter {
