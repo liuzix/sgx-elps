@@ -10,6 +10,7 @@
 #include <openssl/rsa.h>
 #include <openssl/sha.h>
 #include <openssl/ssl.h>
+#include <openssl/bn.h>
 #include <string>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -95,7 +96,9 @@ sigstruct *SigstructGenerator::getSigstruct() {
     unsigned char *signature;
     char *modulus;
     RSA *pub = generatePubRSA(publicKey);
-    BIGNUM *modulusBN = pub->n;
+    const BIGNUM *modulusBN;
+    RSA_get0_key(pub, &modulusBN, NULL, NULL); 
+    
     BIGNUM *signatureBN;
     BIGNUM *tmp1;
     BIGNUM *tmp2;
@@ -185,7 +188,6 @@ sigstruct *SigstructGenerator::getSigstruct() {
     memcpy(p, sstruct.reserved4, sizeof(uint8_t) * 12);
     string plainTxt(signBuffer);
     signMsg(plainTxt, signature);
-    BN_hex2bn(&signatureBN, signature);
     BN_add(tmp1, signatureBN, modulusBN);
     BN_div(q1BN, tmp2, tmp1, modulusBN, ctx);
     BN_mul(q2TMP, tmp2, signatureBN, ctx);
@@ -339,4 +341,9 @@ string TokenGetter::getToken(const sigstruct *sig) {
 
     ret = response.getlictokenres().token();
     return ret;
+}
+
+TokenGetter::~TokenGetter() {
+    if (this->sockfd >= 0)
+        close(this->sockfd);
 }

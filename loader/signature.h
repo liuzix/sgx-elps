@@ -32,17 +32,18 @@ private:
     unsigned char m[SHA256_DIGEST_LENGTH];
     string privateKey;
     string publicKey;
+    
+    RSA *generatePriRSA(string key);
+    RSA *generatePubRSA(string key);
+    int RSASign(RSA *rsa, const unsigned char *Msg,
+        size_t MsgLen, unsigned char** EncMsg, size_t* EncMsgLen);
+    void signMsg(string plainText, unsigned char *encMsg);
 public:
     SigstructGenerator(secs_t *secs);
     void doEcreate(uint64_t size);
     void doEadd(uint64_t offset, sec_info_t &sec_info);
     void digestFinal();
     sigstruct *getSigstruct();
-    RSA *generatePriRSA(string key);
-    RSA *generatePubRSA(string key);
-    int RSASign(RSA *rsa, const unsigned char *Msg,\
-    size_t MsgLen, unsigned char** EncMsg, size_t* EncMsgLen);
-    void signMsg(string plainText, unsigned char *encMsg);
 };
 
 class TokenGetter {
@@ -51,6 +52,7 @@ private:
 
 public:
     TokenGetter(const string &filename);
+    ~TokenGetter();
     string getToken(const sigstruct *sig);
 };
 
