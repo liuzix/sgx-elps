@@ -53,7 +53,7 @@ EnclaveManager::EnclaveManager(vaddr base, size_t len) : siggen(&this->secs) {
         exit(-1);
     }
 
-    siggen.doEcreate(this->enclaveMemoryLen);
+    siggen.doEcreate(this->enclaveMemoryLen, NUM_SSAFRAME);
     console->info("Creating enclave successful.");
 }
 
@@ -102,7 +102,7 @@ good:
 
         addp.addr = dest + SGX_PAGE_SIZE * i;
         addp.src = (uint64_t)src + SGX_PAGE_SIZE * i;
-        addp.mrmask = 0xFFFF;
+        addp.mrmask = 0x0;
         addp.secinfo = (uint64_t)&sec_info;
 
         int ret = ioctl(deviceHandle(), SGX_IOC_ENCLAVE_ADD_PAGE, &addp);
@@ -208,7 +208,22 @@ void EnclaveManager::prepareLaunch()
     auto sigstruct = siggen.getSigstruct();
     
     TokenGetter getter("/var/run/aesmd/aesm.socket");
-    string token = getter.getToken(sigstruct);
+    auto token = getter.getToken(sigstruct);
 
-    console->trace("launch token = {}", token);
+    struct sgx_enclave_init initp = { 0, 0, 0 };
+    initp.addr = this->enclaveBase;
+    initp.sigstruct = (vaddr)sigstruct;
+    initp.einittoken = (vaddr)token;
+
+    int ret = ioctl(deviceHandle(), SGX_IOC_ENCLAVE_INIT, &initp);
+    if (ret < 0) {
+        console->error("Enclave Init failed: {}", strerror(errno));
+        exit(-1);
+    } else if (ret > 0) {
+        console->error("Enclave Init failed: {}", ret);
+        exit(-1);
+    }
+    
+    console->info("Enclave Init successful!");
 }
+    

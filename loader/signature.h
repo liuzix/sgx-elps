@@ -14,14 +14,14 @@ struct Ecreate {
     uint32_t fst;
     uint64_t size;
     char suffix[44];
-};
+}  __attribute__((packed));
 
 struct Eadd {
     char cmd[8];
     uint64_t offset;
     uint64_t flags;
     char suffix[40];
-};
+}  __attribute__((packed)) ;
 
 
 class SigstructGenerator {
@@ -41,7 +41,7 @@ private:
     string signMsg(string text);
 public:
     SigstructGenerator(secs_t *secs);
-    void doEcreate(uint64_t size);
+    void doEcreate(uint64_t size, uint32_t nframes);
     void doEadd(uint64_t offset, sec_info_t &sec_info);
     void digestFinal();
     sigstruct *getSigstruct();
@@ -53,11 +53,13 @@ public:
 class TokenGetter {
 private:
     int sockfd;
+    einittoken_t token = {};
 
+    void dumpToken();
 public:
     TokenGetter(const string &filename);
     ~TokenGetter();
-    string getToken(const sigstruct *sig);
+    const einittoken_t *getToken(const sigstruct *sig);
 };
 
 #endif

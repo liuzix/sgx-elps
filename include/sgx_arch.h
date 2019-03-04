@@ -153,4 +153,24 @@ struct sigstruct {
     uint8_t q2[384];
 } __attribute__((packed));
 
+
+struct einittoken_t {
+    uint32_t valid;
+    char reserved1[44];
+    uint64_t attributes1;
+    uint64_t attributes2;
+    char mrenclave[32];
+    char reserved2[32];
+    char mrsigner[32];
+    char reserved3[32];
+    char cpusvnle[16];
+    uint16_t isvprodidle;
+    uint16_t isvsvnle;
+    char reserved4[24];
+    uint32_t maskedmiscselect;
+    char maskedattributesle[16];
+    char keyid[32];
+    char mac[16];
+}  __attribute__((packed));
+
 #endif

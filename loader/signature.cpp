@@ -31,55 +31,15 @@ SigstructGenerator::SigstructGenerator(secs_t *secs) {
     SHA256_Init(&c);
     this->readPublicKeyFile("publickey");
     this->readPrivateKeyFile("privatekey");
-    if (privateKey == "" || publicKey == "") {
-        privateKey =
-            "-----BEGIN RSA PRIVATE KEY-----\n"
-            "MIIEpQIBAAKCAQEAxAswxiZfE/mHVI2nhdKJ1UAoTGRNXkExrs5prQJ7rATiKWM9\n"
-            "L+s/df7nsfShZudLmpzlBQPUxi38ucVpvC5hn5D9whBuk2IVWF+yh3GEx1/9/iZU\n"
-            "EdntrNRGIku4TGKrOAu9aYp+6o2HCkqw6v1ryie3xvsFbUQBh/ngwG8p53BlUeTO\n"
-            "5lDCHCmlBK9FTTZwPs4856sa9VC+GZ7fEXW3WRJu94mKuFrtyWLNt60fu2izqd66\n"
-            "IVNxm1rrDbOyEIind2hRaUJm3bv6cCoHLsr0aw9PK6VHqrRh9SaKjUH3U0nBEcAX\n"
-            "m4OfavPQv4SuGdAiormBscWDNU1V+76A96hndQIDAQABAoIBAFF0TNmny81i2kXZ\n"
-            "bYd+yOIf/B5xdmv5LolxHhtScswwYz/LCftFBWMjfGVGPWGiLJmbItUImHmXVfBi\n"
-            "A+K6arl/5s+hQDBginnjmSwJkJ++VKwqhLe+ErDCqjlJuNOUE4v/5L1bXAxcrYUr\n"
-            "L4MTtJuUERnN5p1VqkUzH50VExYjtNcrU8v4pvU+fz+rmYSuDb8Hge7TOOKN9ven\n"
-            "iDCnU1Wb2pz79Q5fuoblbmeRu9ivgnTSBVbd05o0b+NeU4htmSgyom8u7UrIdUno\n"
-            "s8jsd1ekrYbcCZSzOsw0eAxtGdKwjuljRyeOb5oa21YLhSEIKBLNvTGNaYqKr1PH\n"
-            "Ut15LYECgYEA5q4jlxXs+dyiijNOZplGtZB2XxWNFUWLFW7gUyF0ZI2umJlxPWNi\n"
-            "ftXpfe2JcvigVnfnYpyGHfi9hFu3ZHIvGyJetKx4IDrs30+AwcI03BksCmdl4CG+\n"
-            "rqXtmcEauBZ+9Y+1u/8CgCPRKUScw5dXJn3W9snjbn6UBXPDBEGkrdECgYEA2Y/N\n"
-            "rNlkYAtHqNVzXFcq4PjdntjbSzivoGDmrFoOtguvMmY7Lk3f2YT4YzQXfwJ+GeDK\n"
-            "QFOaXeHnmJmFZ5jPpwPnzIRedMyvZ16UMjYTHLzM3Q4D3uNf8OAHlLY37DmhNPks\n"
-            "VFOqjXnXmUaIN7VvVCaippcU83O6N+UpssfDlGUCgYEAswT5gcr2OYJMccwXT/Ar\n"
-            "u8P82RW0g4mQwnVliZ4w4chCcxLBms6CJcSEi8HIJX1lkTVEUHcAbkoXaZxz2nPy\n"
-            "srAdp0EhiIGySis81SGOPDEcyIYtvZ7yiD8lAWmm/q4WoSOB+f+RRTiGnewtbG0K\n"
-            "qUiHhsZuxdVdsk2ATtFSp8ECgYEAirkC8D/9nLAUlTblQ+/gy2pkBbFIwwH2GlEv\n"
-            "RJ532uRAZeaBvdix70S2DKtegAHa3i1TSQkF2O7+eXMKeTAa1+fJmcKdZ+RLw6Gu\n"
-            "5QVN0nkgN6OEHE7nEfQHYW9+4QUuIVTwSyS+D0+thXJP0RXDUuj/tTGIjmMwTgu1\n"
-            "NuXhc3ECgYEA0AZdDL9g0mwxQTzitA3YTAuVM/nvvzy9MqcPZO8uiA7PKIYQ9ip/\n"
-            "jfQSVhP2Q6hCyhwKNUUwBxhqQSlNgILdia3OExj95+g+pCfUIhl0bfZGCLEMAH+5\n"
-            "fmRT8xhUIqmVdaMLeVFXtmcmhF082zSeq+E8dw1c5OvxuZ4TVkonHrM=\n"
-            "-----END RSA PRIVATE KEY-----\n\0";
-        publicKey =
-            "-----BEGIN PUBLIC KEY-----\n"
-            "AAAAB3NzaC1yc2EAAAADAQABAAABAQDECzDGJl8T+YdUjaeF0onV\n"
-            "QChMZE1eQTGuzmmtAnusBOIpYz0v6z91/uex9KFm50uanOUFA9TGLfy5xWm8LmGfk\n"
-            "P3CEG6TYhVYX7KHcYTHX/3+JlQR2e2s1EYiS7hMYqs4C71pin7qjYcKSrDq/WvKJ7f\n"
-            "G+wVtRAGH+eDAbynncGVR5M7mUMIcKaUEr0VNNnA+zjznqxr1UL4Znt8RdbdZEm73iY\n"
-            "q4Wu3JYs23rR+7aLOp3rohU3GbWusNs7IQiKd3aFFpQmbdu/"
-            "pwKgcuyvRrD08rpUeqtGH\n"
-            "1JoqNQfdTScERwBebg59q89C/hK4Z0CKiuYGxxYM1TVX7voD3qGd1\n"
-            "-----END PUBLIC KEY-----\n";
-    }
-
+    assert(!this->privateKey.empty() && !this->publicKey.empty());
 }
-void SigstructGenerator::doEcreate(uint64_t size) {
+void SigstructGenerator::doEcreate(uint64_t size, uint32_t nframes) {
     Ecreate ecreate = {};
     char cmd[] = "ECREATE";
     memcpy(ecreate.cmd, cmd, strlen(cmd));
-    ecreate.fst = 1;
+    ecreate.fst = nframes;
     ecreate.size = size;
-    memcpy(ecreate.suffix, "", 44);
+    memset(ecreate.suffix, 0, 44);
     SHA256_Update(&c, &ecreate, sizeof(struct Ecreate));
 }
 
@@ -89,7 +49,7 @@ void SigstructGenerator::doEadd(uint64_t offset, sec_info_t &sec_info) {
     memcpy(eadd.cmd, cmd, strlen(cmd));
     eadd.offset = offset;
     eadd.flags = sec_info.flags;
-    memcpy(eadd.suffix, "", 40);
+    memset(eadd.suffix, 0, 40);
     SHA256_Update(&c, &eadd, sizeof(struct Eadd));
 }
 
@@ -120,12 +80,17 @@ sigstruct *SigstructGenerator::getSigstruct() {
     ymd += month;
     ymd <<= 8;
     ymd += day;
-    sstruct.header11 = 0x00000006000000e1;
-    sstruct.header12 = 0x0001000000000000;
+    //sstruct.header11 = 0x0000010000000000;
+    //sstruct.header12 = 0x06000000E1000000;
+    sstruct.header11 = 0x000000e100000006ULL;
+    sstruct.header12 = 0x0000000000010000ULL;
     sstruct.vendor = 0x00000000;
     sstruct.date = ymd;
-    sstruct.header21 = 0x0000010100000060;
-    sstruct.header22 = 0x0000006000000001;
+    //sstruct.header21 = 0x6000000001000000;
+    //sstruct.header22 = 0x0101000060000000;
+    sstruct.header21 = 0x0000006000000101ULL;
+    sstruct.header22 = 0x0000000100000060ULL;
+    
     sstruct.swdefined = 0x00000000;
     memset(sstruct.reserved1, 0, sizeof(uint8_t) * SIGSTRUCT_RESERVED_SIZE1);
     sstruct.miscselect = scs->miscselect;
@@ -190,17 +155,17 @@ sigstruct *SigstructGenerator::getSigstruct() {
     p += sizeof(uint16_t);
     memcpy(p, &sstruct.isvsvn, sizeof(uint16_t));
     p += sizeof(uint16_t);
-    memcpy(p, sstruct.reserved4, sizeof(uint8_t) * 12);
-    p += sizeof(uint8_t) * 12;
-
+   
+    console->info("p == signBuffer + {}", p - signBuffer);
+    assert(p == signBuffer + 256);
     string plainTxt(signBuffer, p);
     string signature = signMsg(plainTxt);
     assert(signature.length() == 384);
-    if (!(signatureBN = BN_lebin2bn((unsigned char *)signature.data(), signature.length(), NULL))) {
+    if (!(signatureBN = BN_bin2bn((unsigned char *)signature.data(), signature.length(), NULL))) {
         console->critical("BN_lebin2bn failed: {}", ERR_error_string(ERR_get_error(), NULL));
     }
 
-    BN_add(tmp1, signatureBN, modulusBN);
+    BN_mul(tmp1, signatureBN, signatureBN, ctx);
     BN_div(q1BN, tmp2, tmp1, modulusBN, ctx);
     BN_mul(q2TMP, tmp2, signatureBN, ctx);
     BN_div(q2BN, rem2, q2TMP, modulusBN, ctx);
@@ -217,9 +182,13 @@ sigstruct *SigstructGenerator::getSigstruct() {
     assert(BN_num_bytes(modulusBN) == 384);
     BN_bn2lebinpad(modulusBN, modulus, BN_num_bytes(modulusBN));
 
+    auto *signature_le = new unsigned char[BN_num_bytes(signatureBN)];
+    assert(BN_num_bytes(signatureBN) == 384);
+    BN_bn2lebinpad(signatureBN, signature_le, BN_num_bytes(signatureBN));
+
     memcpy(sstruct.modulus, modulus, sizeof(uint8_t) * 384);
     sstruct.exponent = 3;
-    memcpy(sstruct.signature, signature.data(), sizeof(uint8_t) * 384);
+    memcpy(sstruct.signature, signature_le, sizeof(uint8_t) * 384);
     memcpy(sstruct.q1, q1, sizeof(uint8_t) * 384);
     memcpy(sstruct.q2, q2, sizeof(uint8_t) * 384);
     free(signBuffer);
@@ -332,8 +301,21 @@ TokenGetter::TokenGetter(const string &filename) {
     console->trace("Successfully connected to aems at {}", filename);
 }
 
-string TokenGetter::getToken(const sigstruct *sig) {
-    string ret;
+/*
+static string sha256_string(const string &str)
+{
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    SHA256_CTX sha256;
+    SHA256_Init(&sha256);
+    SHA256_Update(&sha256, str.data(), str.length());
+    SHA256_Final(hash, &sha256);
+    
+    return string(hash, hash + SHA256_DIGEST_LENGTH);
+}
+*/
+
+const einittoken_t *TokenGetter::getToken(const sigstruct *sig) {
+    string tmp;
 
     aesm::message::Request request;
     request.mutable_getlictokenreq()->set_mr_enclave(sig->enclavehash, 32);
@@ -392,8 +374,17 @@ string TokenGetter::getToken(const sigstruct *sig) {
         exit(-1);
     }
 
-    ret = response.getlictokenres().token();
-    return ret;
+    tmp = response.getlictokenres().token();
+    console->info("token size = {}, should be = {}", tmp.length(), sizeof(einittoken_t));
+    memcpy(&this->token, tmp.data(), sizeof(einittoken_t));
+
+    this->dumpToken();
+    return &this->token;
+}
+
+void TokenGetter::dumpToken() {
+    console->trace("token dump:");
+    console->trace("valid: {}", this->token.valid);
 }
 
 TokenGetter::~TokenGetter() {
