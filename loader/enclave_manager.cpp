@@ -5,6 +5,8 @@
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 
+#include "enclave_thread.h"
+
 extern std::shared_ptr<spdlog::logger> console;
 
 static int deviceHandle() {
@@ -28,7 +30,7 @@ EnclaveManager::EnclaveManager(vaddr base, size_t len) : siggen(&this->secs) {
         this->enclaveMemoryLen <<= 1;
 
     this->enclaveBase = (vaddr)mmap(VADDR_VOIDP(base), this->enclaveMemoryLen,
-                                    PROT_NONE, MAP_SHARED, deviceHandle(), 0);
+                                    PROT_READ | PROT_WRITE | PROT_EXEC, MAP_SHARED, deviceHandle(), 0);
     if (this->enclaveBase == (vaddr)MAP_FAILED) {
         console->error(
             "Cannot allocate virtual memory. base = 0x{:x}, len = 0x{:x}", base,
@@ -62,6 +64,8 @@ bool EnclaveManager::addPages(vaddr dest, void *src, size_t len) {
 
 bool EnclaveManager::addPages(vaddr dest, void *src, size_t len, bool writable,
                               bool executable, bool isTCS) {
+    len = ((len + 4095) >> 12) << 12;
+    console->debug("adding len = 0x{:x}", len);
     if (dest < enclaveBase ||
         dest + len > this->enclaveBase + this->enclaveMemoryLen) {
         console->critical("Attempted enclave mapping (addr: 0x{:x}, len: "
@@ -95,6 +99,11 @@ good:
     sec_info.flags |= (writable ? ENCLAVE_PAGE_WRITE : 0);
     sec_info.flags |= (executable ? ENCLAVE_PAGE_EXECUTE : 0);
     sec_info.flags |= (isTCS ? ENCLAVE_PAGE_THREAD_CONTROL : SI_FLAG_REG);
+    if (isTCS) {
+        sec_info.flags &= ~ENCLAVE_PAGE_READ;
+        sec_info.flags &= ~ENCLAVE_PAGE_WRITE;
+        sec_info.flags &= ~ENCLAVE_PAGE_EXECUTE;
+    }
 
     for (size_t i = 0; SGX_PAGE_SIZE * i < len; i++) {
         struct sgx_enclave_add_page addp = {0, 0, 0, 0};
@@ -160,7 +169,7 @@ unique_ptr<EnclaveThread> EnclaveManager::createThread(vaddr entry_addr) {
     memset(tcs, 0, SGX_PAGE_SIZE);
     tcs->ossa = SGX_PAGE_SIZE * (3 + THREAD_STACK_NUM) + offset;
     tcs->nssa = NUM_SSA;
-    tcs->oentry = entry_addr;
+    tcs->oentry = entry_addr - this->enclaveBase;
     tcs->ofsbase = offset + thread_len - SGX_PAGE_SIZE;
     tcs->ogsbase = tcs->ofsbase;
     tcs->fslimit = 0xfff;
@@ -185,6 +194,8 @@ unique_ptr<EnclaveThread> EnclaveManager::createThread(vaddr entry_addr) {
         console->error("Adding TCS page failed");
         exit(-1);
     }
+    vaddr tcs_enclave = base + tmp;
+
     tmp += SGX_PAGE_SIZE;
     if (!addPages(base + tmp, (char *)thread_mem + tmp, thread_len - tmp)) {
         console->error("Adding pages after TCS failed");
@@ -192,9 +203,9 @@ unique_ptr<EnclaveThread> EnclaveManager::createThread(vaddr entry_addr) {
     }
 
     auto ret = make_unique<EnclaveThread>();
-    ret->entry = entry_addr;
+    ret->tcs = tcs_enclave;
     ret->stack = (vaddr)tls->stack + THREAD_STACK_NUM * SGX_PAGE_SIZE;
-
+    ret->entry = entry_addr;
     munmap(thread_mem, thread_len);
     console->trace("Adding tcs succeed!");
 

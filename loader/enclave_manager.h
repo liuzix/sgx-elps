@@ -9,18 +9,13 @@
 #include <stddef.h>
 #include <string>
 
+#include "enclave_thread.h"
 #include "signature.h"
+
 using namespace std;
 
 #define NUM_SSAFRAME 4
 #define NUM_SSA 2
-
-struct EnclaveThread {
-    vaddr entry;
-    vaddr stack;
-
-    void run();
-};
 
 class EnclaveManager {
   private:
