@@ -1,13 +1,13 @@
 #ifndef ENCLAVE_MANAGER_H
 #define ENCLAVE_MANAGER_H
 
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <sgx_arch.h>
 #include <sgx_user.h>
 #include <stddef.h>
 #include <string>
-#include <cstdint>
 
 #include "signature.h"
 using namespace std;
@@ -16,10 +16,10 @@ using namespace std;
 #define NUM_SSA 2
 
 struct EnclaveThread {
-   vaddr entry;
-   vaddr stack;
+    vaddr entry;
+    vaddr stack;
 
-   void run();
+    void run();
 };
 
 class EnclaveManager {
@@ -47,13 +47,9 @@ class EnclaveManager {
     bool addPages(vaddr dest, void *src, size_t len, bool writable,
                   bool executable, bool isTCS);
     unique_ptr<EnclaveThread> createThread(vaddr entry);
-    
+
     void prepareLaunch();
     void makeHeap(vaddr base, size_t len);
-    
 };
-
-
-
 
 #endif

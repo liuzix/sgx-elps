@@ -1,18 +1,18 @@
 #include "signature.h"
-#include <fstream>
-#include <sstream>
 #include <cstdint>
 #include <cstring>
 #include <ctime>
+#include <fstream>
 #include <openssl/aes.h>
 #include <openssl/bio.h>
+#include <openssl/bn.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 #include <openssl/rsa.h>
 #include <openssl/sha.h>
 #include <openssl/ssl.h>
-#include <openssl/bn.h>
+#include <sstream>
 #include <string>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -58,20 +58,12 @@ void SigstructGenerator::digestFinal() { SHA256_Final(m, &c); }
 sigstruct *SigstructGenerator::getSigstruct() {
     time_t now = time(0);
     tm *ltm = localtime(&now);
-    char *signBuffer = (char *)malloc(4096);
+    char *signBuffer = (char *)malloc(256);
     char *p = signBuffer;
     RSA *pub = generatePubRSA(publicKey);
     const BIGNUM *modulusBN = BN_new();
-    RSA_get0_key(pub, &modulusBN, NULL, NULL); 
-    
-    BIGNUM *signatureBN = NULL;
-    BIGNUM *tmp1 = BN_new();
-    BIGNUM *tmp2 = BN_new();
-    BIGNUM *q1BN = BN_new();
-    BIGNUM *q2BN = BN_new();
-    BIGNUM *q2TMP = BN_new();
-    BIGNUM *rem2 = BN_new();
-    BN_CTX *ctx = BN_CTX_new();
+    RSA_get0_key(pub, &modulusBN, NULL, NULL);
+
     unsigned short year = 1900 + ltm->tm_year;
     unsigned char month = (1 + ltm->tm_mon);
     unsigned char day = ltm->tm_mday;
@@ -80,17 +72,14 @@ sigstruct *SigstructGenerator::getSigstruct() {
     ymd += month;
     ymd <<= 8;
     ymd += day;
-    //sstruct.header11 = 0x0000010000000000;
-    //sstruct.header12 = 0x06000000E1000000;
+
     sstruct.header11 = 0x000000e100000006ULL;
     sstruct.header12 = 0x0000000000010000ULL;
     sstruct.vendor = 0x00000000;
     sstruct.date = ymd;
-    //sstruct.header21 = 0x6000000001000000;
-    //sstruct.header22 = 0x0101000060000000;
     sstruct.header21 = 0x0000006000000101ULL;
     sstruct.header22 = 0x0000000100000060ULL;
-    
+
     sstruct.swdefined = 0x00000000;
     memset(sstruct.reserved1, 0, sizeof(uint8_t) * SIGSTRUCT_RESERVED_SIZE1);
     sstruct.miscselect = scs->miscselect;
@@ -109,34 +98,43 @@ sigstruct *SigstructGenerator::getSigstruct() {
     sstruct.isvprodid = scs->isvprodid;
     sstruct.isvsvn = scs->isvsvn;
     memset(sstruct.reserved4, 0, sizeof(uint8_t) * 12);
-    
+
     memcpy(p, &sstruct.header11, sizeof(uint8_t) * 128);
     p += 128;
     memcpy(p, &sstruct.miscselect, sizeof(uint8_t) * 128);
     p += 128;
 
-    console->info("p == signBuffer + {}", p - signBuffer);
-    assert(p == signBuffer + 256);
     string plainTxt(signBuffer, p);
     string signature = signMsg(plainTxt);
     assert(signature.length() == 384);
-    if (!(signatureBN = BN_bin2bn((unsigned char *)signature.data(), signature.length(), NULL))) {
-        console->critical("BN_lebin2bn failed: {}", ERR_error_string(ERR_get_error(), NULL));
+
+    BIGNUM *signatureBN = NULL;
+    BIGNUM *tmp1 = BN_new();
+    BIGNUM *tmp2 = BN_new();
+    BIGNUM *q1BN = BN_new();
+    BIGNUM *q2BN = BN_new();
+    BIGNUM *q2TMP = BN_new();
+    BN_CTX *ctx = BN_CTX_new();
+
+    if (!(signatureBN = BN_bin2bn((unsigned char *)signature.data(),
+                                  signature.length(), NULL))) {
+        console->critical("BN_lebin2bn failed: {}",
+                          ERR_error_string(ERR_get_error(), NULL));
     }
 
     BN_mul(tmp1, signatureBN, signatureBN, ctx);
     BN_div(q1BN, tmp2, tmp1, modulusBN, ctx);
     BN_mul(q2TMP, tmp2, signatureBN, ctx);
-    BN_div(q2BN, rem2, q2TMP, modulusBN, ctx);
-    //q1 = BN_bn2hex(q1BN);
+    BN_div(q2BN, NULL, q2TMP, modulusBN, ctx);
+    // q1 = BN_bn2hex(q1BN);
     auto *q1 = new unsigned char[BN_num_bytes(q1BN)];
     BN_bn2lebinpad(q1BN, q1, BN_num_bytes(q1BN));
-    
-    //q2 = BN_bn2hex(q2BN);
+
+    // q2 = BN_bn2hex(q2BN);
     auto *q2 = new unsigned char[BN_num_bytes(q2BN)];
     BN_bn2lebinpad(q2BN, q2, BN_num_bytes(q2BN));
 
-    //modulus = BN_bn2hex(modulusBN);
+    // modulus = BN_bn2hex(modulusBN);
     auto *modulus = new unsigned char[BN_num_bytes(modulusBN)];
     assert(BN_num_bytes(modulusBN) == 384);
     BN_bn2lebinpad(modulusBN, modulus, BN_num_bytes(modulusBN));
@@ -150,7 +148,20 @@ sigstruct *SigstructGenerator::getSigstruct() {
     memcpy(sstruct.signature, signature_le, sizeof(uint8_t) * 384);
     memcpy(sstruct.q1, q1, sizeof(uint8_t) * 384);
     memcpy(sstruct.q2, q2, sizeof(uint8_t) * 384);
+
     free(signBuffer);
+    BN_free(signatureBN);
+    BN_free(tmp1);
+    BN_free(tmp2);
+    BN_free(q1BN);
+    BN_free(q2BN);
+    BN_free(q2TMP);
+    BN_CTX_free(ctx);
+
+    delete[] q1;
+    delete[] q2;
+    delete[] modulus;
+    delete[] signature_le;
     return &sstruct;
 }
 
@@ -175,7 +186,8 @@ RSA *SigstructGenerator::generatePubRSA(string key) {
     }
     rsa = PEM_read_bio_RSA_PUBKEY(keybio, NULL, NULL, NULL);
     if (!rsa)
-        console->critical("generatePubRSA failed {}", ERR_error_string(ERR_get_error(), NULL));
+        console->critical("generatePubRSA failed {}",
+                          ERR_error_string(ERR_get_error(), NULL));
     return rsa;
 }
 
@@ -260,19 +272,6 @@ TokenGetter::TokenGetter(const string &filename) {
     console->trace("Successfully connected to aems at {}", filename);
 }
 
-/*
-static string sha256_string(const string &str)
-{
-    unsigned char hash[SHA256_DIGEST_LENGTH];
-    SHA256_CTX sha256;
-    SHA256_Init(&sha256);
-    SHA256_Update(&sha256, str.data(), str.length());
-    SHA256_Final(hash, &sha256);
-    
-    return string(hash, hash + SHA256_DIGEST_LENGTH);
-}
-*/
-
 const einittoken_t *TokenGetter::getToken(const sigstruct *sig) {
     string tmp;
 
@@ -282,8 +281,8 @@ const einittoken_t *TokenGetter::getToken(const sigstruct *sig) {
     request.mutable_getlictokenreq()->set_se_attributes(&sig->attributes1, 16);
     request.mutable_getlictokenreq()->set_timeout(1000);
     console->debug("Dump protobuf send message: {}", request.DebugString());
-    
-    string sendBuf = request.SerializeAsString(); 
+
+    string sendBuf = request.SerializeAsString();
     uint32_t sendLen = sendBuf.length();
     console->trace("aems: sendLen = {}", sendLen);
     if (write(this->sockfd, &sendLen, 4) != 4) {
@@ -292,8 +291,8 @@ const einittoken_t *TokenGetter::getToken(const sigstruct *sig) {
     }
     size_t beginInd = 0;
     while (beginInd < sendBuf.length()) {
-        ssize_t nbytes =
-            write(this->sockfd, sendBuf.data() + beginInd, sendBuf.length() - beginInd);
+        ssize_t nbytes = write(this->sockfd, sendBuf.data() + beginInd,
+                               sendBuf.length() - beginInd);
         console->info("wrote {} bytes to aesmd", nbytes);
         if (nbytes <= 0) {
             console->error("Cannot write to aems socket {}", strerror(errno));
@@ -334,16 +333,11 @@ const einittoken_t *TokenGetter::getToken(const sigstruct *sig) {
     }
 
     tmp = response.getlictokenres().token();
-    console->info("token size = {}, should be = {}", tmp.length(), sizeof(einittoken_t));
+    console->info("token size = {}, should be = {}", tmp.length(),
+                  sizeof(einittoken_t));
     memcpy(&this->token, tmp.data(), sizeof(einittoken_t));
 
-    this->dumpToken();
     return &this->token;
-}
-
-void TokenGetter::dumpToken() {
-    console->trace("token dump:");
-    console->trace("valid: {}", this->token.valid);
 }
 
 TokenGetter::~TokenGetter() {

@@ -10,8 +10,8 @@
 #include <elfio/elfio.hpp>
 #include <logging.h>
 
-#include "load_elf.h"
 #include "enclave_manager.h"
+#include "load_elf.h"
 
 #define LOAD_ELF_DUMP
 
@@ -57,7 +57,7 @@ shared_ptr<EnclaveManager> load_static(const char *filename) {
     elfio reader = elfReadAndCheck(filename);
     Elf_Half seg_num = reader.segments.size();
     shared_ptr<EnclaveManager> enclaveManager = nullptr;
-    
+
     int i;
     for (i = 0; i < seg_num; i++) {
         const segment *pseg = reader.segments[i];
@@ -143,7 +143,7 @@ shared_ptr<EnclaveManager> load_static(const char *filename) {
             /* Add pages to SGX*/
         do_map:
             /* not necessary */
-            //mprotect(base, p_memsz, prot);
+            // mprotect(base, p_memsz, prot);
 
 #ifdef LOAD_ELF_DUMP
             f.open("padded_dump.data",
@@ -156,10 +156,9 @@ shared_ptr<EnclaveManager> load_static(const char *filename) {
 
             break;
         }
-
-        enclaveManager->prepareLaunch();
     }
 
+    enclaveManager->prepareLaunch();
 out:
     return enclaveManager;
 }

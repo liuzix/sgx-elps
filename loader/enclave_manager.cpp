@@ -5,7 +5,6 @@
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 
-
 extern std::shared_ptr<spdlog::logger> console;
 
 static int deviceHandle() {
@@ -202,15 +201,14 @@ unique_ptr<EnclaveThread> EnclaveManager::createThread(vaddr entry_addr) {
     return ret;
 }
 
-void EnclaveManager::prepareLaunch()
-{
+void EnclaveManager::prepareLaunch() {
     siggen.digestFinal();
     auto sigstruct = siggen.getSigstruct();
-    
+
     TokenGetter getter("/var/run/aesmd/aesm.socket");
     auto token = getter.getToken(sigstruct);
 
-    struct sgx_enclave_init initp = { 0, 0, 0 };
+    struct sgx_enclave_init initp = {0, 0, 0};
     initp.addr = this->enclaveBase;
     initp.sigstruct = (vaddr)sigstruct;
     initp.einittoken = (vaddr)token;
@@ -223,7 +221,6 @@ void EnclaveManager::prepareLaunch()
         console->error("Enclave Init failed: {}", ret);
         exit(-1);
     }
-    
+
     console->info("Enclave Init successful!");
 }
-    
