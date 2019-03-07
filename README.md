@@ -17,10 +17,12 @@ Build it:
 
 The samples should also be built:
 > cd samples
+
 > make
 
 ### how to test
 *Testing requires an SGX enabled machine with intel's SGX driver and SGX psw installed*
 > cd loader
+
 > ./loader ../samples/hello
 
