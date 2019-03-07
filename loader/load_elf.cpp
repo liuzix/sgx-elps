@@ -96,7 +96,7 @@ shared_ptr<EnclaveManager> load_static(const char *filename) {
                 goto out;
             }
             /* Copy the segment data */
-            memcpy(base, pseg->get_data(), p_memsz);
+            memcpy(base, pseg->get_data(), p_filesz);
 #ifdef LOAD_ELF_DUMP
             std::ofstream f;
             f.open("dump.data",

@@ -1,7 +1,7 @@
 CC = gcc
 
 hello: hello.c
-	$(CC) -static hello.c -nostdlib -o hello
+	$(CC) -static hello.c -nostdlib -o hello -L../libOS -lOS
 
 .PHONY: clean
 clean:

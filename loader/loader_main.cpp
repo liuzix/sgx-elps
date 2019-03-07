@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
 
     auto manager = load_one(argv[1]);
 
-    auto thread = manager->createThread(0x400135);
+    auto thread = manager->createThread(0x40016d);
     
     manager->prepareLaunch();
 
