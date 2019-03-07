@@ -9,6 +9,7 @@ Preparation (assuming Ubuntu 18.04):
 
 Generate Makefile:
 > cd loader
+
 > cmake .
 
 Build it:
