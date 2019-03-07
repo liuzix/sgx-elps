@@ -1,18 +1,9 @@
-#ifndef ENCLAVE_THREAD_H
-#define ENCLAVE_THREAD_H
-
-#include <sgx_arch.h>
 #include <atomic>
 
-struct EnclaveThread {
-    vaddr stack;
-    vaddr entry;
-    vaddr tcs;
-    void run();
-};
+#ifndef TEST_H_
+#define TEST_H_
 
-extern "C" int __eenter(vaddr tcs, vaddr stack);
-
+/*https://blog.lse.epita.fr/articles/42-implementing-generic-double-word-compare-and-swap-.html*/
 
 template<typename T>
 struct DPointer {
@@ -64,7 +55,7 @@ class Queue
 	};
 
 	Pointer Head, Tail;
-	std::atomic<int> len;
+	atomic<int> len;
   public:
 	Queue() {
 		Node *node = new Node();
@@ -72,7 +63,7 @@ class Queue
 	}
 
 	int getLen() const {return this->len;}
-    void push(T x) {
+	void push(T x) {
 		Node *node = new Node(x, nullptr);
 		Pointer tail, next;
 		do {
@@ -89,7 +80,7 @@ class Queue
 		} while (true);
 		Tail.cas(Pointer(node, tail.count+1), tail);
 		this->len++;
-	}	
+	}
 
 	bool take(T& pvalue) {
 		Pointer head, tail, next;
@@ -113,8 +104,9 @@ class Queue
 		this->len--;
 		return true;
 	}
-
-
 };
 
-#endif
+
+
+#endif /* BASIC_H_ */
+
