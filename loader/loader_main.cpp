@@ -10,11 +10,10 @@
 
 #include "load_elf.h"
 #include "signature.h"
+#include "logging.h"
 
 using namespace std;
 using namespace ELFIO;
-
-auto console = spdlog::stdout_color_mt("console");
 
 void loadMain(const string &filename) {
     elfio reader;

@@ -8,8 +8,7 @@
 #include <unistd.h>
 
 #include <elfio/elfio.hpp>
-#include <logging.h>
-
+#include "logging.h"
 #include "enclave_manager.h"
 #include "load_elf.h"
 
