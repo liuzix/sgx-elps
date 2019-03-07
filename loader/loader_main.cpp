@@ -46,11 +46,13 @@ int main(int argc, char **argv) {
 
     // loadMain(argv[1]);
 
-    auto manager = load_one(argv[1]);
+    /*
+    auto manager = load_one(argv[1], nullptr);
 
     auto thread = manager->createThread(0x40016d);
-    
+
     manager->prepareLaunch();
+    */
 
     thread->run();
     return 0;

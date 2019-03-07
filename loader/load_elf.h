@@ -6,8 +6,7 @@
 class EnclaveManager;
 
 /* For now just leave it like this */
-std::shared_ptr<EnclaveManager> load_one(const char *filename);
-
+unique_ptr<EnclaveThread> load_one(const char *filename, shared_ptr<EnclaveManager> enclaveManager);
 /* Should be like:
  *
  * bool load_one(shared_ptr<EnclaveManager>, const char *fname);
@@ -16,7 +15,6 @@ std::shared_ptr<EnclaveManager> load_one(const char *filename);
  * dynamically linked libraries.
  */
 
-std::shared_ptr<EnclaveManager> load_static(const char *filename);
-
+unique_ptr<EnclaveThread> load_static(const char *filename, shared_ptr<EnclaveManager> enclaveManager);
 
 #endif

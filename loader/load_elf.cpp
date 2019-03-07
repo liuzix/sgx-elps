@@ -48,14 +48,13 @@ static elfio elfReadAndCheck(const string &filename) {
     return reader;
 }
 
-shared_ptr<EnclaveManager> load_one(const char *filename) {
-    return load_static(filename);
+unique_ptr<EnclaveThread> load_one(const char *filename, shared_ptr<EnclaveManager> enclaveManager) {
+    return load_static(filename, enclaveManager);
 }
 
-shared_ptr<EnclaveManager> load_static(const char *filename) {
+unique_ptr<EnclaveThread> load_static(const char *filename, shared_ptr<EnclaveManager> enclaveManager) {
     elfio reader = elfReadAndCheck(filename);
     Elf_Half seg_num = reader.segments.size();
-    shared_ptr<EnclaveManager> enclaveManager = nullptr;
 
     int i;
     for (i = 0; i < seg_num; i++) {
@@ -76,9 +75,14 @@ shared_ptr<EnclaveManager> load_static(const char *filename) {
                        (p_flags & PF_W ? PROT_WRITE : 0) |
                        (p_flags & PF_X ? PROT_EXEC : 0);
             void *base = 0;
-            Elf64_Addr allocend = p_vaddr + p_memsz;
+            Elf64_Addr allocend;
             Elf64_Addr dataend = p_vaddr + p_filesz;
             void *t;
+
+            /* Padding p_memsz to page size */
+            if (p_memsz % PRESET_PAGESIZE != 0)
+                p_memsz += PRESET_PAGESIZE - (p_memsz % PRESET_PAGESIZE);
+            allocend = p_vaddr + p_memsz;
 
             if (!enclaveManager)
                 enclaveManager = make_shared<EnclaveManager>(p_vaddr, 0x400000);
@@ -94,8 +98,10 @@ shared_ptr<EnclaveManager> load_static(const char *filename) {
                 enclaveManager = nullptr;
                 goto out;
             }
+
             /* Copy the segment data */
             memcpy(base, pseg->get_data(), p_filesz);
+
 #ifdef LOAD_ELF_DUMP
             std::ofstream f;
             f.open("dump.data",
@@ -103,10 +109,11 @@ shared_ptr<EnclaveManager> load_static(const char *filename) {
             f.write((const char *)base, p_memsz);
             f.close();
 #endif
-            /* Fill unused memory with 0*/
 
+            /* Fill unused memory with 0*/
             if (allocend <= dataend)
                 goto do_map;
+
             unsigned long zero, zeroend, zeropage;
 
             zero = (unsigned long)base + p_filesz;
@@ -156,6 +163,8 @@ shared_ptr<EnclaveManager> load_static(const char *filename) {
             break;
         }
     }
+
+    return enclaveManager->createThread((vaddr)reader.get_entry());
 out:
-    return enclaveManager;
+    return nullptr;
 }
