@@ -44,15 +44,10 @@ int main(int argc, char **argv) {
     console->info("Welcome to the Loader");
     console->info("Start loading binary file: {}", argv[1]);
 
-    // loadMain(argv[1]);
-
-    /*
-    auto manager = load_one(argv[1], nullptr);
-
-    auto thread = manager->createThread(0x40016d);
+    auto manager = make_shared<EnclaveManager>(0x400000, 0x400000);
+    auto thread = load_one(argv[1], manager);
 
     manager->prepareLaunch();
-    */
 
     thread->run();
     return 0;
