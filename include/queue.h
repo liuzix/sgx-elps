@@ -59,6 +59,7 @@ class Queue
 	Queue() {
 		Node *node = new Node();
 		Head.ptr = Tail.ptr = node;
+		len = 0;
 	}
 
 	int getLen() const {return this->len;}
