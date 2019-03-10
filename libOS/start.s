@@ -9,6 +9,7 @@ mov %rsp, %rbp
 push %r8   # this is the stack
 push %r10  # this is the return address
 push %r9   # this is rbp
+mov %rdx, %rdi
 call __libOS_start
 pop %rbp
 pop %rbx   # restore the return address

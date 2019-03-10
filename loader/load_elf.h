@@ -2,11 +2,12 @@
 #define LOAD_ELF_H
 
 #include <memory>
+#include "enclave_thread.h"
 
 class EnclaveManager;
 
 /* For now just leave it like this */
-unique_ptr<EnclaveThread> load_one(const char *filename, shared_ptr<EnclaveManager> enclaveManager);
+std::shared_ptr<EnclaveMainThread> load_one(const char *filename, shared_ptr<EnclaveManager> enclaveManager);
 /* Should be like:
  *
  * bool load_one(shared_ptr<EnclaveManager>, const char *fname);
@@ -15,6 +16,6 @@ unique_ptr<EnclaveThread> load_one(const char *filename, shared_ptr<EnclaveManag
  * dynamically linked libraries.
  */
 
-unique_ptr<EnclaveThread> load_static(const char *filename, shared_ptr<EnclaveManager> enclaveManager);
+std::shared_ptr<EnclaveMainThread> load_static(const char *filename, shared_ptr<EnclaveManager> enclaveManager);
 
 #endif

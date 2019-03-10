@@ -12,14 +12,20 @@ private:
     Queue<RequestBase *> queue;    
     
     int nThreads = 4;
+    
+    void runWorker(int id); 
 public:
-    void runWorker(); 
-
     void launchWorkers();
+    void waitWorkers();
 
     void setNumThreads(int n) {
         this->nThreads = n;
     }
+
+    Queue<RequestBase *> *getQueue() {
+        return &queue;
+    }
 };
 
+extern SwapperManager swapperManager;
 #endif

@@ -41,7 +41,8 @@ class EnclaveManager {
     bool addPages(vaddr dest, void *src, size_t len);
     bool addPages(vaddr dest, void *src, size_t len, bool writable,
                   bool executable, bool isTCS);
-    unique_ptr<EnclaveThread> createThread(vaddr entry);
+    template <typename ThreadType>
+    shared_ptr<ThreadType> createThread(vaddr entry);
 
     void prepareLaunch();
     void makeHeap(vaddr base, size_t len);

@@ -48,11 +48,11 @@ static elfio elfReadAndCheck(const string &filename) {
     return reader;
 }
 
-unique_ptr<EnclaveThread> load_one(const char *filename, shared_ptr<EnclaveManager> enclaveManager) {
+shared_ptr<EnclaveMainThread> load_one(const char *filename, shared_ptr<EnclaveManager> enclaveManager) {
     return load_static(filename, enclaveManager);
 }
 
-unique_ptr<EnclaveThread> load_static(const char *filename, shared_ptr<EnclaveManager> enclaveManager) {
+shared_ptr<EnclaveMainThread> load_static(const char *filename, shared_ptr<EnclaveManager> enclaveManager) {
     elfio reader = elfReadAndCheck(filename);
     Elf_Half seg_num = reader.segments.size();
 
@@ -164,7 +164,7 @@ unique_ptr<EnclaveThread> load_static(const char *filename, shared_ptr<EnclaveMa
         }
     }
 
-    return enclaveManager->createThread((vaddr)reader.get_entry());
+    return enclaveManager->createThread<EnclaveMainThread>((vaddr)reader.get_entry());
 out:
     return nullptr;
 }

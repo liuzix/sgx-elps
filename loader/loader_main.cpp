@@ -8,32 +8,12 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
+#include "swapper_interface.h"
 #include "load_elf.h"
 #include "signature.h"
 #include "logging.h"
 
 using namespace std;
-using namespace ELFIO;
-
-void loadMain(const string &filename) {
-    elfio reader;
-
-    if (!reader.load(filename)) {
-        console->error("Unable to load {}", filename);
-        exit(-1);
-    }
-
-    if (reader.get_class() != ELFCLASS64 || reader.get_machine() != EM_X86_64) {
-        console->error("Unsupported architecture");
-        exit(-1);
-    }
-
-    auto enclaveManager = new EnclaveManager(0x10000000, 0x80000);
-    enclaveManager->addPages(0x10000000, (void *)((uint64_t)&loadMain & ~0xFFF),
-                             0x1000);
-    enclaveManager->createThread(enclaveManager->getBase());
-}
-
 int main(int argc, char **argv) {
     console->set_level(spdlog::level::trace);
     if (argc < 2) {
@@ -46,9 +26,14 @@ int main(int argc, char **argv) {
 
     auto manager = make_shared<EnclaveManager>(0x400000, 0x400000);
     auto thread = load_one(argv[1], manager);
-
     manager->prepareLaunch();
 
+    char const *testArgv[] ={"hello", (char *)0};
+    thread->setArgs(1, (char **)testArgv);
+    thread->setSwapper(swapperManager);
     thread->run();
+
+    swapperManager.launchWorkers();
+    swapperManager.waitWorkers();
     return 0;
 }

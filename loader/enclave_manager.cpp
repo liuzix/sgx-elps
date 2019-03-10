@@ -152,7 +152,8 @@ vaddr EnclaveManager::allocate(size_t len) {
     return prev;
 }
 
-unique_ptr<EnclaveThread> EnclaveManager::createThread(vaddr entry_addr) {
+template <typename ThreadType>
+shared_ptr<ThreadType> EnclaveManager::createThread(vaddr entry_addr) {
     size_t thread_len =
         SGX_PAGE_SIZE * (5 + THREAD_STACK_NUM + secs.ssaframesize * NUM_SSA);
     void *thread_mem = mmap(NULL, thread_len, PROT_READ | PROT_WRITE,
@@ -202,10 +203,9 @@ unique_ptr<EnclaveThread> EnclaveManager::createThread(vaddr entry_addr) {
         exit(-1);
     }
 
-    auto ret = make_unique<EnclaveThread>();
-    ret->tcs = tcs_enclave;
-    ret->stack = (vaddr)tls->stack + THREAD_STACK_NUM * SGX_PAGE_SIZE;
-    ret->entry = entry_addr;
+    auto stack = (vaddr)tls->stack + THREAD_STACK_NUM * SGX_PAGE_SIZE;
+    auto ret = make_shared<ThreadType>(stack, entry_addr, tcs_enclave);
+
     munmap(thread_mem, thread_len);
     console->trace("Adding tcs succeed!");
 
@@ -235,3 +235,9 @@ void EnclaveManager::prepareLaunch() {
 
     console->info("Enclave Init successful!");
 }
+
+template
+shared_ptr<EnclaveMainThread> EnclaveManager::createThread(vaddr entry_addr);
+
+//template
+//shared_ptr<EnclaveSlaveThread> EnclaveManager::createThread(vaddr entry_addr);
