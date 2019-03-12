@@ -26,11 +26,13 @@ int main(int argc, char **argv) {
 
     auto manager = make_shared<EnclaveManager>(0x400000, 0x400000);
     auto thread = load_one(argv[1], manager);
+    vaddr heap = manager->makeHeap(0x100000);
     manager->prepareLaunch();
 
     char const *testArgv[] ={"hello", (char *)0};
     thread->setArgs(1, (char **)testArgv);
     thread->setSwapper(swapperManager);
+    thread->setHeap(heap, 0x100000);
     thread->run();
 
     swapperManager.launchWorkers();

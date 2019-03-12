@@ -236,6 +236,24 @@ void EnclaveManager::prepareLaunch() {
     console->info("Enclave Init successful!");
 }
 
+vaddr EnclaveManager::makeHeap(size_t len) {
+    vaddr heapBase = this->allocate(len);
+    void *zeroPage = mmap(NULL, 4096, PROT_READ | PROT_WRITE,
+                          MAP_ANONYMOUS | MAP_PRIVATE, -1, 0 );
+    if (zeroPage == MAP_FAILED) {
+        console->error("makeHeap: mmap failed. len = {}", len);
+        exit(-1);
+    }
+    memset(zeroPage, 0, 4096);
+
+    for (size_t offset = 0; offset < len; offset += 4096) {
+        if (!this->addPages(heapBase + offset, zeroPage, 4096))
+            return 0;
+    }
+
+    return heapBase;
+}
+
 template
 shared_ptr<EnclaveMainThread> EnclaveManager::createThread(vaddr entry_addr);
 

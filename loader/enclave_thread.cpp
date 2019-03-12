@@ -22,4 +22,7 @@ void EnclaveMainThread::setArgs(int argc, char **argv) {
     this->controlStruct.mainArgs.argv = argv;
 }
 
-
+void EnclaveMainThread::setHeap(vaddr base, size_t len) {
+    this->controlStruct.mainArgs.heapBase = base;
+    this->controlStruct.mainArgs.heapLength = len;
+}

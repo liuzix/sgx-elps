@@ -45,7 +45,7 @@ class EnclaveManager {
     shared_ptr<ThreadType> createThread(vaddr entry);
 
     void prepareLaunch();
-    void makeHeap(vaddr base, size_t len);
+    vaddr makeHeap(size_t len);
 };
 
 #endif

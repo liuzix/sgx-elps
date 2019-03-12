@@ -1,6 +1,7 @@
 #ifndef CONTROL_STRUCT_H
 #define CONTROL_STRUCT_H
 
+#include <sgx_arch.h>
 #include <request.h>
 #include <queue.h>
 using namespace std;
@@ -10,6 +11,8 @@ using namespace std;
 struct main_args_t {
     int argc;
     char **argv;
+    vaddr heapBase;
+    size_t heapLength;
 };
 
 struct slave_args_t {

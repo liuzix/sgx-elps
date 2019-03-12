@@ -26,6 +26,7 @@ public:
     EnclaveMainThread(vaddr _stack, vaddr _entry, vaddr _tcs);
    
     void setArgs(int argc, char **argv);
+    void setHeap(vaddr base, size_t len);
 };
 
 extern "C" int __eenter(vaddr tcs, vaddr stack, libOS_control_struct *);
