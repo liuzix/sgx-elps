@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <atomic>
 
+
 template<typename T>
 struct DPointer {
   public:
@@ -42,36 +43,25 @@ struct DPointer {
 template<typename T>
 class Queue
 {
-	struct Node;
-	typedef DPointer<Node> Pointer;
-
-	struct Node {
-		T value;
-		Pointer next;
-
-		Node() : next(nullptr) {}
-		Node(T x, Node* nxt) : value(x), next(nxt) {}
-	};
-
+	typedef DPointer<T> Pointer;
+	T dummy;
 	Pointer Head, Tail;
 	std::atomic<int> len;
   public:
 	Queue() {
-		Node *node = new Node();
-		Head.ptr = Tail.ptr = node;
+		Head.ptr = Tail.ptr = &this->dummy;
 		len = 0;
 	}
 
 	int getLen() const {return this->len;}
-    void push(T x) {
-		Node *node = new Node(x, nullptr);
+    void push(T* node) {
 		Pointer tail, next;
 		do {
 			tail = Tail;
-			next = tail.ptr->next;
+			next = tail.ptr->q_next;
 			if (tail == Tail) {
 				if (next.ptr == nullptr) {
-					if (tail.ptr->next.cas(Pointer(node, next.count+1), next))
+					if (tail.ptr->q_next.cas(Pointer(node, next.count+1), next))
 						break;
 				} else {
 					Tail.cas(Pointer(next.ptr, tail.count+1), tail);
@@ -82,25 +72,24 @@ class Queue
 		this->len++;
 	}	
 
-	bool take(T& pvalue) {
+	bool take(T*& pvalue) {
 		Pointer head, tail, next;
 		do {
 			head = Head;
 			tail = Tail;
-			next = head.ptr->next;
+			next = head.ptr->q_next;
 			if (head == Head) {
 				if (head.ptr == tail.ptr) {
 					if (next.ptr == nullptr)
 						return false;
 					Tail.cas(Pointer(next.ptr, tail.count+1), tail);
 				} else {
-					pvalue = next.ptr->value;
+					pvalue = next.ptr;
 					if (Head.cas(Pointer(next.ptr, head.count+1), head))
 						break;
 				}
 			}
 		} while (true);
-		delete(head.ptr);
 		this->len--;
 		return true;
 	}
