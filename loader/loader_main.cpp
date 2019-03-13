@@ -33,9 +33,9 @@ int main(int argc, char **argv) {
     thread->setArgs(1, (char **)testArgv);
     thread->setSwapper(swapperManager);
     thread->setHeap(heap, 0x100000);
-    thread->run();
 
     swapperManager.launchWorkers();
+    thread->run();
     swapperManager.waitWorkers();
     return 0;
 }

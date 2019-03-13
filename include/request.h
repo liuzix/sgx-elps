@@ -1,7 +1,9 @@
 #ifndef REQUEST_H
 #define REQUEST_H
 
+#include <queue.h>
 #include <atomic>
+
 using namespace std;
 
 class RequestBase {
@@ -11,6 +13,7 @@ private:
     int returnVal = 0;
 public:
     int requestType;
+    DPointer<RequestBase> q_next; 
     bool waitOnAck(uint32_t cycles) {
         for (uint32_t i = 0; i < cycles; i++)
             if (ack.load()) return true;
@@ -31,7 +34,6 @@ public:
         done.store(true);
     }
 
-protected:
     RequestBase() {}
 };
 

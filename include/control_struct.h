@@ -31,7 +31,10 @@ struct libOS_control_struct {
        slave_args_t slaveArgs;
    };
 
-   Queue<RequestBase *> *requestQueue; 
+   Queue<RequestBase> *requestQueue; 
+
+   char *panicBuf;
+   char *requestBuf;
 };
 
 #endif

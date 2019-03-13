@@ -23,6 +23,9 @@ static void pushAndTake(Queue<TestObj>& q, TestObj& val, std::atomic<int>& sum) 
 	TestObj *tmp;
 	if (q.take(tmp))
 		sum += tmp->val;
+	std::this_thread::sleep_for(std::chrono::milliseconds(2));
+	if (q.take(tmp))
+		sum += tmp->val;
 };
 
 TEST(QueueTest, PushAndTake) {

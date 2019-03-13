@@ -1,10 +1,11 @@
 cmake_minimum_required(VERSION 3.10)
 ENABLE_LANGUAGE(ASM-ATT)
-SET(CMAKE_CXX_FLAGS "-g -Wall -Werror -std=c++17")
+SET(CMAKE_CXX_FLAGS "-g -Wall -Werror -std=c++17 -fno-exceptions -fno-stack-protector")
 
 project(libOS)
 
 include_directories(../include)
+include_directories(../deps)
 
 file(GLOB SOURCES "*.cpp" "*.s")
 

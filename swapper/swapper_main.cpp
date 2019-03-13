@@ -1,4 +1,5 @@
 #include <thread>
+extern "C" int main(int argc, char **argv);
 #include <functional>
 #include <logging.h>
 #include <swapper_interface.h>
@@ -11,7 +12,22 @@ SwapperManager swapperManager;
 
 void SwapperManager::runWorker(int id) {
     console->info("Swapper thread started, id = {}", id); 
-    sleep(10);
+
+    while (true) {
+        RequestBase *request = 0x0;
+        if (this->queue.take(request)) {
+            console->info("Request ptr 0x{:x}", (uint64_t)request);
+            console->info("Request tag {}", request->requestType);
+            console->flush();
+            if (DebugRequest::isInstanceOf(request)) {
+                console->critical("Enclave Panic: {}", this->panicBuf); 
+                console->flush();
+                request->setDone();
+            } else {
+                console->critical("Unknown request!");
+            }
+        }
+    }
     console->info("Swapper thread exits, id = {}", id);
 }
 

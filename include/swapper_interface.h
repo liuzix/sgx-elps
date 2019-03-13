@@ -9,7 +9,10 @@
 class SwapperManager {
 private:
     vector<thread> threads;
-    Queue<RequestBase *> queue;    
+    Queue<RequestBase> queue;    
+    
+    char panicBuf[256];
+    char requestBuf[sizeof(RequestBase)];
     
     int nThreads = 4;
     
@@ -22,9 +25,7 @@ public:
         this->nThreads = n;
     }
 
-    Queue<RequestBase *> *getQueue() {
-        return &queue;
-    }
+    friend class EnclaveThread;
 };
 
 extern SwapperManager swapperManager;

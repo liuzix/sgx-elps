@@ -18,3 +18,4 @@ mov %rax, %rsi # store the return value of __libos_start to rsi
 mov $4, %rax
 enclu
 ud2
+
