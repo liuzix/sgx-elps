@@ -9,24 +9,34 @@
 
 namespace {
 
-static void pushAndTake(Queue<int>& q, int val, std::atomic<int>& sum) {
-	q.push(val);
+struct TestObj {
+	int val;
+	DPointer<TestObj> q_next;
+
+	TestObj() : val(0), q_next(nullptr) {}
+	TestObj(int x) : val(x), q_next(nullptr) {} 
+};
+
+static void pushAndTake(Queue<TestObj>& q, TestObj& val, std::atomic<int>& sum) {
+	q.push(&val);
 	std::this_thread::sleep_for(std::chrono::seconds(1));
-	int tmp = 0;
+	TestObj *tmp;
 	if (q.take(tmp))
-		sum += tmp;
-}
+		sum += tmp->val;
+};
 
 TEST(QueueTest, PushAndTake) {
-	Queue<int> IntQueue;
+	Queue<TestObj> IntQueue;
 	std::atomic<int> sum_g(0);
 	
 	int sum_true = 0;
 	std::vector<std::thread> threads;
+	TestObj tests[100];
 
-	for (int i = 0; i < 50; i++) {
+	for (int i = 0; i < 100; i++) {
+		tests[i].val = i;
 		threads.push_back(std::thread(pushAndTake,
-				std::ref(IntQueue), i, std::ref(sum_g)));
+				std::ref(IntQueue), std::ref(tests[i]), std::ref(sum_g)));
 		sum_true += i;
 	}
 
@@ -37,18 +47,32 @@ TEST(QueueTest, PushAndTake) {
 }
 
 TEST(QueueTest, QueueLen) {
-	Queue<int> IntQueue;
-	int tmp = 0;
+	Queue<TestObj> IntQueue;
+	TestObj *tmp;
+	TestObj tests[10];
 
 	EXPECT_EQ(IntQueue.getLen(), 0);
 	for (int i = 0; i < 10; i++)
-		IntQueue.push(i);
+		IntQueue.push(&tests[i]);
 	EXPECT_EQ(IntQueue.getLen(), 10);
 
 	for (int i = 0; i < 10; i++)
 		IntQueue.take(tmp);
 	
 	EXPECT_EQ(IntQueue.getLen(), 0);	
+}
+
+
+TEST(QueueTest, IsIntrusive) {
+	Queue<TestObj> TestQueue;
+
+	TestObj *tmp;
+	TestObj first(1);
+
+	TestQueue.push(&first);
+	TestQueue.take(tmp);
+
+	EXPECT_EQ(tmp, &first);
 }
 
 }
@@ -81,6 +105,7 @@ TEST(SpinLockTest, AddGlobalNum) {
 }
 
 }
+
 int main(int argc, char **argv)
 {
 	::testing::InitGoogleTest(&argc, argv);
