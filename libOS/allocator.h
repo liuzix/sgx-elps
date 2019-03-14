@@ -11,12 +11,12 @@ using namespace boost::intrusive;
 //Define a list that will store MyClass using the public member hook
 class MemoryArea {
 private:
-    size_t len;
-    vaddr heapBase;
 public:
+    MemoryArea(size_t l);
+    size_t len;
    //This is a member hook
     list_member_hook<> list_hook_;
-    set_member_hook<> rbtree_hook_;  
+    set_member_hook<> rbtree_hook_;
 };
 
 typedef member_hook<MemoryArea, list_member_hook<>, &MemoryArea::list_hook_> MemberHookList;
@@ -28,15 +28,16 @@ typedef rbtree<MemoryArea, MemberHookRbtree> MemberRbtree;
 
 class Allocator {
 private:
-    size_t len;
-    vaddr heapBase;
-    MemoryArea ma;
+    vaddr heapStart;
+    vaddr heapEnd;
     MemberRbtree root;
     MemberList chunkList[CHUNK_LIST_SIZE];
 public:
+    size_t len;
     Allocator(size_t len, vaddr heapBase);
-    void *la_alloc(size_t len);
-    bool *la_free(vaddr baseAddr);
+    void *malloc(size_t len);
+    void free(vaddr baseAddr);
 };
+
 
 #endif
