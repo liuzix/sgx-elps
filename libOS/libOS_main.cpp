@@ -14,7 +14,10 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct) {
 
     requestQueue = ctrl_struct->requestQueue;
     initPanic(ctrl_struct->panic);
-    libos_panic("panic test!");
+    libos_panic("We are inside the enclave!");
     int ret = main(ctrl_struct->mainArgs.argc, ctrl_struct->mainArgs.argv);
+    char buf[256];
+    sprintf(buf, "Return value of main: %d", ret);
+    libos_panic(buf);
     return ret;
 }

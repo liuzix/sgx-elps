@@ -7,6 +7,7 @@ struct panic_struct;
 extern panic_struct *panicInfo;
 
 extern "C" void libos_panic(const char *msg);
+void writeToConsole(const char *msg, size_t n);
 
 void initPanic(panic_struct *);
 std::streambuf *getPanicStreamBuf();
