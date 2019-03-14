@@ -6,6 +6,7 @@
 #include "libos.h"
 
 panic_struct *panicInfo = nullptr;
+int panicCounter = 0;
 
 using namespace std;
 void writeToConsole(const char *msg, size_t n) {
@@ -23,14 +24,17 @@ void writeToConsole(const char *msg, size_t n) {
     *ptr = 0;
     
     auto req = new (panicInfo->requestBuf) DebugRequest;
+    if (panicCounter > 0) requestQueue->debug = true;
     requestQueue->push(req); 
     req->waitOnDone(1000000000);
+    req->requestType = 0;
     panicInfo->lock.unlock();
+    panicCounter++;
 }
 
 extern "C" void libos_panic(const char *msg) {
    writeToConsole(msg, PANIC_BUFFER_SIZE - 1); 
-   __asm__ ("ud2");   //commit suicide
+//.   __asm__ ("ud2");   //commit suicide
 }
 
 class PanicStreamBuf : public std::streambuf {
@@ -60,6 +64,7 @@ char panicStreamBuf[sizeof(PanicStreamBuf)];
 
 void initPanic(panic_struct *ps) {
     panicInfo = ps;
+    panicCounter = 0;
     // call the constructor manually
     // because we may not have called the init_array functions
     // TODO: currently running this causes a sigbus!
@@ -70,4 +75,3 @@ std::streambuf *getPanicStreamBuf() {
     return (std::streambuf *)panicStreamBuf;
 }
 
-int __fuck;

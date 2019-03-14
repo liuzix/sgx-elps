@@ -9,13 +9,6 @@
 using namespace boost::intrusive;
 
 //Define a list that will store MyClass using the public member hook
-typedef member_hook< MemoryArea, list_member_hook<>, &MemoryArea::list_hook_> MemberHookList;
-typedef list< MemoryArea, MemberHookList> MemberList;
-
-typedef member_hook<MemoryArea, rbtree_member_hook<>,
-    &MemoryArea::rbtree_hook_> MemberHookRbtree;
-typedef rbtree< MemoryArea, MemberHookRbtree> MemberRbtree;
-
 class MemoryArea {
 private:
     size_t len;
@@ -23,8 +16,15 @@ private:
 public:
    //This is a member hook
     list_member_hook<> list_hook_;
-    rbtree_member_hook<> rbtree_hook_;  
+    set_member_hook<> rbtree_hook_;  
 };
+
+typedef member_hook<MemoryArea, list_member_hook<>, &MemoryArea::list_hook_> MemberHookList;
+typedef list<MemoryArea, MemberHookList> MemberList;
+
+typedef member_hook<MemoryArea, set_member_hook<>,
+    &MemoryArea::rbtree_hook_> MemberHookRbtree;
+typedef rbtree<MemoryArea, MemberHookRbtree> MemberRbtree;
 
 class Allocator {
 private:

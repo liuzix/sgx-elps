@@ -5,7 +5,6 @@
 #include <atomic>
 #include "spin_lock.h"
 
-
 template<typename T>
 struct DPointer {
   public:
@@ -49,6 +48,7 @@ class Queue
 	Pointer Head, Tail;
 	std::atomic<int> len;
   public:
+    bool debug = 0;
 	Queue() {
 		Head.ptr = Tail.ptr = &this->dummy;
 		len = 0;
@@ -59,7 +59,7 @@ class Queue
 		Pointer tail, next;
 		do {
 			tail = Tail;
-			next = tail.ptr->q_next;
+            next = tail.ptr->q_next;
 			if (tail == Tail) {
 				if (next.ptr == nullptr) {
 					if (tail.ptr->q_next.cas(Pointer(node, next.count+1), next))

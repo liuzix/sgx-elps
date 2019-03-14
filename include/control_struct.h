@@ -24,7 +24,7 @@ struct slave_args_t {
 struct panic_struct {
    SpinLock lock;
 
-   char panicBuf[256];
+   char panicBuf[1024];
    char requestBuf[sizeof(DebugRequest)];
 };
 

@@ -9,6 +9,10 @@ Preparation (assuming Ubuntu 18.04):
 
 > sudo apt install cmake libssl-dev libprotobuf-dev 
 
+Build Musl:
+
+> cd musl; ./configure; make
+
 Generate Makefile:
 
 > cmake .
