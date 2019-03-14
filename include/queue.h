@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <atomic>
+#include "spin_lock.h"
 
 
 template<typename T>
@@ -39,7 +40,7 @@ struct DPointer {
 		return x.ptr == ptr && x.count == count;
 	}
 };
-
+/*
 template<typename T>
 class Queue
 {
@@ -93,6 +94,45 @@ class Queue
 		this->len--;
 		return true;
 	}
+
+
+};
+*/
+template<typename T>
+class Queue
+{
+	typedef DPointer<T> Pointer;
+	T dummy;
+	Pointer Head, Tail;
+	SpinLock H_lock, T_lock;
+	std::atomic<int> len;
+  public:
+	Queue() {
+		Head.ptr = Tail.ptr = &this->dummy;
+	}
+
+	int getLen() const {return this->len;}
+	
+    void push(T* node) {
+		T_lock.lock();
+		Tail.ptr->q_next.ptr = node;
+		Tail.ptr = node;
+		T_lock.unlock();
+	}	
+
+	bool take(T*& pvalue) {
+		H_lock.lock();
+		T* new_head = Head.ptr->q_next.ptr;
+		if (new_head == nullptr) {
+			H_lock.unlock();
+			return false;
+		}
+		pvalue = new_head;
+		Head.ptr = new_head;
+		H_lock.unlock();
+		return true;
+	}
+
 
 
 };
