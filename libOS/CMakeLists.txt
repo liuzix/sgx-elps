@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 ENABLE_LANGUAGE(ASM-ATT)
-SET(CMAKE_CXX_FLAGS "-g -Wall -Werror -std=c++17 -fno-exceptions -fno-stack-protector")
+SET(CMAKE_CXX_FLAGS "-g -Wall -fPIE -Werror -std=c++17 -fno-stack-protector")
 
 project(libOS)
 
@@ -9,4 +9,30 @@ include_directories(../deps)
 
 file(GLOB SOURCES "*.cpp" "*.s")
 
-add_library(OS STATIC ${SOURCES})
+add_library(OSCore STATIC ${SOURCES})
+
+
+find_library(LIB_MUSL libc.a PATHS "../musl/lib" NO_DEFAULT_PATH)
+
+execute_process(COMMAND ${CMAKE_C_COMPILER} -print-libgcc-file-name OUTPUT_VARIABLE GCC_LIB)
+get_filename_component(GCC_DIR "${GCC_LIB}" DIRECTORY)
+find_library(GCC_LIBSTDCPP libstdc++.a PATHS "${GCC_DIR}" NO_DEFAULT_PATH)
+find_library(GCC_LIBGCC_EH libgcc_eh.a PATHS "${GCC_DIR}" NO_DEFAULT_PATH)
+find_library(GCC_LIBSUPCPP libsupc++.a PATHS "${GCC_DIR}" NO_DEFAULT_PATH)
+
+set(OS_LIB ${PROJECT_SOURCE_DIR}/buildtmp/libOS.a)
+
+# We need to pack all standard libraries needed
+add_custom_target(OS_COMBINE
+    COMMAND ar -x $<TARGET_FILE:OSCore>
+    COMMAND ar -x ${LIB_MUSL}
+    COMMAND ar -x ${GCC_LIBSTDCPP}
+    COMMAND ar -x ${GCC_LIBGCC_EH}
+    COMMAND ar -qcs ${OS_LIB} *.o *.lo
+    WORKING_DIRECTORY ./buildtmp
+    DEPENDS OSCore
+)
+
+add_library(OS STATIC IMPORTED GLOBAL)
+add_dependencies(OS OS_COMBINE)
+set_target_properties(OS PROPERTIES IMPORTED_LOCATION ${OS_LIB})

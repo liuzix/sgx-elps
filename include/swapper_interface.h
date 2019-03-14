@@ -5,15 +5,13 @@
 #include <thread>
 #include <queue.h>
 #include <request.h>
+#include <control_struct.h>
 
 class SwapperManager {
 private:
     vector<thread> threads;
     Queue<RequestBase> queue;    
-    
-    char panicBuf[256];
-    char requestBuf[sizeof(RequestBase)];
-    
+    panic_struct panic; 
     int nThreads = 4;
     
     void runWorker(int id); 

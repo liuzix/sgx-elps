@@ -4,6 +4,7 @@
 #include <sgx_arch.h>
 #include <request.h>
 #include <queue.h>
+#include <spin_lock.h>
 using namespace std;
 
 #define CONTROL_STRUCT_MAGIC 0xbeefbeef
@@ -20,6 +21,13 @@ struct slave_args_t {
     void *arg;
 };
 
+struct panic_struct {
+   SpinLock lock;
+
+   char panicBuf[256];
+   char requestBuf[sizeof(DebugRequest)];
+};
+
 struct libOS_control_struct {
    /* for debugging */
    unsigned int magic = CONTROL_STRUCT_MAGIC;
@@ -33,8 +41,7 @@ struct libOS_control_struct {
 
    Queue<RequestBase> *requestQueue; 
 
-   char *panicBuf;
-   char *requestBuf;
+   panic_struct *panic;
 };
 
 #endif

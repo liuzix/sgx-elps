@@ -1,5 +1,5 @@
 #include <thread>
-extern "C" int main(int argc, char **argv);
+#include <iostream>
 #include <functional>
 #include <logging.h>
 #include <swapper_interface.h>
@@ -20,9 +20,9 @@ void SwapperManager::runWorker(int id) {
             console->info("Request tag {}", request->requestType);
             console->flush();
             if (DebugRequest::isInstanceOf(request)) {
-                console->critical("Enclave Panic: {}", this->panicBuf); 
-                console->flush();
                 request->setDone();
+                std::cout << this->panic.panicBuf << std::endl;
+                std::cout.flush();
             } else {
                 console->critical("Unknown request!");
             }

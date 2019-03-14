@@ -9,8 +9,7 @@ void EnclaveThread::run() {
 
 void EnclaveThread::setSwapper(SwapperManager &swapperManager) {
     this->controlStruct.requestQueue = &swapperManager.queue;
-    this->controlStruct.panicBuf = swapperManager.panicBuf;
-    this->controlStruct.requestBuf = swapperManager.requestBuf;
+    this->controlStruct.panic = &swapperManager.panic;
 }
 
 EnclaveMainThread::EnclaveMainThread(vaddr _stack, vaddr _entry, vaddr _tcs)
