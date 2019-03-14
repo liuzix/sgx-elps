@@ -21,7 +21,7 @@ find_library(GCC_LIBGCC_EH libgcc_eh.a PATHS "${GCC_DIR}" NO_DEFAULT_PATH)
 find_library(GCC_LIBSUPCPP libsupc++.a PATHS "${GCC_DIR}" NO_DEFAULT_PATH)
 
 set(OS_LIB ${PROJECT_SOURCE_DIR}/buildtmp/libOS.a)
-
+file(MAKE_DIRECTORY ${PROJECT_SOURCE_DIR}/buildtmp)
 # We need to pack all standard libraries needed
 add_custom_target(OS_COMBINE
     COMMAND ar -x $<TARGET_FILE:OSCore>
