@@ -1,6 +1,7 @@
 #include "enclave_thread.h"
 #include "logging.h"
 
+/*
 void EnclaveThread::writeToConsole(const char *msg, size_t n) {
     if (n >= 256) n =  255;
 
@@ -20,11 +21,12 @@ void EnclaveThread::writeToConsole(const char *msg, size_t n) {
     req->waitOnDone(1000000000);
     this->controlStruct.panic->lock.unlock();
 }
+*/
 
 void EnclaveThread::run() {
     console->info("entering enclave!");
-    int ret = __eenter(this->tcs, this->sharedTLS.enclave_stack, &this->controlStruct);
-    console->info("returned from enclave! ret = {}", ret);
+    __eenter(this->tcs, this->sharedTLS.enclave_stack, &this->controlStruct);
+    console->info("returned from enclave! ret = {}", sharedTLS.enclave_return_val);
     //this->writeToConsole("test1", 5);
     //this->writeToConsole("test2", 5);
 
@@ -35,8 +37,8 @@ void EnclaveThread::setSwapper(SwapperManager &swapperManager) {
     this->controlStruct.panic = &swapperManager.panic;
 }
 
-EnclaveMainThread::EnclaveMainThread(vaddr _stack, vaddr _entry, vaddr _tcs)
-    : EnclaveThread(_stack, _entry, _tcs) 
+EnclaveMainThread::EnclaveMainThread(vaddr _stack,  vaddr _tcs)
+    : EnclaveThread(_stack, _tcs) 
 {
     this->controlStruct.isMain = true;
 }

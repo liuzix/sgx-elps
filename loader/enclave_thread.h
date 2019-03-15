@@ -7,31 +7,35 @@
 #include <libOS_tls.h>
 #include <atomic>
 
+extern "C" void (*__back)(void);
+
 class EnclaveThread {
 private:
     //vaddr stack;
-    //vaddr entry;
     vaddr tcs;
 
     libOS_shared_tls sharedTLS;
 protected:
     libOS_control_struct controlStruct;
 public:
-    EnclaveThread(vaddr _stack, vaddr _entry, vaddr _tcs)
+    EnclaveThread(vaddr _stack, vaddr _tcs)
         : tcs(_tcs) 
     {
         sharedTLS = {};
-        sharedTLS.next_entry = _entry;
+        sharedTLS.next_exit = (uint64_t)&__back;
         sharedTLS.enclave_stack = _stack;
     }
     void setSwapper(SwapperManager &swapperManager); 
-    void writeToConsole(const char *msg, size_t n);
+    //void writeToConsole(const char *msg, size_t n);
+    libOS_shared_tls *getSharedTLS() {
+        return &this->sharedTLS;
+    }
     void run();
 };
 
 class EnclaveMainThread: public EnclaveThread {
 public:
-    EnclaveMainThread(vaddr _stack, vaddr _entry, vaddr _tcs);
+    EnclaveMainThread(vaddr _stack, vaddr _tcs);
    
     void setArgs(int argc, char **argv);
     void setHeap(vaddr base, size_t len);

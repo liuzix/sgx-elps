@@ -176,6 +176,7 @@ shared_ptr<ThreadType> EnclaveManager::createThread(vaddr entry_addr) {
     tcs->fslimit = 0xfff;
     tcs->gslimit = 0xfff;
 
+
     enclave_tls *tls =
         (enclave_tls *)((char *)thread_mem + thread_len - SGX_PAGE_SIZE);
     memset(tls, 0, SGX_PAGE_SIZE);
@@ -184,8 +185,13 @@ shared_ptr<ThreadType> EnclaveManager::createThread(vaddr entry_addr) {
     tls->initial_stack_offset = offset + SGX_PAGE_SIZE;
     tls->ssa = (void *)(base + SGX_PAGE_SIZE * (3 + THREAD_STACK_NUM));
     tls->stack = (void *)(base + SGX_PAGE_SIZE);
-
+    
     size_t tmp = SGX_PAGE_SIZE * (2 + THREAD_STACK_NUM);
+    vaddr stack = (vaddr)tls->stack + THREAD_STACK_NUM * SGX_PAGE_SIZE;
+    vaddr tcs_enclave = base + tmp;
+    auto ret = make_shared<ThreadType>(stack, tcs_enclave);
+    tls->libOS_data = ret->getSharedTLS();
+
     if (!addPages(base, thread_mem, tmp)) {
         console->error("Adding pages before TCS failed");
         exit(-1);
@@ -195,16 +201,12 @@ shared_ptr<ThreadType> EnclaveManager::createThread(vaddr entry_addr) {
         console->error("Adding TCS page failed");
         exit(-1);
     }
-    vaddr tcs_enclave = base + tmp;
 
     tmp += SGX_PAGE_SIZE;
     if (!addPages(base + tmp, (char *)thread_mem + tmp, thread_len - tmp)) {
         console->error("Adding pages after TCS failed");
         exit(-1);
     }
-
-    auto stack = (vaddr)tls->stack + THREAD_STACK_NUM * SGX_PAGE_SIZE;
-    auto ret = make_shared<ThreadType>(stack, entry_addr, tcs_enclave);
 
     munmap(thread_mem, thread_len);
     console->trace("Adding tcs succeed!");

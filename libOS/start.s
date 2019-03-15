@@ -2,19 +2,26 @@
 .extern main
 
 _start:
-mov %rsp, %r8
-mov %rbp, %r9
-mov %rsi, %rsp
+# begin switching stack
+mov %gs:32, %r14            # get libos_data 
+mov %rsp, 8(%r14)           # save original rsp
+mov 16(%r14), %rsp          # swtich to enclave stack 
+# end switching stack 
+
+push %rbp
 mov %rsp, %rbp
-push %r8   # this is the stack
-push %r10  # this is the return address
-push %r9   # this is rbp
 mov %rdx, %rdi
 call __libOS_start
 pop %rbp
-pop %rbx   # restore the return address
-pop %rsp   # restore stack
-mov %rax, %rsi # store the return value of __libos_start to rsi
+
+# begin switching stack
+mov %gs:32, %r14            # get libos_data 
+mov %rsp, 16(%r14)           # save original rsp
+mov 8(%r14), %rsp          # swtich to enclave stack 
+# end switching stack
+
+mov (%r14), %rbx
+mov %rax, 32(%r14) 
 mov $4, %rax
 enclu
 ud2

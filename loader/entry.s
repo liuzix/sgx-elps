@@ -26,18 +26,18 @@ ret
 .endm
 
 .global __eenter
+.global __back
+.hidden __back
 __eenter:
 EENTER_PROLOG
 mov $0x2, %rax
 mov %rdi, %rbx
 lea __aex_handler(%rip), %rcx
-lea back(%rip), %r10
 enclu
 /* we have exited the enclave by now */
 /* the enclave should store its return value in rsi,
     because rax needs to hold the leaf function number */
-back:
-mov %rsi, %rax
+__back:
 EENTER_EPILOG
 ret
 

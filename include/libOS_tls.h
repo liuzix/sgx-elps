@@ -4,11 +4,11 @@
 #include <stdint.h>
 
 struct libOS_shared_tls {
-    uint64_t next_exit;
-    uint64_t next_entry;
-    uint64_t loader_stack;
-    uint64_t enclave_stack;
-    uint64_t isReentry;
+    uint64_t next_exit;           // set by the loader
+    uint64_t loader_stack;        // saved by the loader
+    uint64_t enclave_stack;       // intialized by loader, updated by enclave on exits
+    uint64_t isReentry;           // set by the enclave
+    uint64_t enclave_return_val;  // set by the enclave
 }  __attribute__ ((packed));
 
 struct enclave_tls {
