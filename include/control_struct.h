@@ -25,6 +25,7 @@ struct panic_struct {
    SpinLock lock;
 
    char panicBuf[1024];
+   struct {} __attribute__ ((aligned (16)));
    char requestBuf[sizeof(DebugRequest)];
    char requestTest[sizeof(DebugRequest)];
 };

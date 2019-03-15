@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project (UnitTest)
- 
+SET(CMAKE_CXX_FLAGS "-g -Wall -Werror -std=c++17")
 # Locate GTest
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})

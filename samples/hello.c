@@ -1,4 +1,4 @@
-int test = 0;
+__thread int test = 0;
 
 
 int main () {

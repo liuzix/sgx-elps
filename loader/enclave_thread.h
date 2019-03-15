@@ -4,20 +4,28 @@
 #include <sgx_arch.h>
 #include <swapper_interface.h>
 #include <control_struct.h>
+#include <libOS_tls.h>
 #include <atomic>
 
 class EnclaveThread {
 private:
-    vaddr stack;
-    vaddr entry;
+    //vaddr stack;
+    //vaddr entry;
     vaddr tcs;
+
+    libOS_shared_tls sharedTLS;
 protected:
     libOS_control_struct controlStruct;
 public:
     EnclaveThread(vaddr _stack, vaddr _entry, vaddr _tcs)
-        : stack(_stack), entry(_entry), tcs(_tcs) 
-    {}
+        : tcs(_tcs) 
+    {
+        sharedTLS = {};
+        sharedTLS.next_entry = _entry;
+        sharedTLS.enclave_stack = _stack;
+    }
     void setSwapper(SwapperManager &swapperManager); 
+    void writeToConsole(const char *msg, size_t n);
     void run();
 };
 

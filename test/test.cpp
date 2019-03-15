@@ -24,21 +24,20 @@ static void producer(Queue<TestObj*>& q, int i, std::atomic<bool>& suicide) {
         std::cout << "enqueue " << i << std::endl;
         q.push(obj);
         while (!obj->done.load() && !suicide.load()) {;}
-        std::cout << i << "done" << std::endl;
+        std::cout << i << " done" << std::endl;
         if (suicide.load())
             break;
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 };
 
 static void consumer(Queue<TestObj*>& q, std::atomic<bool>& suicide) {
     while (true) {
-        TestObj *tmp = 0x0;
-        q.take(tmp);
-		if (tmp)
-        	tmp->done.store(true);
         if (suicide.load())
             break;
+        TestObj *tmp = 0x0;
+        if (!q.take(tmp)) continue;
+        if (tmp)
+        	tmp->done.store(true);
     }
 };
 
@@ -52,8 +51,8 @@ TEST(QueueTest, PushAndTake2) {
                                         i, std::ref(sig)));
         threads.push_back(std::thread(consumer, std::ref(IntQueue), std::ref(sig)));
     }
-    
-    std::this_thread::sleep_for(std::chrono::seconds(5));
+   
+    std::this_thread::sleep_for(std::chrono::seconds(10));
     sig.store(true);
     for (auto& th : threads)
         th.join();

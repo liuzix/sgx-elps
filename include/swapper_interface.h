@@ -12,7 +12,7 @@ private:
     vector<thread> threads;
     Queue<RequestBase*> queue;    
     panic_struct panic; 
-    int nThreads = 4;
+    int nThreads = 1;
     
     void runWorker(int id); 
 public:

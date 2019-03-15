@@ -4,7 +4,7 @@
 #include <spdlog/spdlog.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
-
+#include <libOS_tls.h>
 #include "enclave_thread.h"
 
 extern std::shared_ptr<spdlog::logger> console;

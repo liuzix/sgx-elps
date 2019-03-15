@@ -1,6 +1,7 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
+#include <cassert>
 #include <atomic>
 #include <vector>
  
@@ -19,48 +20,38 @@ class Queue {
     Queue(uint64_t s) : head(0), r_head(0), tail(0), r_tail(0), q(s), size(s) { }
 
     void push(T v) {
-   /*
-        while (true) {
-            uint64_t curr_tail = tail.load();
-            uint64_t next_tail = curr_tail + 1;
-            if (next_tail > r_head.load()) {
-                if (tail.compare_exchange_weak(curr_tail, next_tail)) {
-                    q[curr_tail % size] = std::move(v);
-                    while (q[r_tail.load() % size] == 0x0);
-                    r_tail++;
-                    break;
-                }
-            }
-        }
-*/
         uint64_t pos = tail++;
         while (r_head.load() + size <= pos);
         q[pos % size] = std::move(v);
-        while (q[r_tail.load() % size] == 0x0); 
-        ++r_tail;
-    }
 
-    void take(T& v) {
-/*
         while (true) {
-            uint64_t curr_head = head.load();
-            if (curr_head < r_tail.load()) {
-                if (head.compare_exchange_weak(curr_head, curr_head+1)) {
-                    v = q[curr_head % size];
-                    q[curr_head % size] = 0x0;
-                    while (q[r_head.load() % size] != 0x0);
-                    r_head++;
-                    break;
-                }
+            uint64_t my_r_tail = r_tail.load();
+            if (q[my_r_tail % size] != nullptr && my_r_tail < tail) {
+                r_tail.compare_exchange_weak(my_r_tail, my_r_tail + 1);
+            } else {
+                break;
             }
         }
-*/   
-        uint64_t pos = head++;
-        while (pos >= r_tail.load());
+    }
+
+    bool take(T& v) {
+        uint64_t pos = head.load();
+        if (pos == r_tail) return false;
+        if (!head.compare_exchange_weak(pos, pos + 1)) return false;
+        
         v = std::move(q[pos % size]);
         q[pos % size] = 0x0;
-        while (q[r_head.load() % size] != 0x0);
-        ++r_head;
+        
+        while (true) {
+            uint64_t my_r_head = r_head.load();
+            if (q[my_r_head % size] == nullptr && my_r_head < head) {
+                r_head.compare_exchange_weak(my_r_head, my_r_head + 1);
+            } else {
+                break;
+            }
+        }
+
+        return true;
      }
 };
 

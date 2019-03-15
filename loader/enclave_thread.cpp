@@ -1,10 +1,33 @@
 #include "enclave_thread.h"
 #include "logging.h"
 
+void EnclaveThread::writeToConsole(const char *msg, size_t n) {
+    if (n >= 256) n =  255;
+
+    this->controlStruct.panic->lock.lock();
+    char *ptr = this->controlStruct.panic->panicBuf;
+    size_t i = 0;
+    while (*msg && i < n) {
+        *ptr = *msg;
+        msg++;
+        ptr++;
+        i++;
+    }
+    *ptr = 0;
+    
+    auto req = new (this->controlStruct.panic->requestBuf) DebugRequest;
+    this->controlStruct.requestQueue->push(req); 
+    req->waitOnDone(1000000000);
+    this->controlStruct.panic->lock.unlock();
+}
+
 void EnclaveThread::run() {
     console->info("entering enclave!");
-    int ret = __eenter(this->tcs, this->stack, &this->controlStruct);
+    int ret = __eenter(this->tcs, this->sharedTLS.enclave_stack, &this->controlStruct);
     console->info("returned from enclave! ret = {}", ret);
+    //this->writeToConsole("test1", 5);
+    //this->writeToConsole("test2", 5);
+
 }
 
 void EnclaveThread::setSwapper(SwapperManager &swapperManager) {

@@ -5,9 +5,9 @@
 #include <swapper_interface.h>
 
 using namespace std;
-
+#pragma GCC visibility push(hidden)
 std::shared_ptr<spdlog::logger> console = spdlog::stdout_color_mt("swapper");
-
+#pragma GCC visibility pop
 SwapperManager swapperManager;
 
 void SwapperManager::runWorker(int id) {
@@ -15,7 +15,8 @@ void SwapperManager::runWorker(int id) {
 
     while (true) {
         RequestBase *request = 0x0;
-        this->queue.take(request);
+        if (!this->queue.take(request)) continue;
+        
         console->info("Request ptr 0x{:x}", (uint64_t)request);
         console->info("Request tag {}", request->requestType);
         console->flush();

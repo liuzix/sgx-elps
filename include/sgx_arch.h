@@ -113,14 +113,6 @@ typedef struct _tcs_t {
     uint64_t reserved[503];
 } __attribute__((packed)) tcs_t;
 
-typedef struct {
-    uint64_t enclave_size;
-    uint64_t tcs_offset;
-    uint64_t initial_stack_offset;
-    void *ssa;
-    void *stack;
-} enclave_tls;
-
 struct sigstruct {
     uint64_t header11;
     uint64_t header12;
