@@ -10,7 +10,7 @@
 class SwapperManager {
 private:
     vector<thread> threads;
-    Queue<RequestBase> queue;    
+    Queue<RequestBase*> queue;    
     panic_struct panic; 
     int nThreads = 4;
     

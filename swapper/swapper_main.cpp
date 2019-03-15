@@ -15,17 +15,16 @@ void SwapperManager::runWorker(int id) {
 
     while (true) {
         RequestBase *request = 0x0;
-        if (this->queue.take(request)) {
-            console->info("Request ptr 0x{:x}", (uint64_t)request);
-            console->info("Request tag {}", request->requestType);
-            console->flush();
-            if (DebugRequest::isInstanceOf(request)) {
-                request->setDone();
-                std::cout << this->panic.panicBuf << std::endl;
-                std::cout.flush();
-            } else {
-                console->critical("Unknown request!");
-            }
+        this->queue.take(request);
+        console->info("Request ptr 0x{:x}", (uint64_t)request);
+        console->info("Request tag {}", request->requestType);
+        console->flush();
+        if (DebugRequest::isInstanceOf(request)) {
+            std::cout << this->panic.panicBuf << std::endl;
+			request->setDone();
+            std::cout.flush(); 
+        } else {
+            console->critical("Unknown request!");
         }
     }
     console->info("Swapper thread exits, id = {}", id);

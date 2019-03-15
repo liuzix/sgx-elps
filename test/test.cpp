@@ -7,11 +7,65 @@
 #include "queue.h"
 #include "spin_lock.h"
 
+
+
+namespace {
+struct TestObj {
+    int val;
+    std::atomic_bool done = {false};
+
+    TestObj() : val(0) {}
+    TestObj(int x) : val(x) {}
+};
+static void producer(Queue<TestObj*>& q, int i, std::atomic<bool>& suicide) {
+    char mem[sizeof(TestObj)];
+    for (;;) {
+        TestObj *obj = new ((void*)mem) TestObj(i);
+        std::cout << "enqueue " << i << std::endl;
+        q.push(obj);
+        while (!obj->done.load() && !suicide.load()) {;}
+        std::cout << i << "done" << std::endl;
+        if (suicide.load())
+            break;
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+};
+
+static void consumer(Queue<TestObj*>& q, std::atomic<bool>& suicide) {
+    while (true) {
+        TestObj *tmp = 0x0;
+        q.take(tmp);
+		if (tmp)
+        	tmp->done.store(true);
+        if (suicide.load())
+            break;
+    }
+};
+
+TEST(QueueTest, PushAndTake2) {
+    Queue<TestObj*> IntQueue(20);
+    std::vector<std::thread> threads;
+    std::atomic<bool> sig = {false};
+
+    for (int i = 0; i < 4; i++) {
+        threads.push_back(std::thread(producer, std::ref(IntQueue),
+                                        i, std::ref(sig)));
+        threads.push_back(std::thread(consumer, std::ref(IntQueue), std::ref(sig)));
+    }
+    
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+    sig.store(true);
+    for (auto& th : threads)
+        th.join();
+}
+}
+/*
 namespace {
 
 struct TestObj {
 	int val;
 	DPointer<TestObj> q_next;
+	std::atomic_bool done = {false};
 
 	TestObj() : val(0), q_next(nullptr) {}
 	TestObj(int x) : val(x), q_next(nullptr) {} 
@@ -47,6 +101,51 @@ TEST(QueueTest, PushAndTake) {
 		th.join();
 
 	EXPECT_EQ(sum_true, sum_g);
+}
+
+static void producer(Queue<TestObj>& q, int i, std::atomic<bool>& suicide) {
+	char mem[sizeof(TestObj)];
+	for (;;) {
+		TestObj *obj = new ((void*)mem) TestObj(i);
+		std::cout << "enqueue " << i << std::endl;
+		q.push(obj);
+		while (!obj->done.load() && !suicide.load()) {;}
+		std::cout << i << "done" << std::endl;
+		if (suicide.load())
+			break;
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	}
+};
+
+static void consumer(Queue<TestObj>& q, std::atomic<bool>& suicide) {
+	while (true) {
+		TestObj *tmp;
+		if (q.take(tmp)) {
+			tmp->done.store(true);
+//			std::cout << "dequeue " << tmp->val << std::endl;
+		}
+		if (suicide.load())
+			break;
+//		std::this_thread::sleep_for(std::chrono::seconds(1));
+	}
+};
+
+TEST(QueueTest, PushAndTake2) {
+	Queue<TestObj> IntQueue;
+	std::vector<std::thread> threads;
+	std::atomic<bool> sig = {false};
+
+	for (int i = 0; i < 4; i++) {
+		threads.push_back(std::thread(producer, std::ref(IntQueue),
+										i, std::ref(sig)));
+		threads.push_back(std::thread(consumer, std::ref(IntQueue), std::ref(sig)));
+	}
+	
+	std::this_thread::sleep_for(std::chrono::seconds(5));
+	sig.store(true);
+	for (auto& th : threads)
+		th.join();
+	EXPECT_EQ(IntQueue.getLen(), 0);
 }
 
 TEST(QueueTest, QueueLen) {
@@ -108,7 +207,7 @@ TEST(SpinLockTest, AddGlobalNum) {
 }
 
 }
-
+*/
 int main(int argc, char **argv)
 {
 	::testing::InitGoogleTest(&argc, argv);

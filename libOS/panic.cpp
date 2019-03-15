@@ -22,19 +22,19 @@ void writeToConsole(const char *msg, size_t n) {
         i++;
     }
     *ptr = 0;
-    
     auto req = new (panicInfo->requestBuf) DebugRequest;
-    if (panicCounter > 0) requestQueue->debug = true;
     requestQueue->push(req); 
     req->waitOnDone(1000000000);
-    req->requestType = 0;
-    panicInfo->lock.unlock();
-    panicCounter++;
+/*    auto req2 = new (panicInfo->requestTest) DebugRequest;
+	requestQueue->push(req2);
+	req2->waitOnDone(1000000000);
+*/	panicInfo->lock.unlock();
 }
 
 extern "C" void libos_panic(const char *msg) {
-   writeToConsole(msg, PANIC_BUFFER_SIZE - 1); 
-//.   __asm__ ("ud2");   //commit suicide
+	writeToConsole(msg, PANIC_BUFFER_SIZE - 1); 
+//  writeToConsole(msg, 5);
+//	__asm__ ("ud2");   //commit suicide
 }
 
 class PanicStreamBuf : public std::streambuf {

@@ -26,6 +26,7 @@ struct panic_struct {
 
    char panicBuf[1024];
    char requestBuf[sizeof(DebugRequest)];
+   char requestTest[sizeof(DebugRequest)];
 };
 
 struct libOS_control_struct {
@@ -39,7 +40,7 @@ struct libOS_control_struct {
        slave_args_t slaveArgs;
    };
 
-   Queue<RequestBase> *requestQueue; 
+   Queue<RequestBase*> *requestQueue; 
 
    panic_struct *panic;
 };
