@@ -25,7 +25,7 @@ void EnclaveThread::writeToConsole(const char *msg, size_t n) {
 
 void EnclaveThread::run() {
     console->info("entering enclave!");
-    __eenter(this->tcs, this->sharedTLS.enclave_stack, &this->controlStruct);
+    __eenter(this->tcs);
     console->info("returned from enclave! ret = {}", sharedTLS.enclave_return_val);
     //this->writeToConsole("test1", 5);
     //this->writeToConsole("test2", 5);

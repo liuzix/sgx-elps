@@ -10,7 +10,7 @@ mov 16(%r14), %rsp          # swtich to enclave stack
 
 push %rbp
 mov %rsp, %rbp
-mov %rdx, %rdi
+mov 40(%r14), %rdi
 call __libOS_start
 pop %rbp
 

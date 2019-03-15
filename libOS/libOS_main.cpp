@@ -14,9 +14,7 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct) {
 
     requestQueue = ctrl_struct->requestQueue;
     initPanic(ctrl_struct->panic);
-    libos_panic("panic test!");
-	libos_panic("second");
+    writeToConsole("We are inside libOS!", 255);
     int ret = main(ctrl_struct->mainArgs.argc, ctrl_struct->mainArgs.argv);
-    //writeToConsole("test2", 5);
     return ret;
 }

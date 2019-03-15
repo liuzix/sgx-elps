@@ -24,6 +24,7 @@ public:
         sharedTLS = {};
         sharedTLS.next_exit = (uint64_t)&__back;
         sharedTLS.enclave_stack = _stack;
+        sharedTLS.controlStruct = &this->controlStruct;
     }
     void setSwapper(SwapperManager &swapperManager); 
     //void writeToConsole(const char *msg, size_t n);
@@ -41,7 +42,7 @@ public:
     void setHeap(vaddr base, size_t len);
 };
 
-extern "C" int __eenter(vaddr tcs, vaddr stack, libOS_control_struct *);
+extern "C" int __eenter(vaddr tcs);
 
 
 #endif
