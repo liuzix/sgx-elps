@@ -3,5 +3,5 @@
 
 pid_t getpgrp(void)
 {
-	return __syscall(SYS_getpgid, 0);
+	return __async_syscall(SYS_getpgid, 0);
 }

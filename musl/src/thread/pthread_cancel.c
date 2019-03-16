@@ -28,7 +28,7 @@ long __syscall_cp_c(syscall_arg_t nr,
 
 	if ((st=(self=__pthread_self())->canceldisable)
 	    && (st==PTHREAD_CANCEL_DISABLE || nr==SYS_close))
-		return __syscall(nr, u, v, w, x, y, z);
+		return __async_syscall(nr, u, v, w, x, y, z);
 
 	r = __syscall_cp_asm(&self->cancel, nr, u, v, w, x, y, z);
 	if (r==-EINTR && nr!=SYS_close && self->cancel &&
@@ -64,7 +64,7 @@ static void cancel_handler(int sig, siginfo_t *si, void *ctx)
 		return;
 	}
 
-	__syscall(SYS_tkill, self->tid, SIGCANCEL);
+	__async_syscall(SYS_tkill, self->tid, SIGCANCEL);
 }
 
 void __testcancel()

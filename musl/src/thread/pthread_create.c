@@ -98,12 +98,12 @@ _Noreturn void __pthread_exit(void *result)
 		 * the case of threads that started out detached, the
 		 * initial clone flags are correct, but if the thread was
 		 * detached later, we need to clear it here. */
-		if (state == DT_DYNAMIC) __syscall(SYS_set_tid_address, 0);
+		if (state == DT_DYNAMIC) __async_syscall(SYS_set_tid_address, 0);
 
 		/* Robust list will no longer be valid, and was already
 		 * processed above, so unregister it with the kernel. */
 		if (self->robust_list.off)
-			__syscall(SYS_set_robust_list, 0, 3*sizeof(long));
+			__async_syscall(SYS_set_robust_list, 0, 3*sizeof(long));
 
 		/* Since __unmapself bypasses the normal munmap code path,
 		 * explicitly wait for vmlock holders first. */
@@ -120,7 +120,7 @@ _Noreturn void __pthread_exit(void *result)
 	self->tid = 0;
 	UNLOCK(self->killlock);
 
-	for (;;) __syscall(SYS_exit, 0);
+	for (;;) __async_syscall(SYS_exit, 0);
 }
 
 void __do_cleanup_push(struct __ptcb *cb)
@@ -139,7 +139,7 @@ static int start(void *p)
 {
 	pthread_t self = p;
 	if (self->unblock_cancel)
-		__syscall(SYS_rt_sigprocmask, SIG_UNBLOCK,
+		__async_syscall(SYS_rt_sigprocmask, SIG_UNBLOCK,
 			SIGPT_SET, 0, _NSIG/8);
 	__pthread_exit(self->start(self->start_arg));
 	return 0;
@@ -195,7 +195,7 @@ int __pthread_create(pthread_t *restrict res, const pthread_attr_t *restrict att
 		init_file_lock(__stdin_used);
 		init_file_lock(__stdout_used);
 		init_file_lock(__stderr_used);
-		__syscall(SYS_rt_sigprocmask, SIG_UNBLOCK, SIGPT_SET, 0, _NSIG/8);
+		__async_syscall(SYS_rt_sigprocmask, SIG_UNBLOCK, SIGPT_SET, 0, _NSIG/8);
 		self->tsd = (void **)__pthread_tsd_main;
 		libc.threaded = 1;
 	}

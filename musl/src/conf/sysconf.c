@@ -197,7 +197,7 @@ long sysconf(int name)
 	case JT_NPROCESSORS_ONLN & 255: ;
 		unsigned char set[128] = {1};
 		int i, cnt;
-		__syscall(SYS_sched_getaffinity, 0, sizeof set, set);
+		__async_syscall(SYS_sched_getaffinity, 0, sizeof set, set);
 		for (i=cnt=0; i<sizeof set; i++)
 			for (; set[i]; set[i]&=set[i]-1, cnt++);
 		return cnt;

@@ -34,9 +34,9 @@ int semctl(int id, int num, int cmd, ...)
 	}
 #endif
 #ifdef SYS_semctl
-	int r = __syscall(SYS_semctl, id, num, cmd | IPC_64, arg.buf);
+	int r = __async_syscall(SYS_semctl, id, num, cmd | IPC_64, arg.buf);
 #else
-	int r = __syscall(SYS_ipc, IPCOP_semctl, id, num, cmd | IPC_64, &arg.buf);
+	int r = __async_syscall(SYS_ipc, IPCOP_semctl, id, num, cmd | IPC_64, &arg.buf);
 #endif
 #ifdef SYSCALL_IPC_BROKEN_MODE
 	if (r >= 0) switch (cmd) {

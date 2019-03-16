@@ -8,7 +8,7 @@ hidden void *__start_sched(void *p)
 	void *(*start_fn)(void *) = ssa->start_fn;
 	pthread_t self = __pthread_self();
 
-	int ret = -__syscall(SYS_sched_setscheduler, self->tid,
+	int ret = -__async_syscall(SYS_sched_setscheduler, self->tid,
 		ssa->attr->_a_policy, &ssa->attr->_a_prio);
 	if (!ret) __restore_sigs(&ssa->mask);
 	a_store(&ssa->futex, ret);

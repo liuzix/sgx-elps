@@ -18,9 +18,9 @@ int shmctl(int id, int cmd, struct shmid_ds *buf)
 	}
 #endif
 #ifdef SYS_shmctl
-	int r = __syscall(SYS_shmctl, id, cmd | IPC_64, buf);
+	int r = __async_syscall(SYS_shmctl, id, cmd | IPC_64, buf);
 #else
-	int r = __syscall(SYS_ipc, IPCOP_shmctl, id, cmd | IPC_64, 0, buf, 0);
+	int r = __async_syscall(SYS_ipc, IPCOP_shmctl, id, cmd | IPC_64, 0, buf, 0);
 #endif
 #ifdef SYSCALL_IPC_BROKEN_MODE
 	if (r >= 0) switch (cmd) {

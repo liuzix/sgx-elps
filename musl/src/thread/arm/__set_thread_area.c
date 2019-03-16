@@ -48,5 +48,5 @@ int __set_thread_area(void *p)
 		if (ver < 3) __a_barrier_ptr = __a_barrier_oldkuser;
 	}
 #endif
-	return __syscall(0xf0005, p);
+	return __async_syscall(0xf0005, p);
 }

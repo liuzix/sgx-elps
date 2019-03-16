@@ -49,12 +49,12 @@ void *__expand_heap(size_t *pn)
 	n += -n & PAGE_SIZE-1;
 
 	if (!brk) {
-		brk = __syscall(SYS_brk, 0);
+		brk = __async_syscall(SYS_brk, 0);
 		brk += -brk & PAGE_SIZE-1;
 	}
 
 	if (n < SIZE_MAX-brk && !traverses_stack_p(brk, brk+n)
-	    && __syscall(SYS_brk, brk+n)==brk+n) {
+	    && __async_syscall(SYS_brk, brk+n)==brk+n) {
 		*pn = n;
 		brk += n;
 		return (void *)(brk-n);

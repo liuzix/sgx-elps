@@ -35,9 +35,9 @@ char *realpath(const char *restrict filename, char *restrict resolved)
 		goto err;
 	}
 
-	__syscall(SYS_close, fd);
+	__async_syscall(SYS_close, fd);
 	return resolved ? strcpy(resolved, tmp) : strdup(tmp);
 err:
-	__syscall(SYS_close, fd);
+	__async_syscall(SYS_close, fd);
 	return 0;
 }

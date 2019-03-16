@@ -29,13 +29,13 @@ static void handler(int sig)
 	sem_init(&ch.target_sem, 0, 0);
 	sem_init(&ch.caller_sem, 0, 0);
 
-	ch.tid = __syscall(SYS_gettid);
+	ch.tid = __async_syscall(SYS_gettid);
 
 	do ch.next = head;
 	while (a_cas_p(&head, ch.next, &ch) != ch.next);
 
 	if (a_cas(&target_tid, ch.tid, 0) == (ch.tid | 0x80000000))
-		__syscall(SYS_futex, &target_tid, FUTEX_UNLOCK_PI|FUTEX_PRIVATE);
+		__async_syscall(SYS_futex, &target_tid, FUTEX_UNLOCK_PI|FUTEX_PRIVATE);
 
 	sem_wait(&ch.target_sem);
 	callback(context);
@@ -85,8 +85,8 @@ void __synccall(void (*func)(void *), void *ctx)
 	memset(&sa.sa_mask, -1, sizeof sa.sa_mask);
 	__libc_sigaction(SIGSYNCCALL, &sa, 0);
 
-	pid = __syscall(SYS_getpid);
-	self = __syscall(SYS_gettid);
+	pid = __async_syscall(SYS_getpid);
+	self = __async_syscall(SYS_gettid);
 
 	/* Since opendir is not AS-safe, the DIR needs to be setup manually
 	 * in automatic storage. Thankfully this is easy. */
@@ -98,7 +98,7 @@ void __synccall(void (*func)(void *), void *ctx)
 	 * few signals. This initial signaling is just an optimization, not
 	 * part of the logic. */
 	for (i=libc.threads_minus_1; i; i--)
-		__syscall(SYS_kill, pid, SIGSYNCCALL);
+		__async_syscall(SYS_kill, pid, SIGSYNCCALL);
 
 	/* Loop scanning the kernel-provided thread list until it shows no
 	 * threads that have not already replied to the signal. */
@@ -120,7 +120,7 @@ void __synccall(void (*func)(void *), void *ctx)
 			for (cp = head; cp && cp->tid != tid; cp=cp->next);
 			if (cp) continue;
 
-			r = -__syscall(SYS_tgkill, pid, tid, SIGSYNCCALL);
+			r = -__async_syscall(SYS_tgkill, pid, tid, SIGSYNCCALL);
 
 			/* Target thread exit is a success condition. */
 			if (r == ESRCH) continue;
@@ -136,7 +136,7 @@ void __synccall(void (*func)(void *), void *ctx)
 				ts.tv_sec++;
 				ts.tv_nsec -= 1000000000;
 			}
-			r = -__syscall(SYS_futex, &target_tid,
+			r = -__async_syscall(SYS_futex, &target_tid,
 				FUTEX_LOCK_PI|FUTEX_PRIVATE, 0, &ts);
 
 			/* Obtaining the lock means the thread responded. ESRCH

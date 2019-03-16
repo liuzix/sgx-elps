@@ -22,7 +22,7 @@
 typedef long syscall_arg_t;
 #endif
 
-hidden long __syscall_ret(unsigned long), __syscall(syscall_arg_t, ...),
+hidden long __syscall_ret(unsigned long), __async_syscall(syscall_arg_t, ...),
 	__syscall_cp(syscall_arg_t, syscall_arg_t, syscall_arg_t, syscall_arg_t,
 	             syscall_arg_t, syscall_arg_t, syscall_arg_t);
 

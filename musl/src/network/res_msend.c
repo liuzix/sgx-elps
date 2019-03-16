@@ -16,7 +16,7 @@
 
 static void cleanup(void *p)
 {
-	__syscall(SYS_close, (intptr_t)p);
+	__async_syscall(SYS_close, (intptr_t)p);
 }
 
 static unsigned long mtime()

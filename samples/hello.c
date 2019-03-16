@@ -1,3 +1,5 @@
+#include <unistd.h>
+#include <sys/syscall.h>
 __thread int test = 0;
 
 
@@ -7,7 +9,8 @@ int main () {
 
     for (; i <= 100; i++)
         test += i;
-
+    
+    syscall(0);
     return test;
 }
 

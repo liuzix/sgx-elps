@@ -16,11 +16,11 @@ static int __setrlimit(int resource, const struct rlimit *rlim)
 		FIX(tmp.rlim_max);
 		rlim = &tmp;
 	}
-	int ret = __syscall(SYS_prlimit64, 0, resource, rlim, 0);
+	int ret = __async_syscall(SYS_prlimit64, 0, resource, rlim, 0);
 	if (ret != -ENOSYS) return ret;
 	k_rlim[0] = MIN(rlim->rlim_cur, MIN(-1UL, SYSCALL_RLIM_INFINITY));
 	k_rlim[1] = MIN(rlim->rlim_max, MIN(-1UL, SYSCALL_RLIM_INFINITY));
-	return __syscall(SYS_setrlimit, resource, k_rlim);
+	return __async_syscall(SYS_setrlimit, resource, k_rlim);
 }
 
 struct ctx {

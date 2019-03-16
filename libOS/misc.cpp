@@ -19,7 +19,7 @@ int __sprintf_chk(
     return retval;
 }
 
-int __syscall() {
+int __async_syscall() {
     libos_panic("We do not support system call!");
     return 0;
 }

@@ -18,13 +18,13 @@ pid_t fork(void)
 	__fork_handler(-1);
 	__block_all_sigs(&set);
 #ifdef SYS_fork
-	ret = __syscall(SYS_fork);
+	ret = __async_syscall(SYS_fork);
 #else
-	ret = __syscall(SYS_clone, SIGCHLD, 0);
+	ret = __async_syscall(SYS_clone, SIGCHLD, 0);
 #endif
 	if (!ret) {
 		pthread_t self = __pthread_self();
-		self->tid = __syscall(SYS_gettid);
+		self->tid = __async_syscall(SYS_gettid);
 		self->robust_list.off = 0;
 		self->robust_list.pending = 0;
 		libc.threads_minus_1 = 0;
