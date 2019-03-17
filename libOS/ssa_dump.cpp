@@ -51,7 +51,7 @@ void dump_ssa_gpr(ssa_gpr_t *ssa_gpr) {
                     );
 }
 
-void dump_ssa(uint64_t ptcs, uint32_t ssaframesize) {
+void dump_ssa(uint64_t ptcs) {
     tcs_t *tcs = (tcs_t *)ptcs;
     ssa_gpr_t *ssa_gpr = (ssa_gpr_t *)(tcs->ossa + tcs->cssa * PAGE_SIZE + PAGE_SIZE - GPRSGX_SIZE);
 
