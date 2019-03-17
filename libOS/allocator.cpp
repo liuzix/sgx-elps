@@ -25,6 +25,8 @@ Allocator::Allocator(size_t len, vaddr heapBase) {
 }
 
 void *Allocator::malloc(size_t len) {
+    if (len == 0)
+        return (void *)0;
     for (int i = 0; i < CHUNK_LIST_SIZE; i++) {
         if (len >= pow(2, i + 2))
             continue;
@@ -45,12 +47,16 @@ void *Allocator::malloc(size_t len) {
                     rbtreeLock.lock();
                     root.insert_equal(*ma);
                     rbtreeLock.unlock();
-                    chunkList[(int)log2(oldLen - len - MA_SIZE)].push_back(*ma);
+                    if (len == 1)
+                        chunkList[0].push_back(*ma);
+                    else
+                        chunkList[(int)log2(oldLen - len - MA_SIZE) - 1].push_back(*ma);
                 }
                 listLock.unlock();
                 return (void *)retAddr;
             }
         }
+        listLock.unlock();
     }
     return nullptr;
 }
@@ -65,22 +71,22 @@ void Allocator::free(vaddr baseAddr) {
     MemberRbtree::iterator mit = root.iterator_to(*ma),
                            mitNext = std::next(mit), mitPrev = std::prev(mit);
     if (&(*mit) + MA_SIZE + (*mit).len == &(*mitNext)) {
-        MemberList::iterator mitLst = chunkList[(int)log2((*mitNext).len)].iterator_to(*mitNext);
-        chunkList[(int)log2((*mitLst).len)].erase(mitLst);
+        MemberList::iterator mitLst = chunkList[(int)log2((*mitNext).len) - 1].iterator_to(*mitNext);
+        chunkList[(int)log2((*mitLst).len) - 1].erase(mitLst);
         (*mit).len += MA_SIZE + (*mitNext).len;
         root.erase(mitNext);
     }
     if (&(*mitPrev) + MA_SIZE + (*mitPrev).len == &(*mit)) {
-        MemberList::iterator mitLst = chunkList[(int)log2((*mitPrev).len)].iterator_to(*mitPrev);
-        chunkList[(int)log2((*mitLst).len)].erase(mitLst);
+        MemberList::iterator mitLst = chunkList[(int)log2((*mitPrev).len) - 1].iterator_to(*mitPrev);
+        chunkList[(int)log2((*mitLst).len) - 1].erase(mitLst);
         (*mitPrev).len += MA_SIZE + (*mit).len;
         root.erase(mit);
-        chunkList[(int)log2((*mitPrev).len)].push_back(*mitPrev);
+        chunkList[(int)log2((*mitPrev).len) - 1].push_back(*mitPrev);
         rbtreeLock.unlock();
         listLock.unlock();
         return;
     }
-    chunkList[(int)log2((*mit).len)].push_back(*mit);
+    chunkList[(int)log2((*mit).len) - 1].push_back(*mit);
     rbtreeLock.unlock();
     listLock.unlock();
     return;
