@@ -70,21 +70,25 @@ void Allocator::free(vaddr baseAddr) {
     rbtreeLock.lock();
     MemberRbtree::iterator mit = root.iterator_to(*ma),
                            mitNext = std::next(mit), mitPrev = std::prev(mit);
-    if (&(*mit) + MA_SIZE + (*mit).len == &(*mitNext)) {
-        MemberList::iterator mitLst = chunkList[(int)log2((*mitNext).len) - 1].iterator_to(*mitNext);
-        chunkList[(int)log2((*mitLst).len) - 1].erase(mitLst);
-        (*mit).len += MA_SIZE + (*mitNext).len;
-        root.erase(mitNext);
+    if (mitNext != root.end()) {
+        if (&(*mit) + MA_SIZE + (*mit).len == &(*mitNext)) {
+            MemberList::iterator mitLst = chunkList[(int)log2((*mitNext).len) - 1].iterator_to(*mitNext);
+            chunkList[(int)log2((*mitLst).len) - 1].erase(mitLst);
+            (*mit).len += MA_SIZE + (*mitNext).len;
+            root.erase(mitNext);
+        }
     }
-    if (&(*mitPrev) + MA_SIZE + (*mitPrev).len == &(*mit)) {
-        MemberList::iterator mitLst = chunkList[(int)log2((*mitPrev).len) - 1].iterator_to(*mitPrev);
-        chunkList[(int)log2((*mitLst).len) - 1].erase(mitLst);
-        (*mitPrev).len += MA_SIZE + (*mit).len;
-        root.erase(mit);
-        chunkList[(int)log2((*mitPrev).len) - 1].push_back(*mitPrev);
-        rbtreeLock.unlock();
-        listLock.unlock();
-        return;
+    if (mit != root.begin()) {
+        if (&(*mitPrev) + MA_SIZE + (*mitPrev).len == &(*mit)) {
+            MemberList::iterator mitLst = chunkList[(int)log2((*mitPrev).len) - 1].iterator_to(*mitPrev);
+            chunkList[(int)log2((*mitLst).len) - 1].erase(mitLst);
+            (*mitPrev).len += MA_SIZE + (*mit).len;
+            root.erase(mit);
+            chunkList[(int)log2((*mitPrev).len) - 1].push_back(*mitPrev);
+            rbtreeLock.unlock();
+            listLock.unlock();
+            return;
+        }
     }
     chunkList[(int)log2((*mit).len) - 1].push_back(*mit);
     rbtreeLock.unlock();
