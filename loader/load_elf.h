@@ -18,4 +18,6 @@ std::shared_ptr<EnclaveMainThread> load_one(const char *filename, shared_ptr<Enc
 
 std::shared_ptr<EnclaveMainThread> load_static(const char *filename, shared_ptr<EnclaveManager> enclaveManager);
 
+extern atomic_flag __sig_flag;
+
 #endif

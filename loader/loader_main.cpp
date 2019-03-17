@@ -5,6 +5,7 @@
 #include <string>
 
 #include <sys/mman.h>
+#include <signal.h>
 #include <elfio/elfio.hpp>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
@@ -13,6 +14,7 @@
 #include "load_elf.h"
 #include "signature.h"
 #include "logging.h"
+#include <ssa_dump.h>
 
 #define UNSAFE_HEAP_LEN 0x10000000
 
@@ -27,7 +29,53 @@ void *makeUnsafeHeap(size_t length) {
     return addr;
 }
 
+std::map<uint64_t, char> sig_flag_map;
+char get_flag(uint64_t rbx) {
+    char res = sig_flag_map[rbx];
+    //console->log("rbx: 0x{:x}, flag: {} ", rbx, res);
+    return res;
+}
+
+void set_flag(uint64_t rbx, char flag) {
+    sig_flag_map[rbx] = flag;
+}
+
+
+void sig_exit() {
+    exit(-1);
+}
+
+static void __sigaction(int n, siginfo_t *, void *ucontext) {
+    ucontext_t *context = (ucontext_t *)ucontext;
+    uint64_t rbx = context->uc_mcontext.gregs[REG_RBX];
+
+    //Per-thread flag
+    set_flag(rbx, 1);
+    if (n == SIGSEGV)
+        console->error("Segmentation Fault!");
+    else 
+        console->error("Signal num = {}", n);
+}
+
+void dump_sigaction(void) {
+    sigset_t msk = {0};
+    struct sigaction sa;
+    {
+        sa.sa_handler = NULL;
+        sa.sa_sigaction = __sigaction;
+        sa.sa_mask = msk;
+        sa.sa_flags = SA_SIGINFO;
+        sa.sa_restorer = NULL;
+    }
+
+    sigaction(SIGSEGV, &sa, NULL);
+    sigaction(7, &sa, NULL);
+
+}
+
 int main(int argc, char **argv) {
+    /* Set the sigsegv handler to dump the ssa */
+    dump_sigaction();
     console->set_level(spdlog::level::trace);
     if (argc < 2) {
         console->error("Usage: loader [binary file name]");
@@ -49,6 +97,9 @@ int main(int argc, char **argv) {
 
     void *unsafeHeap = makeUnsafeHeap(UNSAFE_HEAP_LEN);
     thread->setUnsafeHeap(unsafeHeap, UNSAFE_HEAP_LEN);
+    
+    console->info("tcs: 0x{:x}", thread->getTcs());
+    
     swapperManager.launchWorkers();
     thread->run();
     swapperManager.waitWorkers();

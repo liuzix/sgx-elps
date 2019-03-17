@@ -22,7 +22,6 @@ void EnclaveThread::writeToConsole(const char *msg, size_t n) {
     this->controlStruct.panic->lock.unlock();
 }
 */
-
 void EnclaveThread::run() {
     console->info("entering enclave!");
     __eenter(this->tcs);

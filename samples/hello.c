@@ -7,7 +7,7 @@ int main () {
     int i = 0;
     int test  = 0;
 
-    for (; i <= 100; i++)
+    for (; i <= 10000; i++)
         test += i;
     
     syscall(0);

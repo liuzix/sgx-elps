@@ -25,9 +25,13 @@ pop     %rbp
 ret
 .endm
 
+.extern get_flag
+.extern sig_exit
 .global __eenter
 .global __back
+.global __aex_handler
 .hidden __back
+.hidden __aex_handler
 __eenter:
 EENTER_PROLOG
 mov $0x2, %rax
@@ -41,9 +45,17 @@ __back:
 EENTER_EPILOG
 ret
 
+__exit:
+call sig_exit@plt
 
 __aex_handler:
 /* just ERESUME for now */
 nop
+push %rdi
+mov %rbx, %rdi
+call get_flag@plt
+pop %rdi
+cmp $1, %rax
+jz __exit
 enclu
 int3
