@@ -52,3 +52,10 @@ void EnclaveMainThread::setHeap(vaddr base, size_t len) {
     this->controlStruct.mainArgs.heapBase = base;
     this->controlStruct.mainArgs.heapLength = len;
 }
+
+void EnclaveMainThread::setUnsafeHeap(void *base, size_t len) {
+    console->info("Set unsafeheap base = 0x{:x}, length = 0x{:x}",
+                  (vaddr)base, len);
+    this->controlStruct.mainArgs.unsafeHeapBase = base;
+    this->controlStruct.mainArgs.unsafeHeapLength = len;
+}

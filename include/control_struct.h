@@ -14,6 +14,8 @@ struct main_args_t {
     char **argv;
     vaddr heapBase;
     size_t heapLength;
+    void *unsafeHeapBase;
+    size_t unsafeHeapLength;
 };
 
 struct slave_args_t {
