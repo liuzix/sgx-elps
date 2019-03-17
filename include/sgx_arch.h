@@ -113,6 +113,55 @@ typedef struct _tcs_t {
     uint64_t reserved[503];
 } __attribute__((packed)) tcs_t;
 
+/* ssa data structure */
+typedef struct _exit_info_t
+{
+    uint32_t    vector:8;                /* Exception number of exceptions reported inside enclave */
+    uint32_t    exit_type:3;             /* 3: Hardware exceptions, 6: Software exceptions */
+    uint32_t    reserved:20;
+    uint32_t    valid:1;                 /* 0: unsupported exceptions, 1: Supported exceptions */
+} __attribute__((packed)) exit_info_t;
+
+#define SE_VECTOR_DE    0
+#define SE_VECTOR_DB    1
+#define SE_VECTOR_BP    3
+#define SE_VECTOR_BR    5
+#define SE_VECTOR_UD    6
+#define SE_VECTOR_MF    16
+#define SE_VECTOR_AC    17
+#define SE_VECTOR_XM    19
+
+#define GPRSGX_SIZE     176
+typedef struct _ssa_gpr_t
+{
+    uint64_t ax;                    /* (0) */
+    uint64_t cx;                    /* (8) */
+    uint64_t dx;                    /* (16) */
+    uint64_t bx;                    /* (24) */
+    uint64_t sp;                    /* (32) */
+    uint64_t bp;                    /* (40) */
+    uint64_t si;                    /* (48) */
+    uint64_t di;                    /* (56) */
+    uint64_t r8;                    /* (64) */
+    uint64_t r9;                    /* (72) */
+    uint64_t r10;                   /* (80) */
+    uint64_t r11;                   /* (88) */
+    uint64_t r12;                   /* (96) */
+    uint64_t r13;                   /* (104) */
+    uint64_t r14;                   /* (112) */
+    uint64_t r15;                   /* (120) */
+    uint64_t flags;                 /* (128) */
+    uint64_t ip;                    /* (136) */
+    uint64_t sp_u;                  /* (144) untrusted stack pointer. saved by EENTER */
+    uint64_t bp_u;                  /* (152) untrusted frame pointer. saved by EENTER */
+    exit_info_t exit_info;          /* (160) contain information for exits */
+    uint32_t reserved;              /* (164) padding to multiple of 8 bytes */
+    uint64_t fs;                    /* (168) FS register */
+    uint64_t gs;                    /* (176) GS register */
+} __attribute__((packed)) ssa_gpr_t;
+
+typedef uint64_t si_flags_t;
+
 struct sigstruct {
     uint64_t header11;
     uint64_t header12;
@@ -144,7 +193,6 @@ struct sigstruct {
     uint8_t q1[384];
     uint8_t q2[384];
 } __attribute__((packed));
-
 
 struct einittoken_t {
     uint32_t valid;

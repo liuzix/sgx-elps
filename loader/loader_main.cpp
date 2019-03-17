@@ -12,9 +12,14 @@
 #include "load_elf.h"
 #include "signature.h"
 #include "logging.h"
+#include "ssa_dump.h"
 
 using namespace std;
+
+
 int main(int argc, char **argv) {
+    /* Set the sigsegv handler to dump the ssa */
+    dump_sigaction();
     console->set_level(spdlog::level::trace);
     if (argc < 2) {
         console->error("Usage: loader [binary file name]");
@@ -34,6 +39,7 @@ int main(int argc, char **argv) {
     thread->setSwapper(swapperManager);
     thread->setHeap(heap, 0x100000);
 
+    console->info("tcs: 0x{:x}", thread->getTcs());
     swapperManager.launchWorkers();
     thread->run();
     swapperManager.waitWorkers();
