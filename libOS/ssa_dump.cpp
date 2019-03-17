@@ -3,48 +3,7 @@
 #include "logging.h"
 #include <iostream>
 
-std::map<uint64_t, char> sig_flag_map;
 ssa_gpr_t ssa_gpr_dump;
-
-char get_flag(uint64_t rbx) {
-    char res = sig_flag_map[rbx];
-    //console->log("rbx: 0x{:x}, flag: {} ", rbx, res);
-    return res;
-}
-
-void set_flag(uint64_t rbx, char flag) {
-    sig_flag_map[rbx] = flag;
-}
-
-
-void sig_exit() {
-    exit(-1);
-}
-
-static void __sigaction(int sig, siginfo_t *info, void *ucontext) {
-    ucontext_t *context = (ucontext_t *)ucontext;
-    uint64_t rbx = context->uc_mcontext.gregs[REG_RBX];
-
-    //Per-thread flag
-    set_flag(rbx, 1);
-    console->error("Segmentation Fault!");
-}
-
-void dump_sigaction(void) {
-    sigset_t msk = {0};
-    struct sigaction sa;
-    {
-        sa.sa_handler = NULL;
-        sa.sa_sigaction = __sigaction;
-        sa.sa_mask = msk;
-        sa.sa_flags = SA_SIGINFO;
-        sa.sa_restorer = NULL;
-    }
-
-    sigaction(SIGSEGV, &sa, NULL);
-
-}
-
 
 #define __print_ssa_gpr(reg) \
         std::cout << "reg: " << std::hex <<ssa_gpr_dump.reg
