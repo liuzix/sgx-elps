@@ -10,7 +10,7 @@
 #include <atomic>
 #include <map>
 
-#include "ssa_dump.h"
+#include <ssa_dump.h>
 
 extern "C" void (*__back)(void);
 

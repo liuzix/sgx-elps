@@ -31,6 +31,7 @@ ret
 .global __back
 .global __aex_handler
 .hidden __back
+.hidden __aex_handler
 __eenter:
 EENTER_PROLOG
 mov $0x2, %rax
