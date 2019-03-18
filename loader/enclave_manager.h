@@ -14,8 +14,8 @@
 
 using namespace std;
 
-#define NUM_SSAFRAME 4
-#define NUM_SSA 2
+#define SSA_FRAMESIZE_PAGE 4
+#define NUM_SSA 4
 
 class EnclaveManager {
   private:

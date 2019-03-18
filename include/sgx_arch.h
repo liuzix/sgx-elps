@@ -131,7 +131,7 @@ typedef struct _exit_info_t
 #define SE_VECTOR_AC    17
 #define SE_VECTOR_XM    19
 
-#define GPRSGX_SIZE     176
+#define GPRSGX_SIZE     184
 typedef struct _ssa_gpr_t
 {
     uint64_t ax;                    /* (0) */

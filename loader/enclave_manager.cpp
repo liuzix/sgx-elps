@@ -42,7 +42,7 @@ EnclaveManager::EnclaveManager(vaddr base, size_t len) : siggen(&this->secs) {
 
     secs.base = (uint64_t)this->enclaveBase;
     secs.size = this->enclaveMemoryLen;
-    secs.ssaframesize = 4;
+    secs.ssaframesize = SSA_FRAMESIZE_PAGE;
     secs.attributes = SGX_FLAGS_MODE64BIT | SGX_FLAGS_DEBUG;
     secs.xfrm = 3;
 
@@ -54,7 +54,7 @@ EnclaveManager::EnclaveManager(vaddr base, size_t len) : siggen(&this->secs) {
         exit(-1);
     }
 
-    siggen.doEcreate(this->enclaveMemoryLen, NUM_SSAFRAME);
+    siggen.doEcreate(this->enclaveMemoryLen, SSA_FRAMESIZE_PAGE);
     console->info("Creating enclave successful.");
 }
 
