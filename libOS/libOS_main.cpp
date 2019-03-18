@@ -4,7 +4,7 @@
 #include "allocator.h"
 
 Queue<RequestBase*> *requestQueue = nullptr;
-Allocator *unsafeAllocator = nullptr;
+extern Allocator *unsafeAllocator;
 
 extern "C" int __libOS_start(libOS_control_struct *ctrl_struct) {
     if (!ctrl_struct)
@@ -15,16 +15,10 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct) {
         return -1;
     requestQueue = ctrl_struct->requestQueue;
     initPanic(ctrl_struct->panic);
-    writeToConsole("We are inside libOS!", 255);
+    writeToConsole("We are inside libOS!");
 
-    //int *p = (int*)0x0;
-    //*p = 1;
-   
-    
-    size_t allocatorSize = (sizeof(Allocator) + 15) & (0xF);
-    unsafeAllocator = new (ctrl_struct->mainArgs.unsafeHeapBase) Allocator
-        (ctrl_struct->mainArgs.unsafeHeapLength - allocatorSize,
-         (vaddr)ctrl_struct->mainArgs.unsafeHeapBase + allocatorSize);
+    initUnsafeMalloc(ctrl_struct->mainArgs.unsafeHeapBase, ctrl_struct->mainArgs.unsafeHeapLength);    
+    writeToConsole("UnsafeMalloc intialization successful.");
 
     int ret = main(ctrl_struct->mainArgs.argc, ctrl_struct->mainArgs.argv);
     return ret;

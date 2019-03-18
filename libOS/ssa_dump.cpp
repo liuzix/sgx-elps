@@ -16,14 +16,14 @@ ssa_gpr_t ssa_gpr_dump;
         char buf[50];               \
                                     \
         sprintf(buf, "reg: %lx", ssa_gpr_dump.reg); \
-        libos_panic(buf);                           \
+        writeToConsole(buf);                           \
     } while(0)
 #define __print_exit_info(name, suffix) \
     do {                                \
         char buf[50];                   \
                                         \
         sprintf(buf, "exit_info.name: %d", ssa_gpr_dump.exit_info.name); \
-        libos_panic(buf);                                               \
+        writeToConsole(buf);                                               \
     } while(0)
 #endif
 

@@ -70,5 +70,9 @@ public:
     void free(vaddr baseAddr);
 };
 
+extern void initUnsafeMalloc(void *base, size_t len);
 
+extern void *unsafeMalloc(size_t len);
+
+extern void unsafeFree(void *ptr);
 #endif

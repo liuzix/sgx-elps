@@ -6,6 +6,21 @@
 #define MA_SIZE sizeof(MemoryArea)
 #define MIN_PRESERVE_SIZE 2 * MA_SIZE
 
+Allocator *unsafeAllocator;
+
+void initUnsafeMalloc(void *base, size_t len) {
+    size_t allocatorSize = sizeof(Allocator);
+    unsafeAllocator = new (base) Allocator (len - allocatorSize, (vaddr)base + allocatorSize);
+}
+
+void *unsafeMalloc(size_t len) {
+    return unsafeAllocator->malloc(len);
+}
+
+void unsafeFree(void *ptr) {
+    unsafeAllocator->free((vaddr)ptr);
+}
+
 static inline int myLog2(size_t x) {
     return sizeof(uint32_t) * CHAR_BIT - __builtin_clz(x) - 1;
 }

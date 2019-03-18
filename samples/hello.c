@@ -10,6 +10,8 @@ int main () {
     for (; i <= 10000; i++)
         test += i;
     
+    int *p = (int *)0x0;
+    *p = 1;
     syscall(0);
     return test;
 }

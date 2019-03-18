@@ -3,6 +3,8 @@
 #include <functional>
 #include <logging.h>
 #include <swapper_interface.h>
+#include "debug_request.h"
+
 
 using namespace std;
 #pragma GCC visibility push(hidden)
@@ -13,20 +15,13 @@ SwapperManager swapperManager;
 void SwapperManager::runWorker(int id) {
     console->info("Swapper thread started, id = {}", id); 
 
+    RequestDispatcher dispatcher;
+    dispatcher.addHandler<DebugRequest>(debugRequestHandler);
+        
     while (true) {
         RequestBase *request = 0x0;
         if (!this->queue.take(request)) continue;
-        
-        //console->info("Request ptr 0x{:x}", (uint64_t)request);
-        //console->info("Request tag {}", request->requestType);
-        //console->flush();
-        if (DebugRequest::isInstanceOf(request)) {
-            std::cout << this->panic.panicBuf << std::endl;
-			request->setDone();
-            std::cout.flush(); 
-        } else {
-            console->critical("Unknown request!");
-        }
+        dispatcher.dispatch(request);
     }
     console->info("Swapper thread exits, id = {}", id);
 }

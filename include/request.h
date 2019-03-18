@@ -1,8 +1,12 @@
 #ifndef REQUEST_H
 #define REQUEST_H
 
-#include <queue.h>
 #include <atomic>
+#include <functional>
+#include <unordered_map>
+#include <cassert>
+#include <logging.h>
+#include <queue.h>
 
 using namespace std;
 
@@ -37,14 +41,44 @@ public:
 };
 
 class DebugRequest: public RequestBase { 
-    const static int typeTag = 0;
 public:
-    static bool isInstanceOf(RequestBase *req) {
-        return req->requestType == typeTag;
-    }
-
+    constexpr static int typeTag = 0;
+    enum class SubType { enclavePrint, enclaveCallDebugger, enclaveExit };
+   
+    char *printBuf;
     DebugRequest() {
         this->requestType = typeTag;
+    }
+};
+
+template <typename RequestType>
+RequestType *tryCast(RequestBase *basePtr) {
+    if (basePtr->requestType == RequestType::typeTag)
+        return static_cast<RequestType *>(basePtr);
+    else
+        return nullptr;
+}
+
+class RequestDispatcher {
+private:
+    unordered_map<int, function<void(RequestBase *)>> handlers;  
+public:
+    template <typename RequestType>
+    void addHandler(function<void(RequestType *)> handler) {
+        auto realHandler = [=](RequestBase *basePtr) {
+            auto subTypePtr = tryCast<RequestType>(basePtr);
+            assert(subTypePtr);
+            handler(subTypePtr);
+        };
+        handlers[RequestType::typeTag] = realHandler;
+    }
+
+    void dispatch(RequestBase *basePtr) {
+        if (handlers.count(basePtr->requestType) != 1)
+            console->critical("Unknown request {}", basePtr->requestType);
+        basePtr->setAck();
+        handlers[basePtr->requestType](basePtr);
+        basePtr->setDone();
     }
 };
 
