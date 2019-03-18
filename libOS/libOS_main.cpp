@@ -17,6 +17,9 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct) {
     initPanic(ctrl_struct->panic);
     writeToConsole("We are inside libOS!", 255);
 
+    //int *p = (int*)0x0;
+    //*p = 1;
+   
     
     size_t allocatorSize = (sizeof(Allocator) + 15) & (0xF);
     unsafeAllocator = new (ctrl_struct->mainArgs.unsafeHeapBase) Allocator

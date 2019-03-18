@@ -59,13 +59,18 @@ lea __aex_handler(%rip), %rcx
 enclu
 
 __aex_handler:
-/* just ERESUME for now */
 nop
 push %rdi
 mov %rbx, %rdi
+push %rax
+push %rbx
+push %rcx
 call get_flag@plt
-pop %rdi
 cmp $1, %rax
+pop %rcx
+pop %rbx
+pop %rax
+pop %rdi
 jz __go_dump
 enclu
 int3

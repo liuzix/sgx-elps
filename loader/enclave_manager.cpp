@@ -42,7 +42,7 @@ EnclaveManager::EnclaveManager(vaddr base, size_t len) : siggen(&this->secs) {
 
     secs.base = (uint64_t)this->enclaveBase;
     secs.size = this->enclaveMemoryLen;
-    secs.ssaframesize = NUM_SSAFRAME;
+    secs.ssaframesize = 4;
     secs.attributes = SGX_FLAGS_MODE64BIT | SGX_FLAGS_DEBUG;
     secs.xfrm = 3;
 
@@ -99,6 +99,7 @@ good:
     sec_info.flags |= (writable ? ENCLAVE_PAGE_WRITE : 0);
     sec_info.flags |= (executable ? ENCLAVE_PAGE_EXECUTE : 0);
     sec_info.flags |= (isTCS ? ENCLAVE_PAGE_THREAD_CONTROL : SI_FLAG_REG);
+    
     if (isTCS) {
         sec_info.flags &= ~ENCLAVE_PAGE_READ;
         sec_info.flags &= ~ENCLAVE_PAGE_WRITE;

@@ -32,11 +32,15 @@ void *makeUnsafeHeap(size_t length) {
 std::map<uint64_t, char> sig_flag_map;
 char get_flag(uint64_t rbx) {
     char res = sig_flag_map[rbx];
+    console->info("get flag for 0x{:x}", rbx);
+    console->flush();
     //console->log("rbx: 0x{:x}, flag: {} ", rbx, res);
     return res;
 }
 
 void set_flag(uint64_t rbx, char flag) {
+    console->info("set flag for 0x{:x}", rbx);
+    console->flush();
     sig_flag_map[rbx] = flag;
 }
 
@@ -48,13 +52,15 @@ void sig_exit() {
 static void __sigaction(int n, siginfo_t *, void *ucontext) {
     ucontext_t *context = (ucontext_t *)ucontext;
     uint64_t rbx = context->uc_mcontext.gregs[REG_RBX];
-
+    console->info("rbx in signal handler = 0x{:x}", rbx);
     //Per-thread flag
     set_flag(rbx, 1);
     if (n == SIGSEGV)
         console->error("Segmentation Fault!");
     else 
         console->error("Signal num = {}", n);
+    console->flush();
+    //for (;;) {}
 }
 
 void dump_sigaction(void) {

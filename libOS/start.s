@@ -4,7 +4,7 @@
 
 __asm_dump_ssa:
 mov %rsi, %rdi
-call dump_ssa@plt
+call dump_ssa
 
 _start:
 cmp $1, %rdi

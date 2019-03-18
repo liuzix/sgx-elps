@@ -72,20 +72,18 @@ void print_ssa_gpr(void) {
 
 void dump_ssa_gpr(ssa_gpr_t *ssa_gpr) {
     ssa_gpr_dump = *ssa_gpr;
-    asm volatile ( "mov $0x4, %%rax\n\t"
-                "mov %0, %%rbx\n\t"
-                /* We probably do not need aex handler*/
-                /*"mov %1, %%rcx\n\t"*/
-                "enclu"
-                :
-                : "m" (print_ssa_gpr)
-                    );
+    print_ssa_gpr();
 }
 
-void dump_ssa(uint64_t ptcs) {
+#define SSAFRAME_SIZE 4
+extern "C" void dump_ssa(uint64_t ptcs) {
     tcs_t *tcs = (tcs_t *)ptcs;
-    ssa_gpr_t *ssa_gpr = (ssa_gpr_t *)(tcs->ossa + tcs->cssa * PAGE_SIZE + PAGE_SIZE - GPRSGX_SIZE);
-
+    char buf[50];
+    sprintf(buf, "0x%lx", ptcs);
+    libos_panic(buf);
+    //ssa_gpr_t *ssa_gpr = (ssa_gpr_t *)(tcs->ossa + tcs->cssa * PAGE_SIZE + PAGE_SIZE - GPRSGX_SIZE);
+    ssa_gpr_t *ssa_gpr = (ssa_gpr_t *)((char *)tcs + 4096 + 4096 * SSAFRAME_SIZE - GPRSGX_SIZE);
     libos_panic("Ready to dump.");
     dump_ssa_gpr(ssa_gpr);
+    for (;;) {}
 }

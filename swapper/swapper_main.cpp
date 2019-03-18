@@ -17,9 +17,9 @@ void SwapperManager::runWorker(int id) {
         RequestBase *request = 0x0;
         if (!this->queue.take(request)) continue;
         
-        console->info("Request ptr 0x{:x}", (uint64_t)request);
-        console->info("Request tag {}", request->requestType);
-        console->flush();
+        //console->info("Request ptr 0x{:x}", (uint64_t)request);
+        //console->info("Request tag {}", request->requestType);
+        //console->flush();
         if (DebugRequest::isInstanceOf(request)) {
             std::cout << this->panic.panicBuf << std::endl;
 			request->setDone();
