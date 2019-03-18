@@ -1,7 +1,14 @@
 .global _start
 .extern main
+.extern dump_ssa
+
+__asm_dump_ssa:
+mov %rsi, %rdi
+call dump_ssa@plt
 
 _start:
+cmp $1, %rdi
+jz __asm_dump_ssa
 # begin switching stack
 mov %gs:32, %r14            # get libos_data 
 mov %rsp, 8(%r14)           # save original rsp

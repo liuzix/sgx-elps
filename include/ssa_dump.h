@@ -9,7 +9,8 @@ extern "C" char get_flag(uint64_t rbx)  __attribute__ ((visibility ("hidden")));
 extern void set_flag(uint64_t rbx, char flag);
 extern "C" void sig_exit()  __attribute__ ((visibility ("hidden")));
 extern "C" ssa_gpr_t ssa_gpr_dump  __attribute__ ((visibility ("hidden")));
-extern "C" void (*__aex_handler)(void) __attribute__ ((visibility("hidden")));
+extern "C" void __aex_handler(void) __attribute__ ((visibility("hidden")));
+extern "C" void dump_ssa(uint64_t ptcs) __attribute__ ((visibility("hidden")));
 
 #ifndef PAGE_SIZE
 #define PAGE_SIZE 0x1000

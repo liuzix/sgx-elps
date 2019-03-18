@@ -36,6 +36,7 @@ __eenter:
 EENTER_PROLOG
 mov $0x2, %rax
 mov %rdi, %rbx
+mov $0, %rdi /* clean-up rdi*/
 lea __aex_handler(%rip), %rcx
 enclu
 /* we have exited the enclave by now */
@@ -48,6 +49,15 @@ ret
 __exit:
 call sig_exit@plt
 
+__go_dump:
+mov $1, %rdi
+mov %rbx, %rsi
+mov $0x2, %rax
+/* rbx should be ok */
+lea __aex_handler(%rip), %rcx
+/* nested eenter */
+enclu
+
 __aex_handler:
 /* just ERESUME for now */
 nop
@@ -56,6 +66,6 @@ mov %rbx, %rdi
 call get_flag@plt
 pop %rdi
 cmp $1, %rax
-jz __exit
+jz __go_dump
 enclu
 int3
