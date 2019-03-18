@@ -9,7 +9,7 @@
 #include <elfio/elfio.hpp>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
-
+#include <atomic>
 #include "swapper_interface.h"
 #include "load_elf.h"
 #include "signature.h"
@@ -29,19 +29,18 @@ void *makeUnsafeHeap(size_t length) {
     return addr;
 }
 
-std::map<uint64_t, char> sig_flag_map;
+std::map<uint64_t, atomic<char>> sig_flag_map;
 char get_flag(uint64_t rbx) {
-    char res = sig_flag_map[rbx];
+    char res = sig_flag_map[rbx].exchange(0);
     console->info("get flag for 0x{:x}", rbx);
     console->flush();
-    //console->log("rbx: 0x{:x}, flag: {} ", rbx, res);
     return res;
 }
 
 void set_flag(uint64_t rbx, char flag) {
     console->info("set flag for 0x{:x}", rbx);
     console->flush();
-    sig_flag_map[rbx] = flag;
+    sig_flag_map[rbx].store(flag);
 }
 
 

@@ -15,14 +15,14 @@ ssa_gpr_t ssa_gpr_dump;
     do {                            \
         char buf[50];               \
                                     \
-        sprintf(buf, "reg: %lx", ssa_gpr_dump.reg); \
+        sprintf(buf, "%s:\t0x%016lx", #reg, ssa_gpr_dump.reg); \
         writeToConsole(buf);                           \
     } while(0)
 #define __print_exit_info(name, suffix) \
     do {                                \
         char buf[50];                   \
                                         \
-        sprintf(buf, "exit_info.name: %d", ssa_gpr_dump.exit_info.name); \
+        sprintf(buf, "exit_info.%s: %d", #name, ssa_gpr_dump.exit_info.name); \
         writeToConsole(buf);                                               \
     } while(0)
 #endif

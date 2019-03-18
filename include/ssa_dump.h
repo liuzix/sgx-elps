@@ -3,6 +3,7 @@
 #include <csignal>
 #include <ucontext.h>
 #include <map>
+#include <atomic>
 #include <sgx_arch.h>
 
 extern "C" char get_flag(uint64_t rbx)  __attribute__ ((visibility ("hidden")));
@@ -17,7 +18,7 @@ extern "C" void dump_ssa(uint64_t ptcs) __attribute__ ((visibility("hidden")));
 #endif
 
 
-extern std::map<uint64_t, char> sig_flag_map;
+extern std::map<uint64_t, std::atomic<char>> sig_flag_map;
 
 void dump_sigaction(void);
 
