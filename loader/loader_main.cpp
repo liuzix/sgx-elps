@@ -74,8 +74,6 @@ void dump_sigaction(void) {
 }
 
 int main(int argc, char **argv) {
-    /* Set the sigsegv handler to dump the ssa */
-    dump_sigaction();
     console->set_level(spdlog::level::trace);
     if (argc < 2) {
         console->error("Usage: loader [binary file name]");
@@ -101,6 +99,8 @@ int main(int argc, char **argv) {
     console->info("tcs: 0x{:x}", thread->getTcs());
     
     swapperManager.launchWorkers();
+    /* Set the sigsegv handler to dump the ssa */
+    dump_sigaction();
     thread->run();
     swapperManager.waitWorkers();
     return 0;

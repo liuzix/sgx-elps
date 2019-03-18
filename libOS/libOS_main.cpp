@@ -17,12 +17,12 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct) {
     initPanic(ctrl_struct->panic);
     writeToConsole("We are inside libOS!", 255);
 
-    /*
+    
     size_t allocatorSize = (sizeof(Allocator) + 15) & (0xF);
     unsafeAllocator = new (ctrl_struct->mainArgs.unsafeHeapBase) Allocator
         (ctrl_struct->mainArgs.unsafeHeapLength - allocatorSize,
          (vaddr)ctrl_struct->mainArgs.unsafeHeapBase + allocatorSize);
-*/
+
     int ret = main(ctrl_struct->mainArgs.argc, ctrl_struct->mainArgs.argv);
     return ret;
 }

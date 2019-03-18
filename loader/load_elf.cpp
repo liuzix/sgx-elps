@@ -68,22 +68,26 @@ shared_ptr<EnclaveMainThread> load_static(const char *filename, shared_ptr<Encla
             Elf64_Addr p_vaddr = pseg->get_virtual_address();
             Elf_Xword p_filesz = pseg->get_file_size();
             Elf_Xword p_memsz = pseg->get_memory_size();
+            console->trace("ELF load: vaddr = 0x{:x}, p_filesz = 0x{:x}, p_memsz = 0x{:x}",
+                           p_vaddr, p_filesz, p_memsz);
             Elf64_Word p_flags = pseg->get_flags();
             off_t p_offset = pseg->get_offset();
-            off_t mapoff = p_offset & pagemask;
+            off_t mapoff = p_offset & pageshift;
             int prot = (p_flags & PF_R ? PROT_READ : 0) |
                        (p_flags & PF_W ? PROT_WRITE : 0) |
                        (p_flags & PF_X ? PROT_EXEC : 0);
             void *base = 0;
-            Elf64_Addr allocend;
+            Elf64_Addr allocbegin, allocend;
             Elf64_Addr dataend = p_vaddr + p_filesz;
             void *t;
 
+            allocbegin = p_vaddr & pagemask;
             /* Padding p_memsz to page size */
-            if (p_memsz % PRESET_PAGESIZE != 0)
-                p_memsz += PRESET_PAGESIZE - (p_memsz % PRESET_PAGESIZE);
+            //if (p_memsz % PRESET_PAGESIZE != 0)
+            //    p_memsz += PRESET_PAGESIZE - (p_memsz % PRESET_PAGESIZE);
             allocend = p_vaddr + p_memsz;
-
+            allocend = (allocend + pageshift) & ~pageshift;
+            console->trace("allocbegin = 0x{:x}, allocend = 0x{:x}", allocbegin, allocend);
             if (!enclaveManager)
                 enclaveManager = make_shared<EnclaveManager>(p_vaddr, 0x400000);
 
@@ -92,16 +96,18 @@ shared_ptr<EnclaveMainThread> load_static(const char *filename, shared_ptr<Encla
                                   enclaveManager->getBase(), p_vaddr);
                 goto out;
             }
-            base = mmap(NULL, p_memsz, PROT_READ | PROT_WRITE,
-                        MAP_PRIVATE | MAP_ANONYMOUS, -1, mapoff);
+            base = mmap(NULL, allocend - allocbegin, PROT_READ | PROT_WRITE,
+                        MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+            memset(base, 0, allocend - allocbegin); 
             if (IS_ERR_P(base)) {
                 enclaveManager = nullptr;
                 goto out;
             }
 
             /* Copy the segment data */
-            memcpy(base, pseg->get_data(), p_filesz);
+            memcpy((char *)base + mapoff, pseg->get_data(), p_filesz);
 
+            
 #ifdef LOAD_ELF_DUMP
             std::ofstream f;
             f.open("dump.data",
@@ -158,7 +164,8 @@ shared_ptr<EnclaveMainThread> load_static(const char *filename, shared_ptr<Encla
             f.close();
 #endif
             // TODO: might want to set protection according to load segments
-            enclaveManager->addPages(p_vaddr, base, p_memsz);
+            console->info("allocTotalLen = 0x{:x}", allocend - allocbegin);
+            enclaveManager->addPages(allocbegin, base, allocend - allocbegin);
 
             break;
         }
