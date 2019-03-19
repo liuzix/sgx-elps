@@ -18,7 +18,7 @@ using namespace std;
 #define NUM_SSA 4
 
 extern uint64_t enclave_base, enclave_end;
-extern "C" void (*__aex_handler)(void);
+extern "C" void (__aex_handler)(void)  __attribute__ ((visibility ("hidden")));
 
 class EnclaveManager {
   private:

@@ -53,9 +53,10 @@ void sig_exit() {
 
 static void __sigaction(int n, siginfo_t *, void *ucontext) {
     ucontext_t *context = (ucontext_t *)ucontext;
-    console->error("__aex_handler: 0x{:x}", (uint64_t)__aex_handler);
-    if ((uint64_t)context->uc_mcontext.gregs[REG_RIP] == (uint64_t)__aex_handler) {
-        console->error("Segmentation Fault!");
+    uint64_t rip = context->uc_mcontext.gregs[REG_RIP];
+    console->error("rip: 0x{:x}, __aex_handler: 0x{:x}", (uint64_t)rip, (uint64_t)&__aex_handler);
+    if (rip != (uint64_t)__aex_handler) {
+        console->error("Segmentation Fault !");
         console->flush();
         exit(-1);
     }
@@ -117,6 +118,7 @@ int main(int argc, char **argv) {
     swapperManager.launchWorkers();
     /* Set the sigsegv handler to dump the ssa */
     dump_sigaction();
+    asm volatile ("mov $0, %%rax\n\tmov (%%rax), %%rax"::);
     thread->run();
     swapperManager.waitWorkers();
     return 0;
