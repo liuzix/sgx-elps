@@ -55,11 +55,11 @@ shared_ptr<EnclaveMainThread> load_one(const char *filename, shared_ptr<EnclaveM
 shared_ptr<EnclaveMainThread> load_static(const char *filename, shared_ptr<EnclaveManager> enclaveManager, uint64_t enclaveLen) {
     elfio reader = elfReadAndCheck(filename);
     Elf_Half seg_num = reader.segments.size();
-
+    uint64_t bias = 0;
     int i;
+
     for (i = 0; i < seg_num; i++) {
         const segment *pseg = reader.segments[i];
-        uint64_t bias = 0;
 
         switch (pseg->get_type()) {
         case PT_DYNAMIC:
@@ -93,7 +93,7 @@ shared_ptr<EnclaveMainThread> load_static(const char *filename, shared_ptr<Encla
             if (!enclaveManager)
                 enclaveManager = make_shared<EnclaveManager>(p_vaddr, enclaveLen);
 
-            if (enclaveManager->getBase() > (uint64_t)allocbegin) {
+            if (!bias && enclaveManager->getBase() > (uint64_t)allocbegin) {
                 bias = enclaveManager->getBase() - allocbegin;
                 allocbegin += bias;
                 allocend += bias;
