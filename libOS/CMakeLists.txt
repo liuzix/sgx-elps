@@ -10,6 +10,7 @@ include_directories(../deps)
 file(GLOB SOURCES "*.cpp" "*.s")
 
 add_library(OSCore STATIC ${SOURCES})
+target_compile_definitions(OSCore PUBLIC IS_LIBOS)
 
 
 find_library(LIB_MUSL libc.a PATHS "../musl/lib" NO_DEFAULT_PATH)

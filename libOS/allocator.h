@@ -1,4 +1,5 @@
 #ifndef ALLOCATOR_H
+
 #define ALLOCATOR_H
 #include <sgx_arch.h>
 #include <spin_lock.h>
@@ -9,6 +10,7 @@
 #include <boost/intrusive/rbtree.hpp>
 #define CHUNK_LIST_SIZE 40
 using namespace boost::intrusive;
+
 
 #define ALLOCATOR_DEBUG
 //Define a list that will store MyClass using the public member hook
@@ -68,13 +70,19 @@ public:
     Allocator(size_t len, vaddr heapBase);
     void *malloc(size_t len);
     void free(vaddr baseAddr);
+    size_t getLen(void *ptr);
+
+    void expandHeap(void *base, size_t len);
 };
 
+//#ifdef IS_LIBOS
 extern Allocator *unsafeAllocator;
-extern void initUnsafeMalloc(void *base, size_t len);
-extern void *unsafeMalloc(size_t len);
-extern void unsafeFree(void *ptr);
-
+extern Allocator *safeAllocator;
+//#endif
+void initUnsafeMalloc(void *base, size_t len);
+void *unsafeMalloc(size_t len);
+void unsafeFree(void *ptr);
+void initSafeMalloc(size_t len);
 
 template <class T>
 struct UnsafeAllocator {

@@ -17,6 +17,7 @@
 #include <ssa_dump.h>
 
 #define UNSAFE_HEAP_LEN 0x10000000
+#define SAFE_HEAP_LEN 0x10000000
 
 using namespace std;
 
@@ -98,17 +99,17 @@ int main(int argc, char **argv) {
     console->info("Welcome to the Loader");
     console->info("Start loading binary file: {}", argv[1]);
 
-    auto manager = make_shared<EnclaveManager>(0x400000, 0x400000);
+    auto manager = make_shared<EnclaveManager>(0x0, SAFE_HEAP_LEN * 2);
     enclave_base = manager->getBase();
     enclave_end = enclave_base + manager->getLen();
     auto thread = load_one(argv[1], manager);
-    vaddr heap = manager->makeHeap(0x100000);
+    vaddr heap = manager->makeHeap(SAFE_HEAP_LEN);
     manager->prepareLaunch();
 
     char const *testArgv[] ={"hello", (char *)0};
     thread->setArgs(1, (char **)testArgv);
     thread->setSwapper(swapperManager);
-    thread->setHeap(heap, 0x100000);
+    thread->setHeap(heap, SAFE_HEAP_LEN);
 
     void *unsafeHeap = makeUnsafeHeap(UNSAFE_HEAP_LEN);
     thread->setUnsafeHeap(unsafeHeap, UNSAFE_HEAP_LEN);

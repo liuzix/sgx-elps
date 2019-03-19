@@ -51,6 +51,7 @@ public:
     }
 };
 
+#ifndef IS_LIBOS
 template <typename RequestType>
 RequestType *tryCast(RequestBase *basePtr) {
     if (basePtr->requestType == RequestType::typeTag)
@@ -81,5 +82,5 @@ public:
         basePtr->setDone();
     }
 };
-
+#endif
 #endif

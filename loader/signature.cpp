@@ -280,11 +280,11 @@ const einittoken_t *TokenGetter::getToken(const sigstruct *sig) {
     request.mutable_getlictokenreq()->set_mr_signer(sig->modulus, 384);
     request.mutable_getlictokenreq()->set_se_attributes(&sig->attributes1, 16);
     request.mutable_getlictokenreq()->set_timeout(1000);
-    console->debug("Dump protobuf send message: {}", request.DebugString());
+    //console->debug("Dump protobuf send message: {}", request.DebugString());
 
     string sendBuf = request.SerializeAsString();
     uint32_t sendLen = sendBuf.length();
-    console->trace("aems: sendLen = {}", sendLen);
+    //console->trace("aems: sendLen = {}", sendLen);
     if (write(this->sockfd, &sendLen, 4) != 4) {
         console->error("Cannot write sendLen to aems");
         exit(-1);
@@ -293,7 +293,7 @@ const einittoken_t *TokenGetter::getToken(const sigstruct *sig) {
     while (beginInd < sendBuf.length()) {
         ssize_t nbytes = write(this->sockfd, sendBuf.data() + beginInd,
                                sendBuf.length() - beginInd);
-        console->info("wrote {} bytes to aesmd", nbytes);
+        //console->info("wrote {} bytes to aesmd", nbytes);
         if (nbytes <= 0) {
             console->error("Cannot write to aems socket {}", strerror(errno));
             exit(-1);
@@ -306,7 +306,7 @@ const einittoken_t *TokenGetter::getToken(const sigstruct *sig) {
         console->error("Cannot read recvLen from aems");
         exit(-1);
     }
-    console->trace("aems: recvLen = {}", recvLen);
+    //console->trace("aems: recvLen = {}", recvLen);
 
     char *recvBuf = new char[recvLen];
     beginInd = 0;
@@ -322,7 +322,7 @@ const einittoken_t *TokenGetter::getToken(const sigstruct *sig) {
 
     aesm::message::Response response;
     response.ParseFromArray(recvBuf, recvLen);
-    console->debug("Dump protobuf recv message: {}", response.DebugString());
+    //console->debug("Dump protobuf recv message: {}", response.DebugString());
 
     if (!response.getlictokenres().has_errorcode())
         console->critical("aesmd didn't give an errorcode!");
@@ -333,8 +333,8 @@ const einittoken_t *TokenGetter::getToken(const sigstruct *sig) {
     }
 
     tmp = response.getlictokenres().token();
-    console->info("token size = {}, should be = {}", tmp.length(),
-                  sizeof(einittoken_t));
+    //console->info("token size = {}, should be = {}", tmp.length(),
+    //              sizeof(einittoken_t));
     memcpy(&this->token, tmp.data(), sizeof(einittoken_t));
 
     return &this->token;

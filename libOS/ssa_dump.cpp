@@ -79,6 +79,7 @@ void dump_ssa_gpr(ssa_gpr_t *ssa_gpr) {
 extern "C" void dump_ssa(uint64_t ptcs) {
     tcs_t *tcs = (tcs_t *)ptcs;
     char buf[50];
+    libos_panic("dump_ssa!");
     sprintf(buf, "0x%lx", ptcs);
     libos_panic(buf);
     //ssa_gpr_t *ssa_gpr = (ssa_gpr_t *)(tcs->ossa + tcs->cssa * PAGE_SIZE + PAGE_SIZE - GPRSGX_SIZE);

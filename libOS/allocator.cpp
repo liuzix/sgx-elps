@@ -1,12 +1,26 @@
 #include "allocator.h"
+#include "panic.h"
+#include "mmap.h"
 #include <iostream>
 #include <new>
 #include <cmath>
 #include <iterator>
 #define MA_SIZE sizeof(MemoryArea)
 #define MIN_PRESERVE_SIZE 2 * MA_SIZE
+#define ALLOCATOR_DEBUG
 
+#ifdef IS_LIBOS
 Allocator *unsafeAllocator;
+Allocator *safeAllocator;
+
+void initSafeMalloc(size_t len) {
+    size_t allocatorSize = sizeof(Allocator);
+    void *base = libos_mmap(nullptr, len);
+    if (base == (void *)-1) {
+        libos_panic("safe malloc: init mmap failed.");
+    }
+    safeAllocator = new (base) Allocator (len - allocatorSize, (vaddr)base + allocatorSize);
+}
 
 void initUnsafeMalloc(void *base, size_t len) {
     size_t allocatorSize = sizeof(Allocator);
@@ -20,6 +34,8 @@ void *unsafeMalloc(size_t len) {
 void unsafeFree(void *ptr) {
     unsafeAllocator->free((vaddr)ptr);
 }
+
+#endif
 
 static inline int myLog2(size_t x) {
     return sizeof(uint32_t) * CHAR_BIT - __builtin_clz(x) - 1;
@@ -38,7 +54,11 @@ MemoryArea::MemoryArea(size_t l, vaddr vm) {
 }
 
 Allocator::Allocator(size_t len, vaddr heapBase) {
-    MemoryArea *ma = (MemoryArea *) new ((void *)heapBase) MemoryArea(len - MA_SIZE, heapBase);
+    this->expandHeap((void *)heapBase, len);
+}
+
+void Allocator::expandHeap(void *base, size_t len) {
+    MemoryArea *ma = (MemoryArea *) new (base) MemoryArea(len - MA_SIZE, (vaddr)base);
     listLock.lock();
     rbtreeLock.lock();
 #ifdef ALLOCATOR_DEBUG
@@ -49,7 +69,6 @@ Allocator::Allocator(size_t len, vaddr heapBase) {
     rbtreeLock.unlock();
     listLock.unlock();
 }
-
 void Allocator::dump() {
     for (int i = 0; i < CHUNK_LIST_SIZE; i++) {
         std::cout << "bucket " << i << " has " << this->chunkList[i].size() << " free chunks" << std::endl;
@@ -96,9 +115,12 @@ void *Allocator::malloc(size_t len) {
         }
     }
 #ifdef ALLOCATOR_DEBUG
+#ifdef IS_LIBOS
+    libos_print("cannot find chunck of size %d", len);
+#else
     std::cout << "cannot find chunk of size " << len << std::endl;
     this->dump();
-    std::abort();
+#endif
 #endif
     listLock.unlock();
     return nullptr;
@@ -145,3 +167,8 @@ void Allocator::free(vaddr baseAddr) {
     return;
 }
 
+size_t Allocator::getLen(void *ptr) {
+    if (ptr == nullptr) return 0;
+    MemoryArea *ma = (MemoryArea *)((char *)ptr -  MA_SIZE);
+    return ma->len;
+}

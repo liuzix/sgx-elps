@@ -71,16 +71,11 @@ shared_ptr<EnclaveMainThread> load_static(const char *filename, shared_ptr<Encla
             Elf_Xword p_memsz = pseg->get_memory_size();
             console->trace("ELF load: vaddr = 0x{:x}, p_filesz = 0x{:x}, p_memsz = 0x{:x}",
                            p_vaddr, p_filesz, p_memsz);
-            Elf64_Word p_flags = pseg->get_flags();
             off_t p_offset = pseg->get_offset();
             off_t mapoff = p_offset & pageshift;
-            int prot = (p_flags & PF_R ? PROT_READ : 0) |
-                       (p_flags & PF_W ? PROT_WRITE : 0) |
-                       (p_flags & PF_X ? PROT_EXEC : 0);
             void *base = 0;
             Elf64_Addr allocbegin, allocend;
             Elf64_Addr dataend = p_vaddr + p_filesz;
-            void *t;
 
             allocbegin = p_vaddr & pagemask;
             /* Padding p_memsz to page size */
@@ -95,15 +90,9 @@ shared_ptr<EnclaveMainThread> load_static(const char *filename, shared_ptr<Encla
 
             if (!bias && enclaveManager->getBase() > (uint64_t)allocbegin) {
                 bias = enclaveManager->getBase() - allocbegin;
-                allocbegin += bias;
-                allocend += bias;
             }
-
-            if (p_vaddr < enclaveManager->getBase()) {
-                console->critical("Bad base address 0x{:x}, first load 0x{:x}",
-                                  enclaveManager->getBase(), p_vaddr);
-                goto out;
-            }
+            allocbegin += bias;
+            allocend += bias;
 
             base = mmap(NULL, allocend - allocbegin, PROT_READ | PROT_WRITE,
                         MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
@@ -129,38 +118,6 @@ shared_ptr<EnclaveMainThread> load_static(const char *filename, shared_ptr<Encla
             if (allocend <= dataend)
                 goto do_map;
 
-            unsigned long zero, zeroend, zeropage;
-
-            zero = (unsigned long)base + p_filesz;
-            zeroend =
-                ((unsigned long)base + (unsigned long)p_memsz + pageshift) &
-                pagemask;
-            zeropage = ((unsigned long)zero + pageshift) & pagemask;
-
-            if (zeroend < zeropage)
-                zeropage = zeroend;
-
-            // TODO: these should be console->trace
-            std::cout << "zeropage: " << std::hex << zeropage << std::endl;
-            std::cout << "zeroend: " << std::hex << zeroend << std::endl;
-            std::cout << "dataend: " << std::hex << dataend << std::endl;
-            std::cout << "memsz: " << std::hex << p_memsz << std::endl;
-            std::cout << "base: " << std::hex << (unsigned long)base
-                      << std::endl;
-            std::cout << "zero: " << std::hex << zero << std::endl;
-
-            if (zeropage > zero)
-                memset((void *)zero, 0, zeropage - zero);
-
-            if (zeroend <= zeropage)
-                goto do_map;
-
-            t = mmap((void *)zeropage, zeroend - zeropage, prot,
-                     MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
-            if (IS_ERR_P(t)) {
-                enclaveManager = nullptr;
-                goto out;
-            }
             /* Add pages to SGX*/
         do_map:
             /* not necessary */
@@ -180,7 +137,7 @@ shared_ptr<EnclaveMainThread> load_static(const char *filename, shared_ptr<Encla
         }
     }
 
-    return enclaveManager->createThread<EnclaveMainThread>((vaddr)reader.get_entry());
+    return enclaveManager->createThread<EnclaveMainThread>((vaddr)reader.get_entry() + bias);
 out:
     return nullptr;
 }

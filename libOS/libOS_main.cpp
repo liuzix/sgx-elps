@@ -1,4 +1,5 @@
 #include <control_struct.h>
+#include <string.h>
 #include "panic.h"
 #include "libos.h"
 #include "allocator.h"
@@ -29,6 +30,29 @@ void testUnsafeMalloc() {
         if (*(it++) != i) __asm__("ud2");
     
     libos_print("unsafe malloc test passed");
+}
+
+void testSafeMalloc() {
+    libos_print("starting safe malloc test");
+    
+    std::vector<int> vec;
+    for (int i = 0; i < 10000000; i++)
+        vec.push_back(i);
+
+    for (int i = 0; i < 10000000; i++) {
+        if (vec[i] != i) __asm__("ud2");
+        vec.pop_back();
+    }
+
+    std::list<int> li;
+    for (int i = 0; i < 1000000; i++)
+        li.push_back(i);
+
+    auto it = li.begin();
+    for (int i = 0; i < 1000000; i++)
+        if (*(it++) != i) __asm__("ud2");
+    
+    libos_print("safe malloc test passed");
 }
 
 void testMmap() {
@@ -73,8 +97,10 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct) {
                 ctrl_struct->mainArgs.unsafeHeapLength);
 
     mmap_init(ctrl_struct->mainArgs.heapBase, ctrl_struct->mainArgs.heapLength);
-    testMmap();
+    initSafeMalloc(10 * 4096);
+    libos_print("Safe malloc initialization successful");
 
+    //testSafeMalloc();
     int ret = main(ctrl_struct->mainArgs.argc, ctrl_struct->mainArgs.argv);
     return ret;
 }

@@ -1,4 +1,5 @@
 #define _GNU_SOURCE
+#if 0
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
@@ -546,3 +547,4 @@ void __malloc_donate(char *start, char *end)
 	c->csize = n->psize = C_INUSE | (end-start);
 	__bin_chunk(c);
 }
+#endif

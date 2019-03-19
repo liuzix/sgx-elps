@@ -71,6 +71,7 @@ bool EnclaveManager::addPages(vaddr dest, void *src, size_t len, bool writable,
         console->critical("Attempted enclave mapping (addr: 0x{:x}, len: "
                           "0x{:x}) is out of bounds",
                           dest, len);
+        exit(-1);
         return false;
     }
 
@@ -90,6 +91,7 @@ conflict:
     console->critical("Attempted enclave mapping (addr: 0x{:x}, len: 0x{:x})"
                       " conflicts with existing mappings",
                       dest, len);
+    exit(-1);
     return false;
 
 good:
@@ -119,6 +121,7 @@ good:
             console->critical(
                 "Mapping 0x{:x} to 0x{:x} failed, error code = {}.", addp.src,
                 addp.addr, errno);
+            exit(-1);
             return false;
         }
 
