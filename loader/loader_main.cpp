@@ -32,14 +32,10 @@ void *makeUnsafeHeap(size_t length) {
 std::map<uint64_t, atomic<char>> sig_flag_map;
 char get_flag(uint64_t rbx) {
     char res = sig_flag_map[rbx].exchange(0);
-    console->info("get flag for 0x{:x}", rbx);
-    console->flush();
     return res;
 }
 
 void set_flag(uint64_t rbx, char flag) {
-    console->info("set flag for 0x{:x}", rbx);
-    console->flush();
     sig_flag_map[rbx].store(flag);
 }
 

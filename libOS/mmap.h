@@ -24,4 +24,8 @@ class PageManager {
 
 void mmap_init(uint64_t heapBase, uint64_t heapSize);
 
+void *libos_mmap(void *base, size_t len);
+
+void libos_munmap(void *base, size_t len);
+
 #endif

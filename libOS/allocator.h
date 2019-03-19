@@ -70,9 +70,30 @@ public:
     void free(vaddr baseAddr);
 };
 
+extern Allocator *unsafeAllocator;
 extern void initUnsafeMalloc(void *base, size_t len);
-
 extern void *unsafeMalloc(size_t len);
-
 extern void unsafeFree(void *ptr);
+
+
+template <class T>
+struct UnsafeAllocator {
+    typedef T value_type;
+    
+    UnsafeAllocator() = default;
+  
+    T* allocate(std::size_t n) {
+        return (T*)unsafeAllocator->malloc(n * sizeof(T));
+    }
+  
+    void deallocate(T* p, std::size_t) {
+        unsafeAllocator->free((vaddr)p);
+    }
+};
+template <class T, class U>
+bool operator==(const UnsafeAllocator<T>&, const UnsafeAllocator<U>&) { return true; }
+template <class T, class U>
+bool operator!=(const UnsafeAllocator<T>&, const UnsafeAllocator<U>&) { return false; }
+
+
 #endif
