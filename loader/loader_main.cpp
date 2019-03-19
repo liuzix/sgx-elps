@@ -118,7 +118,6 @@ int main(int argc, char **argv) {
     swapperManager.launchWorkers();
     /* Set the sigsegv handler to dump the ssa */
     dump_sigaction();
-    asm volatile ("mov $0, %%rax\n\tmov (%%rax), %%rax"::);
     thread->run();
     swapperManager.waitWorkers();
     return 0;

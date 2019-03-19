@@ -16,7 +16,7 @@ std::shared_ptr<EnclaveMainThread> load_one(const char *filename, shared_ptr<Enc
  * dynamically linked libraries.
  */
 
-std::shared_ptr<EnclaveMainThread> load_static(const char *filename, shared_ptr<EnclaveManager> enclaveManager);
+std::shared_ptr<EnclaveMainThread> load_static(const char *filename, shared_ptr<EnclaveManager> enclaveManager, uint64_t enclaveLen = 0x400000);
 
 extern atomic_flag __sig_flag;
 

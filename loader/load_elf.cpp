@@ -52,13 +52,14 @@ shared_ptr<EnclaveMainThread> load_one(const char *filename, shared_ptr<EnclaveM
     return load_static(filename, enclaveManager);
 }
 
-shared_ptr<EnclaveMainThread> load_static(const char *filename, shared_ptr<EnclaveManager> enclaveManager) {
+shared_ptr<EnclaveMainThread> load_static(const char *filename, shared_ptr<EnclaveManager> enclaveManager, uint64_t enclaveLen) {
     elfio reader = elfReadAndCheck(filename);
     Elf_Half seg_num = reader.segments.size();
 
     int i;
     for (i = 0; i < seg_num; i++) {
         const segment *pseg = reader.segments[i];
+        uint64_t bias = 0;
 
         switch (pseg->get_type()) {
         case PT_DYNAMIC:
@@ -88,17 +89,25 @@ shared_ptr<EnclaveMainThread> load_static(const char *filename, shared_ptr<Encla
             allocend = p_vaddr + p_memsz;
             allocend = (allocend + pageshift) & ~pageshift;
             console->trace("allocbegin = 0x{:x}, allocend = 0x{:x}", allocbegin, allocend);
+
             if (!enclaveManager)
-                enclaveManager = make_shared<EnclaveManager>(p_vaddr, 0x400000);
+                enclaveManager = make_shared<EnclaveManager>(p_vaddr, enclaveLen);
+
+            if (enclaveManager->getBase() > (uint64_t)allocbegin) {
+                bias = enclaveManager->getBase() - allocbegin;
+                allocbegin += bias;
+                allocend += bias;
+            }
 
             if (p_vaddr < enclaveManager->getBase()) {
                 console->critical("Bad base address 0x{:x}, first load 0x{:x}",
                                   enclaveManager->getBase(), p_vaddr);
                 goto out;
             }
+
             base = mmap(NULL, allocend - allocbegin, PROT_READ | PROT_WRITE,
                         MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-            memset(base, 0, allocend - allocbegin); 
+            memset(base, 0, allocend - allocbegin);
             if (IS_ERR_P(base)) {
                 enclaveManager = nullptr;
                 goto out;
@@ -107,7 +116,7 @@ shared_ptr<EnclaveMainThread> load_static(const char *filename, shared_ptr<Encla
             /* Copy the segment data */
             memcpy((char *)base + mapoff, pseg->get_data(), p_filesz);
 
-            
+
 #ifdef LOAD_ELF_DUMP
             std::ofstream f;
             f.open("dump.data",
