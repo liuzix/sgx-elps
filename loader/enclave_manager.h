@@ -17,6 +17,9 @@ using namespace std;
 #define SSA_FRAMESIZE_PAGE 4
 #define NUM_SSA 4
 
+extern uint64_t enclave_base, enclave_end;
+extern "C" void (*__aex_handler)(void);
+
 class EnclaveManager {
   private:
     vaddr enclaveBase;
@@ -37,7 +40,7 @@ class EnclaveManager {
 
     /* You must use getBase() to calculate the dest for addPages() */
     vaddr getBase() const { return this->enclaveBase; }
-
+    size_t getLen() const { return this->enclaveMemoryLen; }
     bool addPages(vaddr dest, void *src, size_t len);
     bool addPages(vaddr dest, void *src, size_t len, bool writable,
                   bool executable, bool isTCS);

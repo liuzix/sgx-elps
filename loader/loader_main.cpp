@@ -20,6 +20,13 @@
 
 using namespace std;
 
+uint64_t enclave_base, enclave_end;
+
+bool in_enclave(uint64_t rip) {
+    console->error("rip: 0x{:x}, enclave_base: 0x{:x}, enclave_end: 0x{:x}", rip, enclave_base, enclave_end);
+    return rip >= enclave_base && rip < enclave_end;
+}
+
 void *makeUnsafeHeap(size_t length) {
     void *addr = mmap(NULL, length, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0); 
     if (addr == MAP_FAILED) {
@@ -46,6 +53,12 @@ void sig_exit() {
 
 static void __sigaction(int n, siginfo_t *, void *ucontext) {
     ucontext_t *context = (ucontext_t *)ucontext;
+    console->error("__aex_handler: 0x{:x}", (uint64_t)__aex_handler);
+    if ((uint64_t)context->uc_mcontext.gregs[REG_RIP] == (uint64_t)__aex_handler) {
+        console->error("Segmentation Fault!");
+        console->flush();
+        exit(-1);
+    }
     uint64_t rbx = context->uc_mcontext.gregs[REG_RBX];
     console->info("rbx in signal handler = 0x{:x}", rbx);
     //Per-thread flag
@@ -85,6 +98,8 @@ int main(int argc, char **argv) {
     console->info("Start loading binary file: {}", argv[1]);
 
     auto manager = make_shared<EnclaveManager>(0x400000, 0x400000);
+    enclave_base = manager->getBase();
+    enclave_end = enclave_base + manager->getLen();
     auto thread = load_one(argv[1], manager);
     vaddr heap = manager->makeHeap(0x100000);
     manager->prepareLaunch();
