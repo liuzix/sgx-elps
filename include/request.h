@@ -7,6 +7,7 @@
 #include <cassert>
 #include <logging.h>
 #include <queue.h>
+#include <sys_format.h>
 
 using namespace std;
 
@@ -49,6 +50,24 @@ public:
     DebugRequest() {
         this->requestType = typeTag;
     }
+};
+
+class SyscallRequest: public RequestBase {
+public:
+    constexpr static int typeTag = 1;
+    long sys_ret;
+    struct format_t fm_list;
+    struct syscall_arg_t args[6];
+
+    SyscallRequest() {
+        this->requestType = typeTag;
+    }
+    ~SyscallRequest() {
+        for (int i = 0; i < 6; i++)
+            if (args[i].data != nullptr)
+                delete args[i].data;
+    }
+    bool fillArgs();
 };
 
 #ifndef IS_LIBOS

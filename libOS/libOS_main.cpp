@@ -4,6 +4,7 @@
 #include "libos.h"
 #include "allocator.h"
 #include "mmap.h"
+#include "sys_format.h"
 
 #include <vector>
 #include <list>
@@ -100,6 +101,7 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct) {
     initSafeMalloc(10 * 4096);
     libos_print("Safe malloc initialization successful");
 
+    initSyscallTable();
     //testSafeMalloc();
     int ret = main(ctrl_struct->mainArgs.argc, ctrl_struct->mainArgs.argv);
     return ret;
