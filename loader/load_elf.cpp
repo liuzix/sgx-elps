@@ -98,8 +98,8 @@ shared_ptr<EnclaveMainThread> load_static(const char *filename, shared_ptr<Encla
                         MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
             memset(base, 0, allocend - allocbegin);
             if (IS_ERR_P(base)) {
-                enclaveManager = nullptr;
-                goto out;
+                console->error("load_elf: mmap failed");
+                exit(-1);
             }
 
             /* Copy the segment data */
@@ -137,7 +137,7 @@ shared_ptr<EnclaveMainThread> load_static(const char *filename, shared_ptr<Encla
         }
     }
 
-    return enclaveManager->createThread<EnclaveMainThread>((vaddr)reader.get_entry() + bias);
-out:
-    return nullptr;
+    auto ret = enclaveManager->createThread<EnclaveMainThread>((vaddr)reader.get_entry() + bias);
+    ret->setBias(bias);
+    return ret;
 }

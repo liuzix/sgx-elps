@@ -1,27 +1,8 @@
 #include "enclave_thread.h"
 #include "logging.h"
 
-/*
-void EnclaveThread::writeToConsole(const char *msg, size_t n) {
-    if (n >= 256) n =  255;
+int EnclaveThread::threadCounter = 0;
 
-    this->controlStruct.panic->lock.lock();
-    char *ptr = this->controlStruct.panic->panicBuf;
-    size_t i = 0;
-    while (*msg && i < n) {
-        *ptr = *msg;
-        msg++;
-        ptr++;
-        i++;
-    }
-    *ptr = 0;
-    
-    auto req = new (this->controlStruct.panic->requestBuf) DebugRequest;
-    this->controlStruct.requestQueue->push(req); 
-    req->waitOnDone(1000000000);
-    this->controlStruct.panic->lock.unlock();
-}
-*/
 void EnclaveThread::run() {
     console->info("entering enclave!");
     __eenter(this->tcs);
@@ -57,4 +38,8 @@ void EnclaveMainThread::setUnsafeHeap(void *base, size_t len) {
                   (vaddr)base, len);
     this->controlStruct.mainArgs.unsafeHeapBase = base;
     this->controlStruct.mainArgs.unsafeHeapLength = len;
+}
+
+void EnclaveMainThread::setBias(size_t len) {
+    this->sharedTLS.loadBias = len;
 }

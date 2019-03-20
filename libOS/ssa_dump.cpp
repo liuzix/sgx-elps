@@ -61,9 +61,6 @@ void print_ssa_gpr(void) {
     std::cout << "exit_info.valid: " << ssa_gpr_dump.exit_info.valid << std::endl;
     std::cout << "-------- dump ssa_gpr info end --------" << std::endl;
 #else
-    __print_exit_info(vector, "\n");
-    __print_exit_info(exit_type, "\n");
-    __print_exit_info(valid, "\n");
     libos_panic("-------- dump ssa_gpr info end--------");
     
 #endif
@@ -79,10 +76,7 @@ void dump_ssa_gpr(ssa_gpr_t *ssa_gpr) {
 extern "C" void dump_ssa(uint64_t ptcs) {
     tcs_t *tcs = (tcs_t *)ptcs;
     char buf[50];
-    libos_panic("dump_ssa!");
-    sprintf(buf, "0x%lx", ptcs);
     libos_panic(buf);
-    //ssa_gpr_t *ssa_gpr = (ssa_gpr_t *)(tcs->ossa + tcs->cssa * PAGE_SIZE + PAGE_SIZE - GPRSGX_SIZE);
     ssa_gpr_t *ssa_gpr = (ssa_gpr_t *)((char *)tcs + 4096 + 4096 * SSAFRAME_SIZE - GPRSGX_SIZE);
     libos_panic("Ready to dump.");
     dump_ssa_gpr(ssa_gpr);

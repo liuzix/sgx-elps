@@ -12,6 +12,8 @@ struct libOS_shared_tls {
     uint64_t isReentry;           // set by the enclave
     uint64_t enclave_return_val;  // set by the enclave
     libOS_control_struct *controlStruct;
+    uint64_t loadBias;
+    uint64_t threadID;
 }  __attribute__ ((packed));
 
 struct enclave_tls {

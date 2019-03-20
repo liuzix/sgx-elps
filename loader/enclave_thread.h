@@ -4,8 +4,8 @@
 #include <sgx_arch.h>
 #include <swapper_interface.h>
 #include <control_struct.h>
-#include <spdlog/spdlog.h>
 #include <csignal>
+#include <logging.h>
 #include <libOS_tls.h>
 #include <atomic>
 #include <map>
@@ -16,21 +16,23 @@ extern "C" void (*__back)(void);
 
 class EnclaveThread {
 private:
+    static int threadCounter;
+protected:
     //vaddr stack;
     vaddr tcs;
-
     libOS_shared_tls sharedTLS;
-
-protected:
     libOS_control_struct controlStruct;
 public:
     EnclaveThread(vaddr _stack, vaddr _tcs)
         : tcs(_tcs)
     {
+        int threadID = threadCounter++;
+        console->info("New enclave thread, id = {}", threadID);
         sharedTLS = {};
         sharedTLS.next_exit = (uint64_t)&__back;
         sharedTLS.enclave_stack = _stack;
         sharedTLS.controlStruct = &this->controlStruct;
+        sharedTLS.threadID = threadID;
         set_flag((uint64_t)_tcs, 0);
     }
     void setSwapper(SwapperManager &swapperManager); 
@@ -49,6 +51,7 @@ public:
     void setArgs(int argc, char **argv);
     void setHeap(vaddr base, size_t len);
     void setUnsafeHeap(void *base, size_t len);
+    void setBias(size_t bias);
 };
 
 extern "C" int __eenter(vaddr tcs);
