@@ -10,12 +10,15 @@ int main () {
 
     for (; i <= 10000; i++)
         test += i;
-    asm volatile ("mov $0x1234, %%rax\n\t"
+/*    asm volatile ("mov $0x1234, %%rax\n\t"
                   "mov $0x5678, %%rbx\n\t"
                   "mov $0, %%rcx\n\t"
                   "mov (%%rcx), %%rdx"
             :::"rax", "rbx", "rcx", "rdx");
-
+*/
+    char buffer[256] = "hello world!";
+    int fd;
+    fd = syscall(1, 1, buffer, 256);
     return test;
 }
 
