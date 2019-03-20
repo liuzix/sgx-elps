@@ -22,7 +22,10 @@ int __sprintf_chk(
     return retval;
 }
 
-int __async_syscall(unsigned int n, ...) {
+void *__dso_handle = 0;
+}
+
+extern "C" int __async_syscall(unsigned int n, ...) {
 //    libos_print("We do not support system call!");
 //    return 0;
 
@@ -59,5 +62,3 @@ int __async_syscall(unsigned int n, ...) {
     return 0;
 }
 
-void *__dso_handle = 0;
-}

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 ENABLE_LANGUAGE(ASM-ATT)
-SET(CMAKE_CXX_FLAGS "-g -Wall -fPIE -fPIC -Werror -std=c++17 -fno-stack-protector -fno-use-cxa-atexit")
+SET(CMAKE_CXX_FLAGS "-g -O0 -Wa,-mrelax-relocations=no -Wall -fPIE -fPIC -Werror -std=c++17 -fno-stack-protector -fno-use-cxa-atexit")
 
 project(libOS)
 
