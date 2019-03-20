@@ -11,17 +11,3 @@
 #	movq 8(%rsp),%r9
 #	syscall
 #	ret
-
-.global __async_syscall
-.hidden __async_syscall
-.type __async_syscall,@function
-__async_syscall:
-   movq %rdi,%rax
-   movq %rsi,%rdi
-   movq %rdx,%rsi
-   movq %rcx,%rdx
-   movq %r8,%r10
-   movq %r9,%r8
-   movq 8(%rsp),%r9
-   syscall
-   ret
