@@ -4,6 +4,8 @@
 
 #include "sys_format.h"
 #include "request.h"
+#include "allocator.h"
+#include "libos.h"
 
 #include "panic.h"
 extern "C" {
@@ -38,7 +40,10 @@ extern "C" int __async_syscall(unsigned int n, ...) {
     }
     
     /* Create SyscallReq */
-    SyscallRequest *req = new SyscallRequest;    
+    
+    SyscallRequest *req = createUnsafeObj<SyscallRequest>();
+    if (req == nullptr)
+        return 0;
     /* Give this format info to req  */
     req->fm_list = fm_l;
 
@@ -50,8 +55,12 @@ extern "C" int __async_syscall(unsigned int n, ...) {
         req->args[i].arg = val;
     }
     va_end(vl);
-
-    req->fillArgs();
+    /* populate arguments in request */
+    if (!req->fillArgs()) {
+        req->~SyscallRequest();
+        unsafeFree(req);
+        return 0;
+    }
 
     libos_print("-----SYSCALL(%u)-----", fm_l.syscall_num);
     for (unsigned int i = 0; i < fm_l.args_num; i++) {
@@ -59,6 +68,11 @@ extern "C" int __async_syscall(unsigned int n, ...) {
         if (req->fm_list.sizes[i])
             libos_print("buffer addr[0x%x] : %s", &(req->args[i].data), req->args[i].data);
     }
+
+    requestQueue->push(req);
+    req->waitOnDone(1000000000);
+//   req->~SyscallRequest();
+//   unsafeFree(req);
     return 0;
 }
 

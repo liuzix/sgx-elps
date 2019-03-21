@@ -8,6 +8,7 @@
 #include <logging.h>
 #include <queue.h>
 #include <sys_format.h>
+#include "../libOS/allocator.h"
 
 using namespace std;
 
@@ -56,16 +57,23 @@ class SyscallRequest: public RequestBase {
 public:
     constexpr static int typeTag = 1;
     long sys_ret;
-    struct format_t fm_list;
-    struct syscall_arg_t args[6];
-
+    format_t fm_list;
+    /* unsigned int syscall_num
+     * unsigned int args_num
+     * unsigned int types[6]
+     * unsigned int sizes[6]
+     */
+    syscall_arg_t args[6];
+    /* long arg
+     * char *data
+     */
     SyscallRequest() {
         this->requestType = typeTag;
     }
     ~SyscallRequest() {
         for (int i = 0; i < 6; i++)
             if (args[i].data != nullptr)
-                delete args[i].data;
+                unsafeFree(args[i].data);
     }
     bool fillArgs();
 };
