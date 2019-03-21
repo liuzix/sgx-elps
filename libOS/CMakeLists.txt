@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 ENABLE_LANGUAGE(ASM-ATT)
-SET(CMAKE_CXX_FLAGS "-g -O0 -Wall -fpie -Werror -std=c++17 -fno-stack-protector -fno-use-cxa-atexit")
+SET(CMAKE_CXX_FLAGS "-g -O0 -Wall -fpie -Werror -std=c++17 -fno-omit-frame-pointer -fno-stack-protector -fno-use-cxa-atexit")
 
 project(libOS)
 
@@ -11,7 +11,6 @@ file(GLOB SOURCES "*.cpp" "*.s")
 
 add_library(OSCore STATIC ${SOURCES})
 target_compile_definitions(OSCore PUBLIC IS_LIBOS)
-
 
 find_library(LIB_MUSL libc.a PATHS "../musl/lib" NO_DEFAULT_PATH)
 
@@ -27,7 +26,8 @@ file(MAKE_DIRECTORY ${PROJECT_SOURCE_DIR}/buildtmp)
 add_custom_target(OS_COMBINE
     COMMAND ar -x $<TARGET_FILE:OSCore>
     COMMAND ar -x ${LIB_MUSL}
-    COMMAND ar -x ${GCC_LIBSTDCPP}
+    #COMMAND ar -x ${GCC_LIBSTDCPP}
+    COMMAND ar -x ../libstdc++.a
     COMMAND ar -x ${GCC_LIBGCC_EH}
     COMMAND ar -qcs ${OS_LIB} *.o *.lo
     WORKING_DIRECTORY ./buildtmp

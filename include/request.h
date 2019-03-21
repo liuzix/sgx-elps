@@ -82,6 +82,7 @@ RequestType *tryCast(RequestBase *basePtr) {
 class RequestDispatcher {
 private:
     unordered_map<int, function<void(RequestBase *)>> handlers;  
+    DEFINE_MEMBER_LOGGER("RequestDispatcher", spdlog::level::trace)
 public:
     template <typename RequestType>
     void addHandler(function<void(RequestType *)> handler) {
@@ -95,7 +96,7 @@ public:
 
     void dispatch(RequestBase *basePtr) {
         if (handlers.count(basePtr->requestType) != 1)
-            console->critical("Unknown request {}", basePtr->requestType);
+            classLogger->critical("Unknown request {}", basePtr->requestType);
         basePtr->setAck();
         handlers[basePtr->requestType](basePtr);
         basePtr->setDone();

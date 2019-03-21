@@ -16,11 +16,13 @@ mov 16(%r14), %rsp          # swtich to enclave stack
 # end switching stack 
 
 push %rbp
+xor %rbp, %rbp
+push %rbp
 mov %rsp, %rbp
 mov 40(%r14), %rdi
 call __libOS_start
 pop %rbp
-
+pop %rbp
 # begin switching stack
 mov %gs:32, %r14            # get libos_data 
 mov %rsp, 16(%r14)           # save original rsp

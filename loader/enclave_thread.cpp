@@ -4,9 +4,9 @@
 int EnclaveThread::threadCounter = 0;
 
 void EnclaveThread::run() {
-    console->info("entering enclave!");
+    classLogger->info("entering enclave!");
     __eenter(this->tcs);
-    console->info("returned from enclave! ret = {}", sharedTLS.enclave_return_val);
+    classLogger->info("returned from enclave! ret = {}", sharedTLS.enclave_return_val);
     //this->writeToConsole("test1", 5);
     //this->writeToConsole("test2", 5);
 
@@ -34,7 +34,7 @@ void EnclaveMainThread::setHeap(vaddr base, size_t len) {
 }
 
 void EnclaveMainThread::setUnsafeHeap(void *base, size_t len) {
-    console->info("Set unsafeheap base = 0x{:x}, length = 0x{:x}",
+    classLogger->info("Set unsafeheap base = 0x{:x}, length = 0x{:x}",
                   (vaddr)base, len);
     this->controlStruct.mainArgs.unsafeHeapBase = base;
     this->controlStruct.mainArgs.unsafeHeapLength = len;

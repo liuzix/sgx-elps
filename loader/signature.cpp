@@ -24,6 +24,7 @@
 #define SIGSTRUCT_RESERVED_SIZE1 84
 #define MASK_INIT_VALUE 0xffffffffffffffff
 
+DEFINE_LOGGER(signature, spdlog::level::info)
 using namespace std;
 
 SigstructGenerator::SigstructGenerator(secs_t *secs) {

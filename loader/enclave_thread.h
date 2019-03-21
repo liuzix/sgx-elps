@@ -22,12 +22,12 @@ protected:
     vaddr tcs;
     libOS_shared_tls sharedTLS;
     libOS_control_struct controlStruct;
+    DEFINE_MEMBER_LOGGER("EnclaveThread", spdlog::level::trace)
 public:
     EnclaveThread(vaddr _stack, vaddr _tcs)
         : tcs(_tcs)
     {
         int threadID = threadCounter++;
-        console->info("New enclave thread, id = {}", threadID);
         sharedTLS = {};
         sharedTLS.next_exit = (uint64_t)&__back;
         sharedTLS.enclave_stack = _stack;

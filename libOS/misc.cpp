@@ -4,7 +4,7 @@
 
 #include "sys_format.h"
 #include "request.h"
-
+#include "thread_local.h"
 #include "panic.h"
 extern "C" {
 
@@ -23,6 +23,31 @@ int __sprintf_chk(
 }
 
 void *__dso_handle = 0;
+
+#define weak __attribute__((__weak__))
+#define hidden __attribute__((__visibility__("hidden")))
+#define weak_alias(old, new) \
+	extern __typeof(old) new __attribute__((__weak__, __alias__(#old)))
+
+
+static void dummy(void) {} weak_alias(dummy, _init);
+
+extern weak hidden void (*const __init_array_start)(void), (*const __init_array_end)(void);
+
+void __temp_libc_start_init(void)
+{
+	_init();
+
+	uintptr_t a = (uintptr_t)&__init_array_start;
+    libos_print("init_array: %p", a);
+	for (; a<(uintptr_t)&__init_array_end; a+=sizeof(void(*)())) {
+        libos_print("init function: %p", *(void **)a);
+        uintptr_t cur_func = *(uintptr_t *)a;
+        libos_print("calling function: 0x%lx", cur_func);
+        ((void (*)(void))cur_func)();
+    }
+}
+
 }
 
 extern "C" int __async_syscall(unsigned int n, ...) {

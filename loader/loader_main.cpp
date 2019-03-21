@@ -21,6 +21,7 @@
 
 using namespace std;
 
+DEFINE_LOGGER(main, spdlog::level::trace);
 uint64_t enclave_base, enclave_end;
 
 bool in_enclave(uint64_t rip) {
@@ -99,10 +100,17 @@ int main(int argc, char **argv) {
     console->info("Welcome to the Loader");
     console->info("Start loading binary file: {}", argv[1]);
 
+
     auto manager = make_shared<EnclaveManager>(0x0, SAFE_HEAP_LEN * 2);
+    ////
+    ELFLoader loader(manager);
+    loader.open(argv[1]);
+    loader.relocate();
+    ////
     enclave_base = manager->getBase();
     enclave_end = enclave_base + manager->getLen();
-    auto thread = load_one(argv[1], manager);
+    //auto thread = load_one(argv[1], manager);
+    auto thread = loader.load();
     vaddr heap = manager->makeHeap(SAFE_HEAP_LEN);
     manager->prepareLaunch();
 

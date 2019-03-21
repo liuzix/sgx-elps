@@ -7,6 +7,7 @@
 #include <libOS_tls.h>
 #include "enclave_thread.h"
 
+DEFINE_LOGGER(EnclaveManager, spdlog::level::info)
 extern std::shared_ptr<spdlog::logger> console;
 
 static int deviceHandle() {
@@ -71,6 +72,8 @@ bool EnclaveManager::addPages(vaddr dest, void *src, size_t len, bool writable,
         console->critical("Attempted enclave mapping (addr: 0x{:x}, len: "
                           "0x{:x}) is out of bounds",
                           dest, len);
+        console->critical("Enclave begin = 0x{:x}, len = 0x{:x}",
+                          this->enclaveBase, this->enclaveMemoryLen);
         exit(-1);
         return false;
     }

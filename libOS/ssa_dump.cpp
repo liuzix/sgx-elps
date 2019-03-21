@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cstring>
 #include "panic.h"
+#include "thread_local.h"
 
 ssa_gpr_t ssa_gpr_dump;
 
@@ -33,6 +34,7 @@ void print_ssa_gpr(void) {
 #else
     libos_panic("-------- dump ssa_gpr info --------");
 #endif
+    libos_print("bias = 0x%lx", getSharedTLS()->loadBias);
     __print_ssa_gpr(ax, "\t");
     __print_ssa_gpr(cx, "\n");
     __print_ssa_gpr(bx, "\t");
@@ -55,6 +57,8 @@ void print_ssa_gpr(void) {
     __print_ssa_gpr(bp_u, "\n");
     __print_ssa_gpr(fs, "\t");
     __print_ssa_gpr(gs, "\n");
+    uint64_t rip_in_file = ssa_gpr_dump.ip - getSharedTLS()->loadBias; 
+    libos_print("rip in file: 0x%lx", rip_in_file);
 #ifdef HAS_COUT
     std::cout << "exit_info.vector: " << ssa_gpr_dump.exit_info.vector << std::endl;
     std::cout << "exit_info.exit_type: " << ssa_gpr_dump.exit_info.exit_type << std::endl;
@@ -64,12 +68,21 @@ void print_ssa_gpr(void) {
     libos_panic("-------- dump ssa_gpr info end--------");
     
 #endif
-    asm volatile("ud2"::);
 }
 
 void dump_ssa_gpr(ssa_gpr_t *ssa_gpr) {
     ssa_gpr_dump = *ssa_gpr;
     print_ssa_gpr();
+}
+
+void do_backtrace(uint64_t *rbp, uint64_t rip) {
+    libos_print("start: 0x%lx", rip - getSharedTLS()->loadBias);
+    while (*rbp) {
+        uint64_t func = *(rbp + 1);
+        libos_print("rip: 0x%lx", func - getSharedTLS()->loadBias);
+        rbp = (uint64_t *)*rbp;
+    }
+    libos_print("backtrace ends");
 }
 
 #define SSAFRAME_SIZE 4
@@ -80,5 +93,6 @@ extern "C" void dump_ssa(uint64_t ptcs) {
     ssa_gpr_t *ssa_gpr = (ssa_gpr_t *)((char *)tcs + 4096 + 4096 * SSAFRAME_SIZE - GPRSGX_SIZE);
     libos_panic("Ready to dump.");
     dump_ssa_gpr(ssa_gpr);
+    do_backtrace((uint64_t *)ssa_gpr->bp, ssa_gpr->ip);
     for (;;) {}
 }
