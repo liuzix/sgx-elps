@@ -27,7 +27,7 @@ public:
         : tcs(_tcs)
     {
         int threadID = threadCounter++;
-        console->info("New enclave thread, id = {}", threadID);
+        //console->info("New enclave thread, id = {}", threadID);
         sharedTLS = {};
         sharedTLS.next_exit = (uint64_t)&__back;
         sharedTLS.enclave_stack = _stack;
