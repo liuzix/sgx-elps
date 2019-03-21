@@ -84,6 +84,12 @@ void *unsafeMalloc(size_t len);
 void unsafeFree(void *ptr);
 void initSafeMalloc(size_t len);
 
+template<class ObjType>
+ObjType* createUnsafeObj() {
+    char *mem = (char*)unsafeMalloc(sizeof(ObjType));
+    return new ((void*)mem) ObjType();
+}
+
 template <class T>
 struct UnsafeAllocator {
     typedef T value_type;

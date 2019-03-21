@@ -1,4 +1,5 @@
 #ifndef ENCLAVE_THREAD_H
+
 #define ENCLAVE_THREAD_H
 
 #include <sgx_arch.h>

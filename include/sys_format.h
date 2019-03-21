@@ -27,6 +27,5 @@ struct syscall_arg_t {
 
 void initSyscallTable();
 bool interpretSyscall(format_t& fm_l, unsigned int index);
-bool createArg(int i, const format_t& fm_l, syscall_arg_t& arg_t);
 
 #endif

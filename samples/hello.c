@@ -16,9 +16,9 @@ int main () {
                   "mov (%%rcx), %%rdx"
             :::"rax", "rbx", "rcx", "rdx");
 */
-    //char buffer[256] = "hello world!";
-    //int fd;
-    //fd = syscall(1, 1, buffer, 256);
+    char buffer[256] = "hello world!";
+    int fd;
+    fd = syscall(1, 1, buffer, 256);
     return test;
 }
 

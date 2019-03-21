@@ -53,7 +53,7 @@ bool SyscallRequest::fillArgs() {
             unsigned int arg_size;
             arg_size = (unsigned int)this->args[i + 1].arg;
             this->fm_list.sizes[i] = arg_size;
-            this->args[i].data = new char[arg_size];
+            this->args[i].data = (char*)unsafeMalloc(arg_size);
             memcpy(this->args[i].data, (void*)this->args[i].arg, arg_size);
         } else {
             unsigned int arg_size;
@@ -61,7 +61,7 @@ bool SyscallRequest::fillArgs() {
                 return false;
             arg_size = type_table->at(this->fm_list.types[i]);
             this->fm_list.sizes[i] = arg_size;
-            this->args[i].data = new char[arg_size];
+             this->args[i].data = (char*)unsafeMalloc(arg_size);
             memcpy(this->args[i].data, (void*)this->args[i].arg, arg_size);
             if (this->fm_list.types[i] == CHAR_PTR)
                 *(this->args[i].data + arg_size - 1) = '\0';
@@ -71,6 +71,3 @@ bool SyscallRequest::fillArgs() {
     return true;
 }
 
-bool createArg(long val, int i, format_t& fm_l, syscall_arg_t& arg_t) {
-    return true;
-}

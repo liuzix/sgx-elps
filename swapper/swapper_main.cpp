@@ -4,6 +4,7 @@
 #include <logging.h>
 #include <swapper_interface.h>
 #include "debug_request.h"
+#include "syscall_request.h"
 
 
 using namespace std;
@@ -17,6 +18,7 @@ void SwapperManager::runWorker(int id) {
 
     RequestDispatcher dispatcher;
     dispatcher.addHandler<DebugRequest>(debugRequestHandler);
+    dispatcher.addHandler<SyscallRequest>(syscallRequestHandler);
         
     while (true) {
         RequestBase *request = 0x0;
