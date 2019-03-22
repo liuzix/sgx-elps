@@ -1,11 +1,17 @@
 #include "sched.h"
 #include <cstring>
-SchedEntity::SchedEntity(EnclaveThread *eth) {
-    memcpy(&ethread, eth, sizeof(EnclaveThread));
+
+SchedQueue schedQueue;
+
+SchedEntity::SchedEntity() {
     timeSlot = 0;
 }
-void enqueueTask(EnclaveThread *eth) {
-    SchedEntity se(eth);
+void SchedEntity::switchTo() {
+    return;
+}
+
+void enqueueTask() {
+    SchedEntity se;
     schedQueue.push_back(se);
 }
 

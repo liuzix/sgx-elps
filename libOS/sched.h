@@ -4,11 +4,14 @@
 #include <boost/intrusive/list.hpp>
 
 #define MAXIMUM_SLOT 20
+
+using namespace boost::intrusive;
+
 class SchedEntity {
 public:
-    SchedEntity(EnclaveThread *eth);
+    SchedEntity();
     int timeSlot;
-    EnclaveThread ethread;
+    void switchTo();
     list_member_hook<> member_hook_;
 };
 
@@ -16,7 +19,7 @@ typedef list< SchedEntity
             , member_hook< SchedEntity, list_member_hook<>, &SchedEntity::member_hook_>
             > SchedQueue;
 
-SchedQueue schedQueue;
+extern SchedQueue schedQueue;
 
 
 
