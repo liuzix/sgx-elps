@@ -7,8 +7,6 @@ mov %rsi, %rdi
 call dump_ssa
 
 _start:
-cmp $1, %rdi
-jz __asm_dump_ssa
 # begin switching stack
 mov %gs:32, %r14            # get libos_data 
 mov %rsp, 8(%r14)           # save original rsp
@@ -18,6 +16,10 @@ mov 16(%r14), %rsp          # swtich to enclave stack
 push %rbp
 xor %rbp, %rbp
 push %rbp
+
+cmp $1, %rdi
+jz __asm_dump_ssa
+
 mov %rsp, %rbp
 mov 40(%r14), %rdi
 call __libOS_start

@@ -34,6 +34,7 @@ public:
         sharedTLS.enclave_stack = _stack;
         sharedTLS.controlStruct = &this->controlStruct;
         sharedTLS.threadID = threadID;
+        sharedTLS.isInterrupt = 0;
         set_flag((uint64_t)_tcs, 0);
     }
     void setSwapper(SwapperManager &swapperManager); 

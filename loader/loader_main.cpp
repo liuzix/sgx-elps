@@ -39,6 +39,7 @@ void *makeUnsafeHeap(size_t length) {
 }
 
 std::map<uint64_t, atomic<char>> sig_flag_map;
+std::map<uint64_t, shared_ptr<EnclaveThread>> thread_map;
 char get_flag(uint64_t rbx) {
     char res = sig_flag_map[rbx].exchange(0);
     return res;
@@ -66,6 +67,10 @@ static void __sigaction(int n, siginfo_t *, void *ucontext) {
     console->info("rbx in signal handler = 0x{:x}", rbx);
     //Per-thread flag
     set_flag(rbx, 1);
+
+    thread_map[rbx]->getSharedTLS()->isInterrupt = 1;
+    uint64_t debugStack = (uint64_t)malloc(4096) + 4096 - 16;
+    thread_map[rbx]->getSharedTLS()->enclave_stack = debugStack;
     if (n == SIGSEGV)
         console->error("Segmentation Fault!");
     else 
@@ -111,6 +116,7 @@ int main(int argc, char **argv) {
     enclave_end = enclave_base + manager->getLen();
     //auto thread = load_one(argv[1], manager);
     auto thread = loader.load();
+    thread_map[thread->getTcs()] = thread;
     vaddr heap = manager->makeHeap(SAFE_HEAP_LEN);
     manager->prepareLaunch();
 

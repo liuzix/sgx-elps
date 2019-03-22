@@ -38,8 +38,8 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct) {
     initSyscallTable();
     //testSafeMalloc();
     
-    libos_print("trying to call libc_start_init");
-    __temp_libc_start_init();
+    //libos_print("trying to call libc_start_init");
+    //__temp_libc_start_init();
    
     int *p = 0x0;
     *p = 5;
