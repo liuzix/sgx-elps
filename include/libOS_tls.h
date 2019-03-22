@@ -14,6 +14,7 @@ struct libOS_shared_tls {
     libOS_control_struct *controlStruct;
     uint64_t loadBias;
     uint64_t threadID;
+    uint64_t isInterrupt;
 }  __attribute__ ((packed));
 
 struct enclave_tls {

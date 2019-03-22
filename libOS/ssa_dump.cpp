@@ -79,7 +79,7 @@ void do_backtrace(uint64_t *rbp, uint64_t rip) {
     libos_print("start: 0x%lx", rip - getSharedTLS()->loadBias);
     while (*rbp) {
         uint64_t func = *(rbp + 1);
-        libos_print("rip: 0x%lx", func - getSharedTLS()->loadBias);
+        libos_print("rip: 0x%lx", func);
         rbp = (uint64_t *)*rbp;
     }
     libos_print("backtrace ends");
@@ -88,8 +88,6 @@ void do_backtrace(uint64_t *rbp, uint64_t rip) {
 #define SSAFRAME_SIZE 4
 extern "C" void dump_ssa(uint64_t ptcs) {
     tcs_t *tcs = (tcs_t *)ptcs;
-    char buf[50];
-    libos_panic(buf);
     ssa_gpr_t *ssa_gpr = (ssa_gpr_t *)((char *)tcs + 4096 + 4096 * SSAFRAME_SIZE - GPRSGX_SIZE);
     libos_panic("Ready to dump.");
     dump_ssa_gpr(ssa_gpr);

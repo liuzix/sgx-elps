@@ -163,10 +163,6 @@ shared_ptr<EnclaveMainThread> ELFLoader::load() {
             //*(uint64_t *)(loadBias + reader.get_entry()) = 0;
             /* Copy the segment data */
             memcpy((char *)base + mapoff, mappedFile + pseg->get_offset(), p_filesz);
-            if(p_vaddr == 0x3555e8) {
-                console->info("testVal: 0x{:x}", *(uint64_t *)((char *)base + mapoff));
-                console->info("testVal: 0x{:x}", *(uint64_t *)(mappedFile + pseg->get_offset()));
-            }
             console->info("allocTotalLen = 0x{:x}", allocend - allocbegin);
             enclaveManager->addPages(allocbegin, base, allocend - allocbegin);
 
@@ -181,86 +177,3 @@ shared_ptr<EnclaveMainThread> ELFLoader::load() {
     return ret;
 }
 
-//////////////////////////////////////////////////////////
-
-/*
-static elfio elfReadAndCheck(const string &filename) {
-    elfio reader;
-
-    if (!reader.load(filename)) {
-        console->error("Unable to load {}", filename);
-        exit(-1);
-    }
-
-    if (reader.get_class() != ELFCLASS64 || reader.get_machine() != EM_X86_64) {
-        console->error("Unsupported architecture");
-        exit(-1);
-    }
-
-    return reader;
-}
-shared_ptr<EnclaveMainThread> load_one(const char *filename, shared_ptr<EnclaveManager> enclaveManager) {
-    return load_static(filename, enclaveManager);
-}
-
-shared_ptr<EnclaveMainThread> load_static(const char *filename, shared_ptr<EnclaveManager> enclaveManager, uint64_t enclaveLen) {
-    elfio reader = elfReadAndCheck(filename);
-    Elf_Half seg_num = reader.segments.size();
-    uint64_t bias = 0;
-    int i;
-
-    for (i = 0; i < seg_num; i++) {
-        const segment *pseg = reader.segments[i];
-
-        switch (pseg->get_type()) {
-        case PT_DYNAMIC:
-            // TODO: dyn
-            break;
-        case PT_LOAD:
-            Elf64_Addr p_vaddr = pseg->get_virtual_address();
-            Elf_Xword p_filesz = pseg->get_file_size();
-            Elf_Xword p_memsz = pseg->get_memory_size();
-            console->trace("ELF load: vaddr = 0x{:x}, p_filesz = 0x{:x}, p_memsz = 0x{:x}",
-                           p_vaddr, p_filesz, p_memsz);
-            off_t p_offset = pseg->get_offset();
-            off_t mapoff = p_offset & pageshift;
-            void *base = 0;
-            Elf64_Addr allocbegin, allocend;
-
-            allocbegin = p_vaddr & pagemask;
-            allocend = p_vaddr + p_memsz;
-            allocend = (allocend + pageshift) & ~pageshift;
-            console->trace("allocbegin = 0x{:x}, allocend = 0x{:x}", allocbegin, allocend);
-
-            if (!enclaveManager)
-                enclaveManager = make_shared<EnclaveManager>(p_vaddr, enclaveLen);
-
-            if (!bias && enclaveManager->getBase() > (uint64_t)allocbegin) {
-                bias = enclaveManager->getBase() - allocbegin;
-            }
-            allocbegin += bias;
-            allocend += bias;
-
-            base = mmap(NULL, allocend - allocbegin, PROT_READ | PROT_WRITE,
-                        MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-            if (base == MAP_FAILED) {
-                console->error("load_elf: mmap failed");
-                exit(-1);
-            }
-            memset(base, 0, allocend - allocbegin);
-
-            memcpy((char *)base + mapoff, pseg->get_data(), p_filesz);
-
-            console->info("allocTotalLen = 0x{:x}", allocend - allocbegin);
-            enclaveManager->addPages(allocbegin, base, allocend - allocbegin);
-
-            break;
-        }
-    }
-
-    auto ret = enclaveManager->createThread<EnclaveMainThread>((vaddr)reader.get_entry() + bias);
-    ret->setBias(bias);
-    return ret;
-}
-
-*/
