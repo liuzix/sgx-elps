@@ -22,7 +22,6 @@ mov     -8*4(%rbp),  %r14
 mov     -8*5(%rbp),  %r15
 mov     %rbp, %rsp
 pop     %rbp
-ret
 .endm
 
 .extern get_flag
@@ -38,11 +37,13 @@ mov $0x2, %rax
 mov %rdi, %rbx
 mov $0, %rdi /* clean-up rdi*/
 lea __aex_handler(%rip), %rcx
+push %rbp
 enclu
 /* we have exited the enclave by now */
 /* the enclave should store its return value in rsi,
     because rax needs to hold the leaf function number */
 __back:
+pop %rbp
 EENTER_EPILOG
 ret
 

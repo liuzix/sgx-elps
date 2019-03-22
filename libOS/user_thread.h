@@ -1,12 +1,14 @@
 #pragma once
+#include <boost/context/detail/fcontext.hpp>
 #include <functional>
 
 #define STACK_SIZE 8192
 using namespace std;
+using namespace boost::context::detail;
 
 class UserThread {
-    void *sp;
-    function<int(void)> entry;    
+    fcontext_t fcxt;
+    function<int(void)> entry; 
 
     void start();
     void terminate();
@@ -16,6 +18,5 @@ public:
     /* for creating new thread */
     UserThread(function<int(void)> _entry);
 
-    /* for transforming current context into a thread */
-    UserThread();
+    friend void __entry_helper(transfer_t transfer);
 };
