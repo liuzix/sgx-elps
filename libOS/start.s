@@ -19,7 +19,7 @@ jz __asm_dump_ssa
 mov %rsp, %rbp
 mov 40(%r14), %rdi
 call __libOS_start
-
+ud2
 __eexit:
 # begin switching stack
 mov %gs:32, %r14            # get libos_data 

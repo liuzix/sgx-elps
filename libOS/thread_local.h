@@ -21,4 +21,9 @@ public:
         uint64_t cpuID = getSharedTLS()->threadID;
         return &map[cpuID];
     }
+
+    T* operator-> () {
+        uint64_t cpuID = getSharedTLS()->threadID;
+        return &map[cpuID];
+    }
 };

@@ -1,7 +1,12 @@
 #include "sched.h"
-#include <cstring>
+#include <spin_lock.h>
 
-SchedQueue schedQueue;
+Scheduler *scheduler;
+
+void scheduler_init() {
+    
+    scheduler = new Scheduler;
+}
 
 SchedEntity::SchedEntity() {
     timeSlot = 0;
@@ -10,20 +15,40 @@ void SchedEntity::switchTo() {
     return;
 }
 
-void enqueueTask(SchedEntity se) {
-    schedQueue.push_back(se);
+void Scheduler::enqueueTask(SchedEntity se) {
+    lock.lock();
+    queue.push_back(se);
+    se.onQueue = true;
+    lock.unlock();
 }
 
-void dequeueTask(SchedEntity se) {
-    schedQueue.erase(schedQueue.iterator_to(se));
+void Scheduler::dequeueTask(SchedEntity se) {
+    lock.lock();
+    if (se.onQueue)
+        queue.erase(queue.iterator_to(se));
+    se.onQueue = false;
+    lock.unlock();
 }
 
-void schedule() {
-    if (++schedQueue.front().timeSlot == MAXIMUM_SLOT) {
-        SchedEntity *tse = &schedQueue.front();
-        tse->timeSlot = 0;
-        schedQueue.pop_front();
-        schedQueue.push_back(*tse);
+void Scheduler::schedule() {
+    if (*current && ++(*current)->timeSlot != MAXIMUM_SLOT) {
+        return;
     }
-    schedQueue.front().switchTo();
+    
+    lock.lock();
+    if (*current) (*current)->timeSlot = 0;
+
+    if (*current && (*current)->onQueue)
+        queue.push_back(**current);
+    
+    if (!queue.empty()) {
+        *current = &queue.front(); 
+        queue.pop_front();
+        lock.unlock();
+        (*current)->switchTo();
+    } else {
+        lock.unlock();
+        *current = nullptr;
+        (*idle)->switchTo(); 
+    }
 }
