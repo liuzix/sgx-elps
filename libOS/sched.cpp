@@ -20,9 +20,10 @@ void dequeueTask(SchedEntity se) {
 
 void schedule() {
     if (++schedQueue.front().timeSlot == MAXIMUM_SLOT) {
-        schedQueue.push_back(schedQueue.front());
+        SchedEntity *tse = &schedQueue.front();
+        tse->timeSlot = 0;
         schedQueue.pop_front();
-        schedQueue.back().timeSlot = 0;
+        schedQueue.push_back(*tse);
     }
     schedQueue.front().switchTo();
 }
