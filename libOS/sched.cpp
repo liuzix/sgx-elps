@@ -4,25 +4,26 @@
 Scheduler *scheduler;
 
 void scheduler_init() {
-    
     scheduler = new Scheduler;
 }
 
-SchedEntity::SchedEntity() {
-    timeSlot = 0;
-}
-void SchedEntity::switchTo() {
-    return;
+void scheduler_set_idle(SchedEntity &se) {
+    scheduler->setIdle(se);
 }
 
-void Scheduler::enqueueTask(SchedEntity se) {
+void schedule() {
+    scheduler->schedule();
+}
+
+
+void Scheduler::enqueueTask(SchedEntity &se) {
     lock.lock();
     queue.push_back(se);
     se.onQueue = true;
     lock.unlock();
 }
 
-void Scheduler::dequeueTask(SchedEntity se) {
+void Scheduler::dequeueTask(SchedEntity &se) {
     lock.lock();
     if (se.onQueue)
         queue.erase(queue.iterator_to(se));
@@ -51,4 +52,8 @@ void Scheduler::schedule() {
         *current = nullptr;
         (*idle)->switchTo(); 
     }
+}
+
+void Scheduler::setIdle(SchedEntity &se) {
+     *idle = &se; 
 }
