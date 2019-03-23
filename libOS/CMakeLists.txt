@@ -7,7 +7,7 @@ project(libOS)
 include_directories(../include)
 include_directories(../deps)
 
-file(GLOB SOURCES "*.cpp" "*.s")
+file(GLOB SOURCES "*.cpp" "*.S" "*.s")
 find_package(Boost REQUIRED COMPONENTS context)
 
 add_library(OSCore STATIC ${SOURCES})

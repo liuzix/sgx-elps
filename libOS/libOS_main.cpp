@@ -9,6 +9,7 @@
 #include "thread_local.h"
 #include "user_thread.h"
 #include "sys_format.h"
+#include "elf.h"
 
 #include <vector>
 #include <list>
@@ -36,6 +37,52 @@ int newThread(int argc, char **argv) {
     return 0;
 }
 
+void test_auxv(uint64_t sp, int argc) {
+    char **argv = (char **)sp;
+    char **envp = argv + argc + 1;
+    size_t *aux;
+    char buf[128];
+    sprintf(buf, "argv: %lx, envp: %lx", (uint64_t)argv, (uint64_t)envp);
+    libos_print(buf);
+
+    int i = 0;
+    for (i = 0; argv[i]; i++)
+        libos_print(argv[i]);
+
+    for (i = 0; envp[i]; i++)
+        libos_print(envp[i]);
+
+    aux = (size_t *)(envp+i+1);
+
+#define print_auxv(name, fmt, type)                   \
+    do {                                        \
+        char buf[64];                           \
+                                                \
+        sprintf(buf, fmt, #name, (type)aux[name]); \
+        libos_print(buf);                       \
+    } while(0)
+
+    print_auxv(AT_HWCAP, "%s: 0x%lx", uint64_t);
+    print_auxv(AT_PAGESZ, "%s: 0x%d", int);
+    print_auxv(AT_CLKTCK, "%s: 0x%d", int);
+    print_auxv(AT_PHDR, "%s: 0x%lx", uint64_t);
+    print_auxv(AT_PHENT, "%s: 0x%d", int);
+    print_auxv(AT_PHNUM, "%s: 0x%d", int);
+    print_auxv(AT_BASE, "%s: 0x%lx", uint64_t);
+    print_auxv(AT_FLAGS, "%s: 0x%lx", uint64_t);
+    print_auxv(AT_ENTRY, "%s: 0x%lx", uint64_t);
+    print_auxv(AT_UID, "%s: 0x%d", int);
+    print_auxv(AT_EUID, "%s: 0x%d", int);
+    print_auxv(AT_GID, "%s: 0x%d", int);
+    print_auxv(AT_EGID, "%s: 0x%d", int);
+    print_auxv(AT_SECURE, "%s: 0x%d", int);
+    print_auxv(AT_RANDOM, "%s: 0x%lx", uint64_t);
+    print_auxv(AT_HWCAP2, "%s: 0x%lx", uint64_t);
+    print_auxv(AT_EXECFN, "%s: %s", char *);
+    print_auxv(AT_PLATFORM, "%s: %s", char *);
+#undef print_auxv
+}
+
 extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp, uint64_t bp, uint64_t n) {
     if (!ctrl_struct)
         return -1;
@@ -55,12 +102,8 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp, uin
     mmap_init(ctrl_struct->mainArgs.heapBase, ctrl_struct->mainArgs.heapLength);
     initSafeMalloc(10 * 4096);
     libos_print("Safe malloc initialization successful");
-    char buf[100];
-    sprintf(buf, "rsi: 0x%lx, rdi: 0x%lx", sp, bp);
-    //sprintf(buf, "sp: 0x%lx, bp: 0x%lx, argv:0x%lx, n:%d", **((uint64_t **)(sp + 8)), bp, (uint64_t)(ctrl_struct->mainArgs.argv[0]), (int)n);
-    libos_print(buf);
-    char *str = *(*(char ***)(sp + 16));
-    libos_print(str);
+    test_auxv(sp, ctrl_struct->mainArgs.argc);
+
     initSyscallTable();
     scheduler_init();
     scheduler->setIdle((new UserThread(idleThread))->se);

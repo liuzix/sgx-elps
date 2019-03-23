@@ -1,13 +1,22 @@
 .macro push_vec
     mov $0, %rax
-    __loop_b:
+    1:
         cmp %rax, %rcx
-        je __loop_b
-        push (%rbx)
+        je 2f
         add $1, %rax
         add $8, %rbx
-        jmp __loop_e
-    __lopp_e:
+        jmp 1b
+    2:
+        sub $8, %rbx
+        mov $0, %rax
+    3:
+        cmp %rax, %rcx
+        je 4f
+        push (%rbx)
+        add $1, %rax
+        sub $8, %rbx
+        jmp 3b
+    4:
     .endm
 
 .global _start
@@ -44,28 +53,24 @@ mov 40(%r14), %rdi
 
 mov $38, %rcx               # temporarily hardcoded
 mov 32(%rdi), %rbx
-mov (%rbx), %rbx
+__push_aux:
 push_vec
 
 xor %rcx, %rcx
-mov 16(%rdi), %rcx          # get envc
+mov 16(%rdi), %ecx          # get envc
+add $1, %ecx
 mov 24(%rdi), %rbx
-mov (%rbx), %rbx            # get envv value
+__push_env:
 push_vec
 
 xor %rcx, %rcx
 mov (%rdi), %ecx            # get argc
-mov 8(%rdi), %rbx
-mov (%rbx), %rbx
-mov $0, %rax
+add $1, %ecx
+mov 8(%rdi), %rbx           # argv
+__push_argv:
 push_vec
 
-push $0x1234
-mov %rsp, %rsi              # for testing
-pop %rsi
-push $0x5678
-mov %rsp, %rdx              # for testing
-
+mov %rsp, %rsi
 call __libOS_start
 ud2
 __eexit:
