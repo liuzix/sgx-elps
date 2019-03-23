@@ -83,7 +83,39 @@ void test_auxv(uint64_t sp, int argc) {
 #undef print_auxv
 }
 
-extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp, uint64_t bp, uint64_t n) {
+/* @sp: sp holds the pointer to the top of the initial stack i.e argv[0]
+ *      ┌────────────────┐
+ *      │   auxv[n - 1]  │ <---------- stack bottom (high address)
+ *      ├────────────────┤
+ *      │       .        │
+ *      │       .        │
+ *      │       .        │
+ *      ├────────────────┤
+ *      │     axuv[0]    │
+ *      ├────────────────┤
+ *      │ envp[n] = NULL │
+ *      ├────────────────┤
+ *      │       .        │
+ *      │       .        │
+ *      │       .        │
+ *      ├────────────────┤
+ *      │     envp[0]    │
+ *      ├────────────────┤
+ *      │ argv[n] = NULL │
+ *      ├────────────────┤
+ *      │       .        │
+ *      │       .        │
+ *      │       .        │
+ *      ├────────────────┤
+ *      │    argv[0]     │  <--------- sp (low address)
+ *      ├────────────────┤
+ *      │     stack      │
+ *      │       |        │
+ *      │       |        │
+ *      │       |        │
+ *      │       v        │
+ * */
+extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
     if (!ctrl_struct)
         return -1;
     if (ctrl_struct->magic != CONTROL_STRUCT_MAGIC)
