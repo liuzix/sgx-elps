@@ -92,5 +92,5 @@ extern "C" void dump_ssa(uint64_t ptcs) {
     libos_panic("Ready to dump.");
     dump_ssa_gpr(ssa_gpr);
     do_backtrace((uint64_t *)ssa_gpr->bp, ssa_gpr->ip);
-    for (;;) {}
+    __asm__("ud2");
 }

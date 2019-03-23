@@ -29,6 +29,7 @@ pop     %rbp
 .global __eenter
 .global __back
 .global __aex_handler
+.global __interrupt_back
 .hidden __back
 .hidden __aex_handler
 __eenter:
@@ -58,20 +59,43 @@ mov $0x2, %rax
 lea __aex_handler(%rip), %rcx
 /* nested eenter */
 enclu
+ud2
+
+__go_interrupt:
+push %rbx
+mov $2, %rdi
+mov $0x2, %rax
+lea __aex_handler(%rip), %rcx
+enclu
+ud2
 
 __aex_handler:
 nop
-push %rdi
-mov %rbx, %rdi
 push %rax
 push %rbx
 push %rcx
-call get_flag@plt
-cmp $1, %rax
+
+mov %rbx, %rdi
+call do_aex
+mov %rax, %r13
 pop %rcx
 pop %rbx
 pop %rax
-pop %rdi
-jz __go_dump
+
+cmp $1, %r13
+je __go_dump
+cmp $2, %r13
+je __go_interrupt
+
 enclu
-int3
+ud2
+__interrupt_back:
+pop %rbx 
+push %rbx
+mov %rbx, %rdi
+call clear_interrupt@plt
+mov $3, %rax
+pop %rbx
+lea __aex_handler(%rip), %rcx
+enclu
+ud2

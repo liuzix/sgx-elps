@@ -39,9 +39,8 @@ public:
     void setIdle(SchedEntity &se);
 };
 
+extern Scheduler *scheduler;
 void scheduler_init();
-void scheduler_set_idle(SchedEntity &se);
-void schedule();
 
 
 

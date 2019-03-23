@@ -4,6 +4,7 @@
 #include "panic.h"
 #include "libos.h"
 #include "allocator.h"
+#include "sched.h"
 #include "mmap.h"
 #include "thread_local.h"
 #include "user_thread.h"
@@ -14,11 +15,22 @@
 Queue<RequestBase*> *requestQueue = nullptr;
 extern "C" void __temp_libc_start_init(void);
 extern "C" void __eexit(int ret);
+extern "C" void __interrupt_exit();
+
+int idleThread() {
+    for (;;) {
+        __asm__("pause");
+        scheduler->schedule();
+    }
+}
 
 int newThread(int argc, char **argv) {
     libos_print("We are in a new thread!");
-    for (int i = 0; i < 10; i++)
+    libos_print("Enabling interrupt");
+    getSharedTLS()->inInterrupt->store(false);
+    for (size_t i = 0; i < 100; i++) {
         libos_print("%d", i);
+    }
     int ret = main(argc, argv); 
     __eexit(ret);
     return 0; 
@@ -45,18 +57,17 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct) {
     libos_print("Safe malloc initialization successful");
 
     initSyscallTable();
-    //testSafeMalloc();
-    
-    //libos_print("trying to call libc_start_init");
-    //__temp_libc_start_init();
-   
-    //int *p = 0x0;
-    //*p = 5;
-    //int ret = main(ctrl_struct->mainArgs.argc, ctrl_struct->mainArgs.argv);
-
+    scheduler_init();
+    scheduler->setIdle((new UserThread(idleThread))->se);
     UserThread initThread(std::bind(newThread, ctrl_struct->mainArgs.argc, ctrl_struct->mainArgs.argv)); 
-    initThread.jumpTo();
-
+    scheduler->schedule(); 
     libos_panic("Shouldn't have reached here!");
+    __asm__("ud2");
     return 0;
+}
+
+extern "C" void do_interrupt() {
+    libos_print("do_interrupt!");
+    __interrupt_exit();
+    __asm__("ud2");
 }

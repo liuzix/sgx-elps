@@ -24,7 +24,7 @@ struct slave_args_t {
 };
 
 struct panic_struct {
-   SpinLock lock;
+   SpinLockNoTimer lock;
 
    char panicBuf[1024];
    struct {} __attribute__ ((aligned (16)));

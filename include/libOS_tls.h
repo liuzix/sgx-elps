@@ -1,6 +1,7 @@
 #ifndef LIBOS_TLS_H
 #define LIBOS_TLS_H
 
+#include <atomic>
 #include <stdint.h>
 
 struct libOS_control_struct;
@@ -12,9 +13,12 @@ struct libOS_shared_tls {
     uint64_t isReentry;           // set by the enclave
     uint64_t enclave_return_val;  // set by the enclave
     libOS_control_struct *controlStruct;
+    uint64_t interrupt_stack;
     uint64_t loadBias;
     uint64_t threadID;
-    uint64_t isInterrupt;
+    uint64_t interrupt_exit;
+    uint64_t interrupt_outside_stack;   
+    std::atomic_bool *inInterrupt;
 }  __attribute__ ((packed));
 
 struct enclave_tls {

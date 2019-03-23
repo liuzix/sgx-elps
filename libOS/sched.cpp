@@ -7,14 +7,6 @@ void scheduler_init() {
     scheduler = new Scheduler;
 }
 
-void scheduler_set_idle(SchedEntity &se) {
-    scheduler->setIdle(se);
-}
-
-void schedule() {
-    scheduler->schedule();
-}
-
 
 void Scheduler::enqueueTask(SchedEntity &se) {
     lock.lock();

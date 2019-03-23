@@ -14,6 +14,10 @@
 #include <ssa_dump.h>
 
 extern "C" void (*__back)(void);
+extern "C" void (*__interrupt_back)(void);
+
+extern "C" bool set_interrupt(uint64_t tcs);
+extern "C" bool clear_interrupt(uint64_t tcs);
 
 class EnclaveThread {
 private:
@@ -29,12 +33,13 @@ public:
         : tcs(_tcs)
     {
         int threadID = threadCounter++;
-        sharedTLS = {};
         sharedTLS.next_exit = (uint64_t)&__back;
+        sharedTLS.interrupt_exit = (uint64_t)&__interrupt_back;
         sharedTLS.enclave_stack = _stack;
         sharedTLS.controlStruct = &this->controlStruct;
         sharedTLS.threadID = threadID;
-        sharedTLS.isInterrupt = 0;
+        sharedTLS.inInterrupt = new std::atomic_bool(true);
+        sharedTLS.interrupt_stack = (uint64_t)malloc(4096) + 4096 - 16;
         set_flag((uint64_t)_tcs, 0);
     }
     void setSwapper(SwapperManager &swapperManager); 
@@ -43,8 +48,9 @@ public:
         return &this->sharedTLS;
     }
     void run();
-    vaddr getTcs() {return this->tcs;}
+    vaddr getTcs() { return this->tcs; }
 };
+extern std::map<uint64_t, shared_ptr<EnclaveThread>> thread_map;
 
 class EnclaveMainThread: public EnclaveThread {
 public:

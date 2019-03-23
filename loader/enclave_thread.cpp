@@ -1,14 +1,54 @@
 #include "enclave_thread.h"
 #include "logging.h"
 
+DEFINE_LOGGER(enclave_thread, spdlog::level::trace)
 int EnclaveThread::threadCounter = 0;
+
+std::map<uint64_t, shared_ptr<EnclaveThread>> thread_map;
+
+
+char get_flag(uint64_t rbx) {
+    char res = sig_flag_map[rbx].exchange(0);
+    return res;
+}
+
+void set_flag(uint64_t rbx, char flag) {
+    sig_flag_map[rbx].store(flag);
+}
+
+std::map<uint64_t, atomic<char>> sig_flag_map;
+extern "C" bool set_interrupt(uint64_t tcs) {
+    auto tls = thread_map[tcs]->getSharedTLS();    
+    bool ret = tls->inInterrupt->exchange(true);
+    console->trace("old interrupt flag = {}", ret);
+    return ret;
+}
+
+extern "C" bool clear_interrupt(uint64_t tcs) {
+    console->trace("clear interrupt! 0x{:x}", tcs);
+    auto tls = thread_map[tcs]->getSharedTLS();    
+    return tls->inInterrupt->exchange(false);
+}
+
+extern "C" uint64_t do_aex(uint64_t tcs) {
+    //console->info("do_aex: tcs = 0x{:x}", tcs);
+    char dumpFlag = get_flag(tcs);
+    bool intFlag = set_interrupt(tcs);
+    int ret = 0;
+    if (!intFlag) {
+        if (dumpFlag) {
+            console->debug("We decide to dump!");
+            ret =  1;
+        }
+        else ret = 2;
+    }
+    return ret;
+}
 
 void EnclaveThread::run() {
     classLogger->info("entering enclave!");
     __eenter(this->tcs);
     classLogger->info("returned from enclave! ret = {}", sharedTLS.enclave_return_val);
-    //this->writeToConsole("test1", 5);
-    //this->writeToConsole("test2", 5);
 
 }
 
