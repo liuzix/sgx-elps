@@ -46,7 +46,6 @@ class EnclaveManager {
                   bool executable, bool isTCS);
     template <typename ThreadType>
     shared_ptr<ThreadType> createThread(vaddr entry);
-
     void prepareLaunch();
     vaddr makeHeap(size_t len);
 };

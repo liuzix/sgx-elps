@@ -9,6 +9,7 @@
 #include <fcntl.h>
 
 #include <elfio/elfio.hpp>
+#include <elfio/elf_types.hpp>
 #include "logging.h"
 #include "enclave_manager.h"
 #include "load_elf.h"

@@ -59,6 +59,8 @@ public:
     void setArgs(int argc, char **argv);
     void setHeap(vaddr base, size_t len);
     void setUnsafeHeap(void *base, size_t len);
+    void setEnvs(char **envp);
+    void setAux(size_t *auxv);
     void setBias(size_t bias);
 };
 

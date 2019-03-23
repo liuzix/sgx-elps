@@ -1,3 +1,15 @@
+.macro push_vec
+    mov $0, %rax
+    1:
+        cmp %rax, n
+        je 2
+        push (%rbx)
+        add $1, %rax
+        add $8, %rbx
+        jmp 1
+    2:
+    .endm
+
 .global _start
 .global __interrupt_exit
 .global __eexit
@@ -29,6 +41,25 @@ jz __asm_dump_ssa
 
 mov %rsp, %rbp
 mov 40(%r14), %rdi
+
+lea [rdi + 8], %rbx         # get argv address
+mov (%rbx), %rbx            # load argv
+xor %rcx, %rcx
+mov (%rdi), %ecx            # get argc
+push_vec
+
+lea [rdi + 16], %rbx
+xor %rcx, %rcx
+mov (%rbx), %ecx            # get envc
+lea [rdi + 24], %rbx
+mov (%rbx), %rbx            # load env
+push_vec
+
+lea [rdi + 32], %rbx
+mov (%rbx), %rbx
+mov $38, %rcx               # temporarily hardcoded
+push_vec
+
 call __libOS_start
 ud2
 __eexit:

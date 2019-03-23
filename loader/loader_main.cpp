@@ -15,9 +15,12 @@
 #include "signature.h"
 #include "logging.h"
 #include <ssa_dump.h>
+#include <sys/auxv.h>
 
 #define UNSAFE_HEAP_LEN 0x10000000
 #define SAFE_HEAP_LEN 0x10000000
+
+#define AUX_CNT 38
 
 using namespace std;
 
@@ -87,7 +90,17 @@ void dump_sigaction(void) {
 
 }
 
-int main(int argc, char **argv) {
+size_t *get_curr_auxv(void) {
+    /* AUX_CNT is defined in this file */
+    size_t *auxv = new size_t[AUX_CNT];
+
+    for (int i = 0; i < AUX_CNT; i ++)
+        auxv[i] = getauxval(i);
+
+    return auxv;
+}
+
+int main(int argc, char **argv, char **envp) {
     console->set_level(spdlog::level::trace);
     if (argc < 2) {
         console->error("Usage: loader [binary file name]");
@@ -114,6 +127,8 @@ int main(int argc, char **argv) {
 
     char const *testArgv[] ={"hello", (char *)0};
     thread->setArgs(1, (char **)testArgv);
+    thread->setAux(get_curr_auxv());
+    thread->setEnvs(envp);
     thread->setSwapper(swapperManager);
     thread->setHeap(heap, SAFE_HEAP_LEN);
 

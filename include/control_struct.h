@@ -8,10 +8,15 @@
 using namespace std;
 
 #define CONTROL_STRUCT_MAGIC 0xbeefbeef
+#define AUX_CNT 38
 
 struct main_args_t {
-    int argc;
-    char **argv;
+    int argc;        /* 0 */
+    char **argv;        /* 8 */
+    int envc;           /* 16 */
+    char **envp;        /* 24 */
+    size_t *auxv;       /* 32 */
+
     vaddr heapBase;
     size_t heapLength;
     void *unsafeHeapBase;
@@ -26,26 +31,26 @@ struct slave_args_t {
 struct panic_struct {
    SpinLockNoTimer lock;
 
-   char panicBuf[1024];
-   struct {} __attribute__ ((aligned (16)));
-   char requestBuf[sizeof(DebugRequest)];
-   char requestTest[sizeof(DebugRequest)];
+    char panicBuf[1024];
+    struct {} __attribute__ ((aligned (16)));
+    char requestBuf[sizeof(DebugRequest)];
+    char requestTest[sizeof(DebugRequest)];
 };
 
 struct libOS_control_struct {
+    union {
+        main_args_t mainArgs;
+        slave_args_t slaveArgs;
+    };
+
    /* for debugging */
-   unsigned int magic = CONTROL_STRUCT_MAGIC;
+    unsigned int magic = CONTROL_STRUCT_MAGIC;
 
-   bool isMain;
+    bool isMain;
 
-   union {
-       main_args_t mainArgs;
-       slave_args_t slaveArgs;
-   };
+    Queue<RequestBase*> *requestQueue;
 
-   Queue<RequestBase*> *requestQueue; 
-
-   panic_struct *panic;
+    panic_struct *panic;
 };
 
 #endif

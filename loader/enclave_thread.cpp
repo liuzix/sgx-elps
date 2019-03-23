@@ -68,6 +68,19 @@ void EnclaveMainThread::setArgs(int argc, char **argv) {
     this->controlStruct.mainArgs.argv = argv;
 }
 
+void EnclaveMainThread::setEnvs(char **envp) {
+    int i = 0;
+
+    this->controlStruct.mainArgs.envp = envp;
+    for (i = 1; envp[i]; i++);
+
+    this->controlStruct.mainArgs.envc = i;
+}
+
+void EnclaveMainThread::setAux(size_t *auxv) {
+    this->controlStruct.mainArgs.auxv = auxv;
+}
+
 void EnclaveMainThread::setHeap(vaddr base, size_t len) {
     this->controlStruct.mainArgs.heapBase = base;
     this->controlStruct.mainArgs.heapLength = len;

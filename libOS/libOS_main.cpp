@@ -33,7 +33,7 @@ int newThread(int argc, char **argv) {
     }
     int ret = main(argc, argv); 
     __eexit(ret);
-    return 0; 
+    return 0;
 }
 
 extern "C" int __libOS_start(libOS_control_struct *ctrl_struct) {
@@ -47,7 +47,7 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct) {
     initPanic(ctrl_struct->panic);
     libos_print("We are inside LibOS!");
 
-    initUnsafeMalloc(ctrl_struct->mainArgs.unsafeHeapBase, ctrl_struct->mainArgs.unsafeHeapLength);    
+    initUnsafeMalloc(ctrl_struct->mainArgs.unsafeHeapBase, ctrl_struct->mainArgs.unsafeHeapLength);
     writeToConsole("UnsafeMalloc intialization successful.");
     libos_print("UnsafeHeap base = 0x%lx, length = 0x%lx", ctrl_struct->mainArgs.unsafeHeapBase,
                 ctrl_struct->mainArgs.unsafeHeapLength);
