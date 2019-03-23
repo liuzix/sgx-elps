@@ -42,22 +42,18 @@ jz __asm_dump_ssa
 mov %rsp, %rbp
 mov 40(%r14), %rdi
 
-lea [rdi + 8], %rbx         # get argv address
-mov (%rbx), %rbx            # load argv
 xor %rcx, %rcx
 mov (%rdi), %ecx            # get argc
+mov 8(%rdi), %rbx        # get argv value
 push_vec
 
-lea [rdi + 16], %rbx
 xor %rcx, %rcx
-mov (%rbx), %ecx            # get envc
-lea [rdi + 24], %rbx
-mov (%rbx), %rbx            # load env
+mov 16(%rdi), %rcx       # get envc
+mov 24(%rdi), %rbx        # get envv value
 push_vec
 
-lea [rdi + 32], %rbx
-mov (%rbx), %rbx
 mov $38, %rcx               # temporarily hardcoded
+mov 32(%rdi), %rbx
 push_vec
 
 call __libOS_start

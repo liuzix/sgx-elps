@@ -110,7 +110,10 @@ int main(int argc, char **argv, char **envp) {
     console->info("Welcome to the Loader");
     console->info("Start loading binary file: {}", argv[1]);
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> modify some asm
     auto manager = make_shared<EnclaveManager>(0x0, SAFE_HEAP_LEN * 2);
     ////
     ELFLoader loader(manager);
