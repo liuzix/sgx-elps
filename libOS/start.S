@@ -1,13 +1,13 @@
 .macro push_vec
     mov $0, %rax
-    1:
-        cmp %rax, n
-        je 2
+    __loop_b:
+        cmp %rax, %rcx
+        je __loop_b
         push (%rbx)
         add $1, %rax
         add $8, %rbx
-        jmp 1
-    2:
+        jmp __loop_e
+    __lopp_e:
     .endm
 
 .global _start
@@ -42,19 +42,29 @@ jz __asm_dump_ssa
 mov %rsp, %rbp
 mov 40(%r14), %rdi
 
-xor %rcx, %rcx
-mov (%rdi), %ecx            # get argc
-mov 8(%rdi), %rbx        # get argv value
-push_vec
-
-xor %rcx, %rcx
-mov 16(%rdi), %rcx       # get envc
-mov 24(%rdi), %rbx        # get envv value
-push_vec
-
 mov $38, %rcx               # temporarily hardcoded
 mov 32(%rdi), %rbx
+mov (%rbx), %rbx
 push_vec
+
+xor %rcx, %rcx
+mov 16(%rdi), %rcx          # get envc
+mov 24(%rdi), %rbx
+mov (%rbx), %rbx            # get envv value
+push_vec
+
+xor %rcx, %rcx
+mov (%rdi), %ecx            # get argc
+mov 8(%rdi), %rbx
+mov (%rbx), %rbx
+mov $0, %rax
+push_vec
+
+push $0x1234
+mov %rsp, %rsi              # for testing
+pop %rsi
+push $0x5678
+mov %rsp, %rdx              # for testing
 
 call __libOS_start
 ud2

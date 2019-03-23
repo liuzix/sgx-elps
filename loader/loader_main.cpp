@@ -128,8 +128,8 @@ int main(int argc, char **argv, char **envp) {
     vaddr heap = manager->makeHeap(SAFE_HEAP_LEN);
     manager->prepareLaunch();
 
-    char const *testArgv[] ={"hello", (char *)0};
-    thread->setArgs(1, (char **)testArgv);
+    char const *testArgv[] ={"hello", "world", (char *)0};
+    thread->setArgs(2, (char **)testArgv);
     thread->setAux(get_curr_auxv());
     thread->setEnvs(envp);
     thread->setSwapper(swapperManager);

@@ -36,7 +36,7 @@ int newThread(int argc, char **argv) {
     return 0;
 }
 
-extern "C" int __libOS_start(libOS_control_struct *ctrl_struct) {
+extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp, uint64_t bp, uint64_t n) {
     if (!ctrl_struct)
         return -1;
     if (ctrl_struct->magic != CONTROL_STRUCT_MAGIC)
@@ -55,7 +55,12 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct) {
     mmap_init(ctrl_struct->mainArgs.heapBase, ctrl_struct->mainArgs.heapLength);
     initSafeMalloc(10 * 4096);
     libos_print("Safe malloc initialization successful");
-
+    char buf[100];
+    sprintf(buf, "rsi: 0x%lx, rdi: 0x%lx", sp, bp);
+    //sprintf(buf, "sp: 0x%lx, bp: 0x%lx, argv:0x%lx, n:%d", **((uint64_t **)(sp + 8)), bp, (uint64_t)(ctrl_struct->mainArgs.argv[0]), (int)n);
+    libos_print(buf);
+    char *str = *(*(char ***)(sp + 16));
+    libos_print(str);
     initSyscallTable();
     scheduler_init();
     scheduler->setIdle((new UserThread(idleThread))->se);
