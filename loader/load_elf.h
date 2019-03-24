@@ -15,7 +15,7 @@ std::shared_ptr<EnclaveMainThread> load_one(const char *filename, shared_ptr<Enc
  *
  * bool load_one(shared_ptr<EnclaveManager>, const char *fname);
  *
- * It is because we need to load more than one files in case of 
+ * It is because we need to load more than one files in case of
  * dynamically linked libraries.
  */
 

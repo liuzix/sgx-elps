@@ -21,7 +21,8 @@ void strcpy2(char dest[], const char source[])
 }
 
 void writeToConsole(const char *msg) {
-    strcpy2(panicInfo->panicBuf, msg);
+    panicInfo->lock.lock();
+    strcpy(panicInfo->panicBuf, msg);
     auto req = new (panicInfo->requestBuf) DebugRequest;
     req->printBuf = panicInfo->panicBuf;
     requestQueue->push(req); 

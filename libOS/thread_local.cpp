@@ -8,6 +8,14 @@ uint64_t readQWordFromGS(size_t offset) {
     return ret;
 }
 
+bool disableInterrupt() {
+    return getSharedTLS()->inInterrupt->exchange(true);
+}
+
+void enableInterrupt() {
+    return getSharedTLS()->inInterrupt->store(false);
+}
+
 libOS_shared_tls *getSharedTLS() {
     return (libOS_shared_tls *)readTLSField(libOS_data);
 }

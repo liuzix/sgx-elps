@@ -15,9 +15,12 @@
 #include "signature.h"
 #include "logging.h"
 #include <ssa_dump.h>
+#include <sys/auxv.h>
 
 #define UNSAFE_HEAP_LEN 0x10000000
 #define SAFE_HEAP_LEN 0x10000000
+
+#define AUX_CNT 38
 
 using namespace std;
 
@@ -38,23 +41,12 @@ void *makeUnsafeHeap(size_t length) {
     return addr;
 }
 
-std::map<uint64_t, atomic<char>> sig_flag_map;
-std::map<uint64_t, shared_ptr<EnclaveThread>> thread_map;
-char get_flag(uint64_t rbx) {
-    char res = sig_flag_map[rbx].exchange(0);
-    return res;
-}
-
-void set_flag(uint64_t rbx, char flag) {
-    sig_flag_map[rbx].store(flag);
-}
-
-
 void sig_exit() {
     exit(-1);
 }
 
 static void __sigaction(int n, siginfo_t *, void *ucontext) {
+    static int sigintCounter = 0;
     ucontext_t *context = (ucontext_t *)ucontext;
     uint64_t rip = context->uc_mcontext.gregs[REG_RIP];
     console->error("rip: 0x{:x}, __aex_handler: 0x{:x}", (uint64_t)rip, (uint64_t)&__aex_handler);
@@ -68,15 +60,17 @@ static void __sigaction(int n, siginfo_t *, void *ucontext) {
     //Per-thread flag
     set_flag(rbx, 1);
 
-    thread_map[rbx]->getSharedTLS()->isInterrupt = 1;
     uint64_t debugStack = (uint64_t)malloc(4096) + 4096 - 16;
     thread_map[rbx]->getSharedTLS()->enclave_stack = debugStack;
     if (n == SIGSEGV)
         console->error("Segmentation Fault!");
-    else 
+    else if (n == SIGINT) {
+        console->error("SIGINT received");
+        if (sigintCounter++ == 1)
+            std::abort();
+    } else
         console->error("Signal num = {}", n);
     console->flush();
-    //for (;;) {}
 }
 
 void dump_sigaction(void) {
@@ -91,11 +85,22 @@ void dump_sigaction(void) {
     }
 
     sigaction(SIGSEGV, &sa, NULL);
+    sigaction(SIGINT, &sa, NULL);
     sigaction(7, &sa, NULL);
 
 }
 
-int main(int argc, char **argv) {
+size_t *get_curr_auxv(void) {
+    /* AUX_CNT is defined in this file */
+    size_t *auxv = new size_t[AUX_CNT];
+
+    for (int i = 0; i < AUX_CNT; i ++)
+        auxv[i] = getauxval(i);
+
+    return auxv;
+}
+
+int main(int argc, char **argv, char **envp) {
     console->set_level(spdlog::level::trace);
     if (argc < 2) {
         console->error("Usage: loader [binary file name]");
@@ -104,7 +109,6 @@ int main(int argc, char **argv) {
 
     console->info("Welcome to the Loader");
     console->info("Start loading binary file: {}", argv[1]);
-
 
     auto manager = make_shared<EnclaveManager>(0x0, SAFE_HEAP_LEN * 2);
     ////
@@ -120,8 +124,10 @@ int main(int argc, char **argv) {
     vaddr heap = manager->makeHeap(SAFE_HEAP_LEN);
     manager->prepareLaunch();
 
-    char const *testArgv[] ={"hello", (char *)0};
-    thread->setArgs(1, (char **)testArgv);
+    char const *testArgv[] ={"hello", "world", (char *)0};
+    thread->setArgs(2, (char **)testArgv);
+    thread->setAux(get_curr_auxv());
+    thread->setEnvs(envp);
     thread->setSwapper(swapperManager);
     thread->setHeap(heap, SAFE_HEAP_LEN);
 
