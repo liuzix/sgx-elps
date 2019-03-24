@@ -56,7 +56,7 @@ extern "C" int __async_syscall(unsigned int n, ...) {
 //    libos_print("We do not support system call!");
 //    return 0;
 
-    libos_print("async_syscall: %u", n);
+    libos_print("Async call [%u]", n);
     /* Interpret correspoding syscall args types */
     format_t fm_l;
     if (!interpretSyscall(fm_l, n)) {
@@ -73,11 +73,13 @@ extern "C" int __async_syscall(unsigned int n, ...) {
     req->fm_list = fm_l;
 
     long val;
+    long enclave_args[6];
     va_list vl;
     va_start(vl, n);
     for (unsigned int i = 0; i < fm_l.args_num; i++) {
         val = va_arg(vl, long);
         req->args[i].arg = val;
+        enclave_args[i] = val;
     }
     va_end(vl);
     /* populate arguments in request */
@@ -87,17 +89,13 @@ extern "C" int __async_syscall(unsigned int n, ...) {
         return 0;
     }
 
-    libos_print("-----SYSCALL(%u)-----", fm_l.syscall_num);
-    for (unsigned int i = 0; i < fm_l.args_num; i++) {
-        libos_print("arg[%d] type[%u] arg_in[0x%x]", i+1, req->fm_list.types[i], req->args[i].arg);
-        if (req->fm_list.sizes[i])
-            libos_print("buffer addr[0x%x] : %s", &(req->args[i].data), req->args[i].data);
-    }
-
     requestQueue->push(req);
     req->waitOnDone(1000000000);
-//   req->~SyscallRequest();
-//   unsafeFree(req);
-    return 0;
+    libos_print("return val: %ld", req->sys_ret);
+    int ret = (int)req->sys_ret;
+    req->fillEnclave(enclave_args); 
+    req->~SyscallRequest();
+    unsafeFree(req);
+    return ret;
 }
 
