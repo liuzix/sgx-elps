@@ -52,7 +52,7 @@ jz __asm_dump_ssa
 mov %rsp, %rbp
 mov 40(%r14), %rdi
 
-mov $38, %rcx               # temporarily hardcoded
+mov $80, %rcx               # temporarily hardcoded
 mov 32(%rdi), %rbx
 __push_aux:
 push_vec
