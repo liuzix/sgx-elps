@@ -27,7 +27,7 @@ int main () {
 //    syscall(1, fd, buf, 10);
 //    syscall(3, fd);
 
-    fd = open("/home/kaige/sgx-elps/samples/read_dst.txt", O_RDWR);
+    fd = open("../samples/read_dst.txt", O_RDWR);
     read(fd, buf, 256);
     close(fd);
 

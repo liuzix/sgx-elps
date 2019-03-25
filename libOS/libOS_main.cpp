@@ -33,12 +33,15 @@ int newThread(int argc, char **argv) {
         for (int i = 0; i < 10000000; i++)
             if (i % 10000 == 0)
                 libos_print("[2]%d", i);
+        for (;;) {}
         return 0;
     });
+    
     for (size_t i = 0; i < 10000000; i++) {
         if (i % 10000 == 0)
             libos_print("[1]%d", i);
     }
+    
     int ret = main(argc, argv); 
     __eexit(ret);
     return 0;
