@@ -5,21 +5,22 @@
 #include <functional>
 #include <spin_lock.h>
 
-#define MAXIMUM_SLOT 20
+#define MAXIMUM_SLOT 1
 
 using namespace boost::intrusive;
 
+class UserThread;
+
 struct SchedEntity {
+    UserThread *thread;
     list_member_hook<> member_hook_;
     bool onQueue;
-    std::function<void()> switcher;
     int timeSlot; 
-    SchedEntity(std::function<void()> _switcher) {
-        switcher = _switcher;
+    SchedEntity(UserThread *_t) {
+        thread = _t;
         timeSlot = 0;
     }
 
-    void switchTo() { switcher(); }
 };
 
 typedef list< SchedEntity

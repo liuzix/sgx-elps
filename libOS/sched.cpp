@@ -1,4 +1,5 @@
 #include "sched.h"
+#include "user_thread.h"
 #include <spin_lock.h>
 
 Scheduler *scheduler;
@@ -34,18 +35,24 @@ void Scheduler::schedule() {
     if (*current && (*current)->onQueue)
         queue.push_back(**current);
     
+    SchedEntity *prev = *current;
     if (!queue.empty()) {
         *current = &queue.front(); 
         queue.pop_front();
         lock.unlock();
-        (*current)->switchTo();
+        /* decide if we do need a context switch */
+        if (*current != prev)
+            (*current)->thread->jumpTo(prev ? prev->thread : (*idle)->thread);
     } else {
         lock.unlock();
+        /* if it has already been idling */
+        if (!*current) return;
         *current = nullptr;
-        (*idle)->switchTo(); 
+        (*idle)->thread->jumpTo(prev ? prev->thread : (*idle)->thread); 
     }
 }
 
 void Scheduler::setIdle(SchedEntity &se) {
+     scheduler->dequeueTask(se);
      *idle = &se; 
 }

@@ -32,6 +32,7 @@ call dump_ssa
 __asm_do_interrupt:
 mov %rsp, 80(%r14)           # save original rsp
 mov 48(%r14), %rsp
+mov %rsi, %rdi
 call do_interrupt
 
 _start:

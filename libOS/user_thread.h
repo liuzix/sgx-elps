@@ -8,15 +8,15 @@ using namespace std;
 using namespace boost::context::detail;
 
 class UserThread {
-    fcontext_t fcxt;
-
     void start();
     void terminate();
 public:
+    fcontext_t fcxt;
+    uint64_t preempt_stack;
     function<int(void)> entry; 
     SchedEntity se; 
     int id;
-    void jumpTo();
+    void jumpTo(UserThread *from);
 
     /* for creating new thread */
     UserThread(function<int(void)> _entry);

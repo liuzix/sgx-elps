@@ -6,8 +6,10 @@
 #include <libOS_tls.h>
 
 #define readTLSField(field) readQWordFromGS(offsetof(enclave_tls, field))
+#define writeTLSField(field, value) writeQWordToGS(offsetof(enclave_tls, field), value)
 
 uint64_t readQWordFromGS(size_t offset);
+void writeQWordToGS(size_t offset, uint64_t value);
 
 libOS_shared_tls *getSharedTLS();
 

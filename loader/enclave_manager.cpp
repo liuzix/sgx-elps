@@ -26,6 +26,20 @@ static int deviceHandle() {
     return fd;
 }
 
+static void *getZeroPage() {
+    static void *zeroPage = nullptr;
+    if (zeroPage == nullptr) {
+        int fd = open("/dev/zero", O_RDWR); 
+        zeroPage = mmap (0, 4096, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_FILE, fd, 0);
+        if (zeroPage == MAP_FAILED) {
+            console->error("Cannot map /dev/zero");
+            exit(-1);
+        }
+    }
+
+    return zeroPage;
+}
+
 EnclaveManager::EnclaveManager(vaddr base, size_t len) : siggen(&this->secs) {
     for (this->enclaveMemoryLen = 1; this->enclaveMemoryLen < len;)
         this->enclaveMemoryLen <<= 1;
@@ -58,6 +72,7 @@ EnclaveManager::EnclaveManager(vaddr base, size_t len) : siggen(&this->secs) {
     siggen.doEcreate(this->enclaveMemoryLen, SSA_FRAMESIZE_PAGE);
     console->info("Creating enclave successful.");
 }
+
 
 bool EnclaveManager::addPages(vaddr dest, void *src, size_t len) {
     return this->addPages(dest, src, len, true, true, false);
@@ -218,6 +233,13 @@ shared_ptr<ThreadType> EnclaveManager::createThread(vaddr entry_addr) {
     munmap(thread_mem, thread_len);
     console->trace("Adding tcs succeed!");
 
+    vaddr injectionStack = this->allocate(4096);
+    if (!addPages(injectionStack, getZeroPage(), 4096)) {
+        console->error("Adding preemtion injection stack failed");
+        exit(-1);
+    }
+
+    ret->getSharedTLS()->preempt_injection_stack = injectionStack;
     return ret;
 }
 
@@ -247,16 +269,9 @@ void EnclaveManager::prepareLaunch() {
 
 vaddr EnclaveManager::makeHeap(size_t len) {
     vaddr heapBase = this->allocate(len);
-    void *zeroPage = mmap(NULL, 4096, PROT_READ | PROT_WRITE,
-                          MAP_ANONYMOUS | MAP_PRIVATE, -1, 0 );
-    if (zeroPage == MAP_FAILED) {
-        console->error("makeHeap: mmap failed. len = {}", len);
-        exit(-1);
-    }
-    memset(zeroPage, 0, 4096);
 
     for (size_t offset = 0; offset < len; offset += 4096) {
-        if (!this->addPages(heapBase + offset, zeroPage, 4096))
+        if (!this->addPages(heapBase + offset, getZeroPage(), 4096))
             return 0;
     }
 

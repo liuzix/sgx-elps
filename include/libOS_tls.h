@@ -18,6 +18,7 @@ struct libOS_shared_tls {
     uint64_t threadID;
     uint64_t interrupt_exit;
     uint64_t interrupt_outside_stack;   
+    uint64_t preempt_injection_stack;
     std::atomic_bool *inInterrupt;
 }  __attribute__ ((packed));
 
@@ -29,6 +30,7 @@ struct enclave_tls {
     libOS_shared_tls *libOS_data;
     void *ssa;
     void *stack;
+    uint64_t preempt_rip;
 }  __attribute__ ((packed));
 
 #endif

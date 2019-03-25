@@ -85,7 +85,6 @@ void dump_sigaction(void) {
     }
 
     sigaction(SIGSEGV, &sa, NULL);
-    sigaction(SIGINT, &sa, NULL);
     sigaction(7, &sa, NULL);
 
 }

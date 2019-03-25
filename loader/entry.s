@@ -64,6 +64,7 @@ ud2
 __go_interrupt:
 push %rbx
 mov $2, %rdi
+mov %rbx, %rsi
 mov $0x2, %rax
 lea __aex_handler(%rip), %rcx
 enclu

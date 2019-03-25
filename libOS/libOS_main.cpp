@@ -16,10 +16,10 @@
 Queue<RequestBase*> *requestQueue = nullptr;
 extern "C" void __temp_libc_start_init(void);
 extern "C" void __eexit(int ret);
-extern "C" void __interrupt_exit();
 
 int idleThread() {
     for (;;) {
+        libos_print("idling!");
         __asm__("pause");
         scheduler->schedule();
     }
@@ -29,8 +29,15 @@ int newThread(int argc, char **argv) {
     libos_print("We are in a new thread!");
     libos_print("Enabling interrupt");
     getSharedTLS()->inInterrupt->store(false);
-    for (size_t i = 0; i < 100; i++) {
-        libos_print("%d", i);
+    new UserThread([]{
+        for (int i = 0; i < 10000000; i++)
+            if (i % 10000 == 0)
+                libos_print("[2]%d", i);
+        return 0;
+    });
+    for (size_t i = 0; i < 10000000; i++) {
+        if (i % 10000 == 0)
+            libos_print("[1]%d", i);
     }
     int ret = main(argc, argv); 
     __eexit(ret);
@@ -49,8 +56,8 @@ void test_auxv(uint64_t sp, int argc) {
     for (i = 0; argv[i]; i++)
         libos_print(argv[i]);
 
-    for (i = 0; envp[i]; i++)
-        libos_print(envp[i]);
+    for (i = 0; envp[i]; i++) {}
+    //    libos_print(envp[i]);
 
     aux = (size_t *)(envp+i+1);
 
@@ -146,8 +153,3 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
     return 0;
 }
 
-extern "C" void do_interrupt() {
-    libos_print("do_interrupt!");
-    __interrupt_exit();
-    __asm__("ud2");
-}

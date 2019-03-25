@@ -8,6 +8,11 @@ uint64_t readQWordFromGS(size_t offset) {
     return ret;
 }
 
+void writeQWordToGS(size_t offset, uint64_t value) {
+    asm volatile ("movq %0, %%gs:(%1)"
+            ::"r" (value), "r"(offset));
+}
+
 bool disableInterrupt() {
     return getSharedTLS()->inInterrupt->exchange(true);
 }

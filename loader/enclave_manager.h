@@ -32,7 +32,6 @@ class EnclaveManager {
 
     /*allocate will find a hole in mappings that can accommodate len bytes*/
     vaddr allocate(size_t len);
-
   public:
     /* `base` is only a hint. In case of mmap conflicts, base might be altered
      */

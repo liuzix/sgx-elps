@@ -1,5 +1,6 @@
 #include "enclave_thread.h"
 #include "logging.h"
+#include <chrono>
 
 DEFINE_LOGGER(enclave_thread, spdlog::level::trace)
 int EnclaveThread::threadCounter = 0;
@@ -31,6 +32,8 @@ extern "C" bool clear_interrupt(uint64_t tcs) {
 }
 
 extern "C" uint64_t do_aex(uint64_t tcs) {
+    using namespace std::chrono;
+    static high_resolution_clock::time_point last_interrupt;
     //console->info("do_aex: tcs = 0x{:x}", tcs);
     char dumpFlag = get_flag(tcs);
     bool intFlag = set_interrupt(tcs);
@@ -40,7 +43,15 @@ extern "C" uint64_t do_aex(uint64_t tcs) {
             console->debug("We decide to dump!");
             ret =  1;
         }
-        else ret = 2;
+        else {
+            duration<double> time_span = duration_cast<duration<double>>(high_resolution_clock::now() - last_interrupt);
+            if (time_span.count() < 0.001) {
+                clear_interrupt(tcs);
+                return 0;
+            }
+            last_interrupt = high_resolution_clock::now();
+            ret = 2;
+        }
     }
     return ret;
 }

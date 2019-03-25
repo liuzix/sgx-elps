@@ -79,7 +79,7 @@ void do_backtrace(uint64_t *rbp, uint64_t rip) {
     libos_print("start: 0x%lx", rip - getSharedTLS()->loadBias);
     while (*rbp) {
         uint64_t func = *(rbp + 1);
-        libos_print("rip: 0x%lx", func);
+        libos_print("rip: 0x%lx", func - getSharedTLS()->loadBias);
         rbp = (uint64_t *)*rbp;
     }
     libos_print("backtrace ends");
