@@ -1,5 +1,8 @@
 #include <unistd.h>
 #include <sys/syscall.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <string.h>
 __thread int test = 0;
 
 
@@ -16,9 +19,20 @@ int main () {
                   "mov (%%rcx), %%rdx"
             :::"rax", "rbx", "rcx", "rdx");
 */
-    char buffer[256] = "hello world!";
     int fd;
-    fd = syscall(1, 1, buffer, 256);
+//    fd = syscall(2,"/home/kaige/sgx-elps/samples/read_dst.txt", O_RDWR);
+//    char buf[10] = "----------";
+    char buf[256];
+//    syscall(0, fd, buf, 256);
+//    syscall(1, fd, buf, 10);
+//    syscall(3, fd);
+
+    fd = open("/home/kaige/sgx-elps/samples/read_dst.txt", O_RDWR);
+    read(fd, buf, 256);
+    close(fd);
+
+
+//    printf("try this\n");
     return test;
 }
 

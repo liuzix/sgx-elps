@@ -21,6 +21,7 @@ void initSyscallTable() {
     syscall_table->emplace(SYS_OPEN, vector<unsigned int>({ CHAR_PTR, NON_PTR, NON_PTR }));
     syscall_table->emplace(SYS_CLOSE, vector<unsigned int>({ NON_PTR }));
     syscall_table->emplace(SYS_EXIT, vector<unsigned int>({ NON_PTR }));
+    syscall_table->emplace(SYS_IOCTL, vector<unsigned int>({ NON_PTR, NON_PTR, NON_PTR }));
 }
 
 
@@ -41,20 +42,29 @@ bool interpretSyscall(format_t& fm_l, unsigned int index) {
     return true;
 }
 
-static bool sizeInArgs(const unsigned int& num) {
-    return num == 0 || num == 1;
+/* syscall that has given size of ptr area
+ * size is given just after ptr argument
+ */
+static bool noSizeNeed(unsigned int num) {
+    return num == SYS_READ || num == SYS_WRITE;
+}
+
+/* syscall that needs to write back to enclave */
+static bool needWriteBack(unsigned int num, unsigned int index) {
+    return (num == SYS_READ && index == 1);
 }
 
 bool SyscallRequest::fillArgs() {
     for (unsigned int i = 0; i < this->fm_list.args_num; i++) {
         if (this->fm_list.types[i] == NON_PTR)
             continue;
-        else if (sizeInArgs(this->fm_list.syscall_num)) {
+        else if (noSizeNeed(this->fm_list.syscall_num)) {
             unsigned int arg_size;
             arg_size = (unsigned int)this->args[i + 1].arg;
             this->fm_list.sizes[i] = arg_size;
             this->args[i].data = (char*)unsafeMalloc(arg_size);
             memcpy(this->args[i].data, (void*)this->args[i].arg, arg_size);
+            this->args[i].arg = (long)this->args[i].data;
         } else {
             unsigned int arg_size;
             if (type_table->count(this->fm_list.types[i]) == 0)
@@ -63,6 +73,7 @@ bool SyscallRequest::fillArgs() {
             this->fm_list.sizes[i] = arg_size;
              this->args[i].data = (char*)unsafeMalloc(arg_size);
             memcpy(this->args[i].data, (void*)this->args[i].arg, arg_size);
+            this->args[i].arg = (long)this->args[i].data;
             if (this->fm_list.types[i] == CHAR_PTR)
                 *(this->args[i].data + arg_size - 1) = '\0';
         }
@@ -71,3 +82,9 @@ bool SyscallRequest::fillArgs() {
     return true;
 }
 
+void SyscallRequest::fillEnclave(long* enclave_args) {
+     for (unsigned int i = 0; i < this->fm_list.args_num; i++) {
+        if (needWriteBack(this->fm_list.syscall_num, i))
+            memcpy((void*)enclave_args[i], (void*)this->args[i].arg, this->fm_list.sizes[i]);
+     }
+}

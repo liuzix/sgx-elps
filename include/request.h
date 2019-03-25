@@ -76,6 +76,7 @@ public:
                 unsafeFree(args[i].data);
     }
     bool fillArgs();
+    void fillEnclave(long* enclave_args);
 };
 
 #ifndef IS_LIBOS
