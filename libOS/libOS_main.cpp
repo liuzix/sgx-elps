@@ -50,7 +50,7 @@ int newThread(int argc, char **argv) {
 void test_auxv(uint64_t sp, int argc) {
     char **argv = (char **)sp;
     char **envp = argv + argc + 1;
-    size_t *aux;
+    size_t aux[40], *auxv;
     char buf[128];
     sprintf(buf, "argv: %lx, envp: %lx", (uint64_t)argv, (uint64_t)envp);
     libos_print(buf);
@@ -62,11 +62,14 @@ void test_auxv(uint64_t sp, int argc) {
     for (i = 0; envp[i]; i++) {}
     //    libos_print(envp[i]);
 
-    aux = (size_t *)(envp+i+1);
+    auxv = (size_t *)(envp+i+1);
+
+    for (i = 0; auxv[i]; i += 2)
+        aux[auxv[i]] = auxv[i + 1];
 
 #define print_auxv(name, fmt, type)                   \
     do {                                        \
-        char buf[64];                           \
+        char buf[512];                           \
                                                 \
         sprintf(buf, fmt, #name, (type)aux[name]); \
         libos_print(buf);                       \
@@ -90,6 +93,7 @@ void test_auxv(uint64_t sp, int argc) {
     print_auxv(AT_HWCAP2, "%s: 0x%lx", uint64_t);
     print_auxv(AT_EXECFN, "%s: %s", char *);
     print_auxv(AT_PLATFORM, "%s: %s", char *);
+
 #undef print_auxv
 }
 

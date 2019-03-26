@@ -91,10 +91,15 @@ void dump_sigaction(void) {
 
 size_t *get_curr_auxv(void) {
     /* AUX_CNT is defined in this file */
-    size_t *auxv = new size_t[AUX_CNT];
+    size_t *auxv = new size_t[AUX_CNT * 2 + 2];
+    int i, j;
 
-    for (int i = 0; i < AUX_CNT; i ++)
-        auxv[i] = getauxval(i);
+    for (i = 1, j = 1; i < AUX_CNT * 2; i += 2, j++) {
+        auxv[i] = getauxval(j);
+        auxv[i - 1] = j;
+    }
+    auxv[i] = 0;
+    auxv[i - 1] = 0;
 
     return auxv;
 }
@@ -140,5 +145,6 @@ int main(int argc, char **argv, char **envp) {
     dump_sigaction();
     thread->run();
     swapperManager.waitWorkers();
+    console->info("Program end.");
     return 0;
 }
