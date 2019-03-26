@@ -7,6 +7,10 @@
 #include <libOS_tls.h>
 #include "enclave_thread.h"
 
+#define stack_start(addr) (addr + SGX_PAGE_SIZE)
+#define ssa_start(addr) (addr + SGX_PAGE_SIZE)
+#define enclave_offset(addr) (addr - enclaveBase)
+
 DEFINE_LOGGER(EnclaveManager, spdlog::level::info)
 extern std::shared_ptr<spdlog::logger> console;
 
@@ -174,63 +178,78 @@ vaddr EnclaveManager::allocate(size_t len) {
     return prev;
 }
 
+/* 
+ * Stack layout | guard page | stack | guard page |
+ * TCS+SSA+TLS layout | TCS | SSA 1 page 1 | SSA 1 page 2 | ... | guard page | TLS |
+ */
 template <typename ThreadType>
 shared_ptr<ThreadType> EnclaveManager::createThread(vaddr entry_addr) {
-    size_t thread_len =
-        SGX_PAGE_SIZE * (5 + THREAD_STACK_NUM + secs.ssaframesize * NUM_SSA);
-    void *thread_mem = mmap(NULL, thread_len, PROT_READ | PROT_WRITE,
+
+    size_t stack_len = (THREAD_STACK_NUM + 2) * SGX_PAGE_SIZE;
+    size_t ssa_len = secs.ssaframesize * NUM_SSA * SGX_PAGE_SIZE + SGX_PAGE_SIZE;
+    size_t tcs_len = SGX_PAGE_SIZE;
+    size_t tls_len = SGX_PAGE_SIZE;
+
+    void *stack_mem = mmap(NULL, stack_len, PROT_READ | PROT_WRITE,
                             MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-    if (thread_mem == MAP_FAILED) {
+    void *joint_mem = mmap(NULL, tcs_len + ssa_len + tls_len, PROT_READ | PROT_WRITE,
+                            MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+
+    if (stack_mem == MAP_FAILED || joint_mem == MAP_FAILED) {
         console->error("thread_mem mmap failed");
         exit(-1);
     }
-    vaddr base = allocate(thread_len);
-    vaddr offset = base - enclaveBase;
 
-    tcs_t *tcs =
-        (tcs_t *)((char *)thread_mem + SGX_PAGE_SIZE * (2 + THREAD_STACK_NUM));
-    memset(tcs, 0, SGX_PAGE_SIZE);
-    tcs->ossa = SGX_PAGE_SIZE * (3 + THREAD_STACK_NUM) + offset;
+    vaddr stack_enclave = allocate(stack_len);
+    if (!addPages(stack_enclave, stack_mem, stack_len)) {
+        console->error("Adding pages of stack failed");
+        exit(-1);
+    }
+
+    vaddr joint_enclave = allocate(tcs_len + ssa_len + tls_len);
+    vaddr tcs_enclave = joint_enclave;
+    vaddr ssa_enclave = joint_enclave + tcs_len;
+    vaddr tls_enclave = ssa_enclave + ssa_len;
+
+    void *tcs_mem = joint_mem;
+    void *ssa_mem = (void *)((char *)tcs_mem + tcs_len);
+    void *tls_mem = (void *)((char *)ssa_mem + ssa_len);
+
+    tcs_t *tcs = (tcs_t *)((char *)tcs_mem);
+    memset(tcs, 0, tcs_len);
+    tcs->ossa = enclave_offset(ssa_enclave);
     tcs->nssa = NUM_SSA;
-    tcs->oentry = entry_addr - this->enclaveBase;
-    tcs->ofsbase = offset + thread_len - SGX_PAGE_SIZE;
+    tcs->oentry = enclave_offset(entry_addr);
+    tcs->ofsbase = enclave_offset(tls_enclave);
     tcs->ogsbase = tcs->ofsbase;
     tcs->fslimit = 0xfff;
     tcs->gslimit = 0xfff;
 
-
-    enclave_tls *tls =
-        (enclave_tls *)((char *)thread_mem + thread_len - SGX_PAGE_SIZE);
-    memset(tls, 0, SGX_PAGE_SIZE);
+    enclave_tls *tls = (enclave_tls *)((char *)tls_mem);
+    memset(tls, 0, tls_len);
     tls->enclave_size = enclaveMemoryLen;
-    tls->tcs_offset = offset + SGX_PAGE_SIZE * (2 + THREAD_STACK_NUM);
-    tls->initial_stack_offset = offset + SGX_PAGE_SIZE;
-    tls->ssa = (void *)(base + SGX_PAGE_SIZE * (3 + THREAD_STACK_NUM));
-    tls->stack = (void *)(base + SGX_PAGE_SIZE);
-    
-    size_t tmp = SGX_PAGE_SIZE * (2 + THREAD_STACK_NUM);
-    vaddr stack = (vaddr)tls->stack + THREAD_STACK_NUM * SGX_PAGE_SIZE;
-    vaddr tcs_enclave = base + tmp;
-    auto ret = make_shared<ThreadType>(stack, tcs_enclave);
+    tls->tcs_offset = enclave_offset(tcs_enclave);
+    tls->initial_stack_offset = enclave_offset(stack_start(stack_enclave));
+    tls->ssa = (void *)ssa_enclave;
+    tls->stack = (void *)(stack_start(stack_enclave));
+
+    vaddr stack_high = (vaddr)tls->stack + THREAD_STACK_NUM * SGX_PAGE_SIZE;
+    auto ret = make_shared<ThreadType>(stack_high, tcs_enclave);
     tls->libOS_data = ret->getSharedTLS();
 
-    if (!addPages(base, thread_mem, tmp)) {
-        console->error("Adding pages before TCS failed");
-        exit(-1);
-    }
-    if (!addPages(base + tmp, (char *)thread_mem + tmp, SGX_PAGE_SIZE, true,
-                  true, true)) {
-        console->error("Adding TCS page failed");
+
+    if (!addPages(tcs_enclave, tcs_mem, tcs_len, true, true, true)) {
+        console->error("Adding pages of TCS failed");
         exit(-1);
     }
 
-    tmp += SGX_PAGE_SIZE;
-    if (!addPages(base + tmp, (char *)thread_mem + tmp, thread_len - tmp)) {
-        console->error("Adding pages after TCS failed");
+    if (!addPages(ssa_enclave, ssa_mem, ssa_len + tls_len)) {
+        console->error("Adding pages of ssa & tls failed");
         exit(-1);
     }
 
-    munmap(thread_mem, thread_len);
+    munmap(stack_mem, stack_len);
+    munmap(joint_mem, tcs_len + ssa_len + tls_len);
     console->trace("Adding tcs succeed!");
 
     vaddr injectionStack = this->allocate(4096);
