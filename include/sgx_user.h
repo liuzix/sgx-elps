@@ -67,7 +67,8 @@
 #define SGX_IOC_ENCLAVE_ADD_PAGE                                               \
     _IOW(SGX_MAGIC, 0x01, struct sgx_enclave_add_page)
 #define SGX_IOC_ENCLAVE_INIT _IOW(SGX_MAGIC, 0x02, struct sgx_enclave_init)
-
+#define SGX_IOC_ENCLAVE_SWAP_PAGE \
+    _IOW(SGX_MAGIC, 0X03, struct sgx_enclave_swap_page)
 /* SGX leaf instruction return values */
 #define SGX_SUCCESS 0
 #define SGX_INVALID_SIG_STRUCT 1
@@ -134,4 +135,7 @@ struct sgx_enclave_init {
     __u64 einittoken;
 } __attribute__((__packed__));
 
+struct sgx_enclave_swap_page {
+    __u64 addr;
+} __attribute__((__packed__));
 #endif /* _UAPI_ASM_X86_SGX_H */

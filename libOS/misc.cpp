@@ -51,6 +51,15 @@ void __temp_libc_start_init(void)
 }
 
 }
+extern "C" int __async_swap(void* addr) {
+    SwapRequest *req = createUnsafeObj<SwapRequest>();
+    req->addr = (unsigned long)addr;
+    requestQueue->push(req);
+    req->waitOnDone(1000000000);
+    int ret = (int)req->addr;
+    unsafeFree(req);
+    return ret;
+}
 
 extern "C" int __async_syscall(unsigned int n, ...) {
 //    libos_print("We do not support system call!");

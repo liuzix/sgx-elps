@@ -53,6 +53,15 @@ public:
     }
 };
 
+class SwapRequest: public RequestBase {
+public:
+    constexpr static int typeTag = 2;
+    unsigned long addr;
+    SwapRequest() {
+        this->requestType = typeTag;
+    }
+};
+
 class SyscallRequest: public RequestBase {
 public:
     constexpr static int typeTag = 1;

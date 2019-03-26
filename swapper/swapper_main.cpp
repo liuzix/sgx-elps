@@ -5,7 +5,7 @@
 #include <swapper_interface.h>
 #include "debug_request.h"
 #include "syscall_request.h"
-
+#include "swap_request.h"
 
 using namespace std;
 #pragma GCC visibility push(hidden)
@@ -19,7 +19,7 @@ void SwapperManager::runWorker(int id) {
     RequestDispatcher dispatcher;
     dispatcher.addHandler<DebugRequest>(debugRequestHandler);
     dispatcher.addHandler<SyscallRequest>(syscallRequestHandler);
-        
+    dispatcher.addHandler<SwapRequest>(swapRequestHandler);
     while (true) {
         RequestBase *request = 0x0;
         if (!this->queue.take(request)) continue;

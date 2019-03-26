@@ -16,7 +16,7 @@
 Queue<RequestBase*> *requestQueue = nullptr;
 extern "C" void __temp_libc_start_init(void);
 extern "C" void __eexit(int ret);
-
+extern "C" int __async_swap(void *addr);
 int idleThread() {
     for (;;) {
         libos_print("idling!");
@@ -41,7 +41,10 @@ int newThread(int argc, char **argv) {
         if (i % 10000 == 0)
             libos_print("[1]%d", i);
     }
-    
+    __async_swap((void *)&main);
+    char buf[100];
+    sprintf(buf, "main addr: 0x%lx", (uint64_t)&main);
+    libos_print(buf);
     int ret = main(argc, argv); 
     __eexit(ret);
     return 0;
