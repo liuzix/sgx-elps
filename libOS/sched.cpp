@@ -46,7 +46,7 @@ void Scheduler::schedule() {
     } else {
         lock.unlock();
         /* if it has already been idling */
-        if (!*current) return;
+        //if (!*current) return;
         *current = nullptr;
         (*idle)->thread->jumpTo(prev ? prev->thread : (*idle)->thread); 
     }

@@ -178,3 +178,8 @@ shared_ptr<EnclaveMainThread> ELFLoader::load() {
     return ret;
 }
 
+shared_ptr<EnclaveThread> ELFLoader::makeWorkerThread() {
+    auto ret = enclaveManager->createThread<EnclaveThread>((vaddr)reader.get_entry() + this->loadBias);
+    ret->setBias(this->loadBias);
+    return ret;
+}

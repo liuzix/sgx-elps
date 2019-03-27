@@ -37,6 +37,7 @@ public:
     bool open(const string &filename);
     bool relocate();
     shared_ptr<EnclaveMainThread> load();
+    shared_ptr<EnclaveThread> makeWorkerThread();
 
     ELFLoader(std::shared_ptr<EnclaveManager> manager) :
         enclaveManager(manager) { }

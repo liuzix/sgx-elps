@@ -8,6 +8,7 @@
 #include "mmap.h"
 #include "thread_local.h"
 #include "user_thread.h"
+#include "request.h"
 #include "sys_format.h"
 #include "elf.h"
 
@@ -17,18 +18,23 @@ Queue<RequestBase*> *requestQueue = nullptr;
 extern "C" void __temp_libc_start_init(void);
 extern "C" void __eexit(int ret);
 extern "C" int __async_swap(void *addr);
+extern "C" int __libc_start_main(int (*main)(int,char **,char **), int argc, char **argv);
+
 int idleThread() {
-    for (;;) {
-        libos_print("idling!");
-        __asm__("pause");
-        scheduler->schedule();
-    }
+    libos_print("idling!");
+    __eexit(0x1000);
+    __asm__("ud2");
+    return 0;
 }
 
 int newThread(int argc, char **argv) {
     libos_print("We are in a new thread!");
     libos_print("Enabling interrupt");
     getSharedTLS()->inInterrupt->store(false);
+    
+    auto schedReady = createUnsafeObj<SchedulerRequest>(SchedulerRequest::SchedulerRequestType::SchedReady);
+    requestQueue->push(schedReady);
+    schedReady->waitOnDone(-1);
     new UserThread([]{
         for (int i = 0; i < 10000000; i++)
             if (i % 10000 == 0)
@@ -41,11 +47,15 @@ int newThread(int argc, char **argv) {
         if (i % 10000 == 0)
             libos_print("[1]%d", i);
     }
+    /*
     __async_swap((void *)&main);
     char buf[100];
     sprintf(buf, "main addr: 0x%lx", (uint64_t)&main);
     libos_print(buf);
+    */
     int ret = main(argc, argv); 
+    
+    //int ret = __libc_start_main((int (*)(int,char **,char **))&main, argc, argv);
     __eexit(ret);
     return 0;
 }
@@ -137,8 +147,16 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
         return -1;
     if (ctrl_struct->magic != CONTROL_STRUCT_MAGIC)
         return -1;
-    if (!ctrl_struct->isMain)
-        return -1;
+    if (!ctrl_struct->isMain) {
+        getSharedTLS()->inInterrupt->store(false);
+        libos_print("thread entering enclave. calling scheduler");
+        scheduler->setIdle((new UserThread(idleThread))->se);
+        scheduler->schedule();
+        libos_print("scheduler returned!");
+        __asm__("ud2");
+    }
+
+    ctrl_struct->isMain = false;
     requestQueue = ctrl_struct->requestQueue;
     initPanic(ctrl_struct->panic);
     libos_print("We are inside LibOS!");
@@ -156,7 +174,7 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
     initSyscallTable();
     scheduler_init();
     scheduler->setIdle((new UserThread(idleThread))->se);
-    UserThread initThread(std::bind(newThread, ctrl_struct->mainArgs.argc, ctrl_struct->mainArgs.argv)); 
+    new UserThread(std::bind(newThread, ctrl_struct->mainArgs.argc, ctrl_struct->mainArgs.argv)); 
     scheduler->schedule(); 
     libos_panic("Shouldn't have reached here!");
     __asm__("ud2");

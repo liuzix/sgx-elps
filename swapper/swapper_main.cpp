@@ -13,6 +13,7 @@ std::shared_ptr<spdlog::logger> console = spdlog::stdout_color_mt("swapper");
 #pragma GCC visibility pop
 SwapperManager swapperManager;
 
+void schedulerRequestHandler(SwapperManager *manager, SchedulerRequest *req);
 void SwapperManager::runWorker(int id) {
     console->info("Swapper thread started, id = {}", id); 
 
@@ -20,6 +21,7 @@ void SwapperManager::runWorker(int id) {
     dispatcher.addHandler<DebugRequest>(debugRequestHandler);
     dispatcher.addHandler<SyscallRequest>(syscallRequestHandler);
     dispatcher.addHandler<SwapRequest>(swapRequestHandler);
+    dispatcher.addHandler<SchedulerRequest>(std::bind(schedulerRequestHandler, this, std::placeholders::_1));
     while (true) {
         RequestBase *request = 0x0;
         if (!this->queue.take(request)) continue;

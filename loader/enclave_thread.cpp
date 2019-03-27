@@ -1,12 +1,13 @@
 #include "enclave_thread.h"
+#include "enclave_threadpool.h"
 #include "logging.h"
 #include <chrono>
 
-DEFINE_LOGGER(enclave_thread, spdlog::level::trace)
+DEFINE_LOGGER(enclave_thread, spdlog::level::debug)
 int EnclaveThread::threadCounter = 0;
+extern shared_ptr<EnclaveThreadPool> threadpool;
 
-std::map<uint64_t, shared_ptr<EnclaveThread>> thread_map;
-
+std::map<uint64_t, atomic<char>> sig_flag_map;
 
 char get_flag(uint64_t rbx) {
     char res = sig_flag_map[rbx].exchange(0);
@@ -17,9 +18,8 @@ void set_flag(uint64_t rbx, char flag) {
     sig_flag_map[rbx].store(flag);
 }
 
-std::map<uint64_t, atomic<char>> sig_flag_map;
 extern "C" bool set_interrupt(uint64_t tcs) {
-    auto tls = thread_map[tcs]->getSharedTLS();    
+    auto tls = threadpool->thread_map[tcs]->getSharedTLS();    
     bool ret = tls->inInterrupt->exchange(true);
     console->trace("old interrupt flag = {}", ret);
     return ret;
@@ -27,7 +27,7 @@ extern "C" bool set_interrupt(uint64_t tcs) {
 
 extern "C" bool clear_interrupt(uint64_t tcs) {
     console->trace("clear interrupt! 0x{:x}", tcs);
-    auto tls = thread_map[tcs]->getSharedTLS();    
+    auto tls = threadpool->thread_map[tcs]->getSharedTLS();    
     return tls->inInterrupt->exchange(false);
 }
 
@@ -38,6 +38,8 @@ extern "C" uint64_t do_aex(uint64_t tcs) {
     char dumpFlag = get_flag(tcs);
     bool intFlag = set_interrupt(tcs);
     int ret = 0;
+    if (dumpFlag)
+        return 1;
     if (!intFlag) {
         if (dumpFlag) {
             console->debug("We decide to dump!");
@@ -71,7 +73,8 @@ void EnclaveThread::setSwapper(SwapperManager &swapperManager) {
 EnclaveMainThread::EnclaveMainThread(vaddr _stack,  vaddr _tcs)
     : EnclaveThread(_stack, _tcs) 
 {
-    this->controlStruct.isMain = true;
+    this->controlStruct.isMain = 1;
+    this->sharedTLS.isMain = true;
 }
     
 void EnclaveMainThread::setArgs(int argc, char **argv) {
@@ -104,6 +107,6 @@ void EnclaveMainThread::setUnsafeHeap(void *base, size_t len) {
     this->controlStruct.mainArgs.unsafeHeapLength = len;
 }
 
-void EnclaveMainThread::setBias(size_t len) {
+void EnclaveThread::setBias(size_t len) {
     this->sharedTLS.loadBias = len;
 }

@@ -55,7 +55,7 @@ public:
 
 class SwapRequest: public RequestBase {
 public:
-    constexpr static int typeTag = 2;
+    constexpr static int typeTag = 3;
     unsigned long addr;
     SwapRequest() {
         this->requestType = typeTag;
@@ -86,6 +86,18 @@ public:
     }
     bool fillArgs();
     void fillEnclave(long* enclave_args);
+};
+
+class SchedulerRequest: public RequestBase {
+public:
+    constexpr static int typeTag = 2;
+    enum class SchedulerRequestType { NewThread, SchedReady };
+    
+    SchedulerRequestType subType;
+    SchedulerRequest(SchedulerRequestType t) {
+        this->requestType = SchedulerRequest::typeTag;
+        subType = t;
+    }
 };
 
 #ifndef IS_LIBOS

@@ -19,6 +19,10 @@ extern "C" void (*__interrupt_back)(void);
 extern "C" bool set_interrupt(uint64_t tcs);
 extern "C" bool clear_interrupt(uint64_t tcs);
 
+extern std::atomic_int numActiveThread;
+class EnclaveThread;
+class EnclaveThreadPool;
+
 class EnclaveThread {
 private:
     static int threadCounter;
@@ -27,11 +31,14 @@ protected:
     vaddr tcs;
     libOS_shared_tls sharedTLS;
     libOS_control_struct controlStruct;
+    EnclaveThreadPool *threadPool;
     DEFINE_MEMBER_LOGGER("EnclaveThread", spdlog::level::trace)
 public:
     EnclaveThread(vaddr _stack, vaddr _tcs)
         : tcs(_tcs)
     {
+        controlStruct.isMain = false;
+        sharedTLS.isMain = 0;
         int threadID = threadCounter++;
         sharedTLS.next_exit = (uint64_t)&__back;
         sharedTLS.interrupt_exit = (uint64_t)&__interrupt_back;
@@ -48,7 +55,10 @@ public:
         return &this->sharedTLS;
     }
     void run();
+    void setBias(size_t bias);
     vaddr getTcs() { return this->tcs; }
+
+    friend class EnclaveThreadPool;
 };
 extern std::map<uint64_t, shared_ptr<EnclaveThread>> thread_map;
 
@@ -61,7 +71,6 @@ public:
     void setUnsafeHeap(void *base, size_t len);
     void setEnvs(char **envp);
     void setAux(size_t *auxv);
-    void setBias(size_t bias);
 };
 
 extern "C" int __eenter(vaddr tcs);

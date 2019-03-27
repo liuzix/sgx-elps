@@ -52,6 +52,9 @@ jz __asm_dump_ssa
 mov %rsp, %rbp
 mov 40(%r14), %rdi
 
+cmp $0, 112(%r14)
+je __slave_thread
+
 mov $80, %rcx               # temporarily hardcoded
 mov 32(%rdi), %rbx
 __push_aux:
@@ -70,15 +73,15 @@ add $1, %ecx
 mov 8(%rdi), %rbx           # argv
 __push_argv:
 push_vec
-
 mov %rsp, %rsi
+__slave_thread:
 call __libOS_start
 ud2
 __eexit:
 # begin switching stack
 mov %gs:32, %r14            # get libos_data 
-mov %rsp, 16(%r14)           # save original rsp
-mov 8(%r14), %rsp          # swtich to normal stack 
+mov %rsp, 16(%r14)          # save original rsp
+mov 8(%r14), %rsp           # swtich to normal stack 
 # end switching stack
 
 mov (%r14), %rbx

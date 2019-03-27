@@ -14,6 +14,7 @@
 #include "load_elf.h"
 #include "signature.h"
 #include "logging.h"
+#include "enclave_threadpool.h"
 #include <ssa_dump.h>
 #include <sys/auxv.h>
 
@@ -26,7 +27,7 @@ using namespace std;
 
 DEFINE_LOGGER(main, spdlog::level::trace);
 uint64_t enclave_base, enclave_end;
-
+shared_ptr<EnclaveThreadPool> threadpool;
 bool in_enclave(uint64_t rip) {
     console->error("rip: 0x{:x}, enclave_base: 0x{:x}, enclave_end: 0x{:x}", rip, enclave_base, enclave_end);
     return rip >= enclave_base && rip < enclave_end;
@@ -61,7 +62,7 @@ static void __sigaction(int n, siginfo_t *, void *ucontext) {
     set_flag(rbx, 1);
 
     uint64_t debugStack = (uint64_t)malloc(4096) + 4096 - 16;
-    thread_map[rbx]->getSharedTLS()->enclave_stack = debugStack;
+    threadpool->thread_map[rbx]->getSharedTLS()->enclave_stack = debugStack;
     if (n == SIGSEGV)
         console->error("Segmentation Fault!");
     else if (n == SIGINT) {
@@ -86,6 +87,7 @@ void dump_sigaction(void) {
 
     sigaction(SIGSEGV, &sa, NULL);
     sigaction(7, &sa, NULL);
+    sigaction(SIGILL, &sa, NULL);
 
 }
 
@@ -115,17 +117,24 @@ int main(int argc, char **argv, char **envp) {
     console->info("Start loading binary file: {}", argv[1]);
 
     auto manager = make_shared<EnclaveManager>(0x0, SAFE_HEAP_LEN * 2);
-    ////
+    
     ELFLoader loader(manager);
     loader.open(argv[1]);
     loader.relocate();
-    ////
+    
     enclave_base = manager->getBase();
     enclave_end = enclave_base + manager->getLen();
-    //auto thread = load_one(argv[1], manager);
+    
     auto thread = loader.load();
-    thread_map[thread->getTcs()] = thread;
     vaddr heap = manager->makeHeap(SAFE_HEAP_LEN);
+    
+    threadpool = std::make_shared<EnclaveThreadPool>(&swapperManager);
+    threadpool->addMainThread(thread);
+
+    for (int i = 0; i < 1; i++) {
+        threadpool->addWorkerThread(loader.makeWorkerThread());
+    }
+    
     manager->prepareLaunch();
 
     char const *testArgv[] ={"hello", "world", (char *)0};
@@ -143,7 +152,9 @@ int main(int argc, char **argv, char **envp) {
     swapperManager.launchWorkers();
     /* Set the sigsegv handler to dump the ssa */
     dump_sigaction();
-    thread->run();
+
+    /* launch the enclave threads */
+    threadpool->launch();
     swapperManager.waitWorkers();
     console->info("Program end.");
     return 0;

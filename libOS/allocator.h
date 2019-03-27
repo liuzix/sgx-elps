@@ -84,10 +84,10 @@ void *unsafeMalloc(size_t len);
 void unsafeFree(void *ptr);
 void initSafeMalloc(size_t len);
 
-template<class ObjType>
-ObjType* createUnsafeObj() {
+template<class ObjType, typename ...Args>
+ObjType* createUnsafeObj(Args&&... args) {
     char *mem = (char*)unsafeMalloc(sizeof(ObjType));
-    return new ((void*)mem) ObjType();
+    return new ((void*)mem) ObjType(std::forward<Args>(args)...);
 }
 
 template <class T>

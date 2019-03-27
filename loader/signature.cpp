@@ -128,12 +128,12 @@ sigstruct *SigstructGenerator::getSigstruct() {
     BN_mul(q2TMP, tmp2, signatureBN, ctx);
     BN_div(q2BN, NULL, q2TMP, modulusBN, ctx);
     // q1 = BN_bn2hex(q1BN);
-    auto *q1 = new unsigned char[BN_num_bytes(q1BN)];
-    BN_bn2lebinpad(q1BN, q1, BN_num_bytes(q1BN));
+    auto *q1 = new unsigned char[384];
+    BN_bn2lebinpad(q1BN, q1, 384);
 
     // q2 = BN_bn2hex(q2BN);
-    auto *q2 = new unsigned char[BN_num_bytes(q2BN)];
-    BN_bn2lebinpad(q2BN, q2, BN_num_bytes(q2BN));
+    auto *q2 = new unsigned char[384];
+    BN_bn2lebinpad(q2BN, q2, 384);
 
     // modulus = BN_bn2hex(modulusBN);
     auto *modulus = new unsigned char[BN_num_bytes(modulusBN)];

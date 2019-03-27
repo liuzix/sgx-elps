@@ -300,5 +300,5 @@ vaddr EnclaveManager::makeHeap(size_t len) {
 template
 shared_ptr<EnclaveMainThread> EnclaveManager::createThread(vaddr entry_addr);
 
-//template
-//shared_ptr<EnclaveSlaveThread> EnclaveManager::createThread(vaddr entry_addr);
+template
+shared_ptr<EnclaveThread> EnclaveManager::createThread(vaddr entry_addr);
