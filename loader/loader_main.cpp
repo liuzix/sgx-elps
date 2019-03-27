@@ -91,13 +91,30 @@ void dump_sigaction(void) {
 
 }
 
-size_t *get_curr_auxv(void) {
+size_t *get_curr_auxv(ELFLoader &loader) {
     /* AUX_CNT is defined in this file */
     size_t *auxv = new size_t[AUX_CNT * 2 + 2];
     int i, j;
 
     for (i = 1, j = 1; i < AUX_CNT * 2; i += 2, j++) {
-        auxv[i] = getauxval(j);
+        switch (j) {
+            case AT_PHDR:
+                auxv[i] = (size_t)loader.getAuxPhdr();
+                break;
+            case AT_ENTRY:
+                auxv[i] = (size_t)loader.getAuxEntry();
+                break;
+            case AT_PHNUM:
+                auxv[i] = (size_t)loader.getAuxPhnum();
+                break;
+            case AT_PHENT:
+                auxv[i] = (size_t)loader.getAuxPhent();
+                break;
+            case AT_EXECFD:
+                auxv[i] = (size_t)loader.getAuxFd();
+            default:
+                auxv[i] = getauxval(j);
+        }
         auxv[i - 1] = j;
     }
     auxv[i] = 0;
@@ -139,7 +156,7 @@ int main(int argc, char **argv, char **envp) {
 
     char const *testArgv[] ={"hello", "world", (char *)0};
     thread->setArgs(2, (char **)testArgv);
-    thread->setAux(get_curr_auxv());
+    thread->setAux(get_curr_auxv(loader));
     thread->setEnvs(envp);
     thread->setSwapper(swapperManager);
     thread->setHeap(heap, SAFE_HEAP_LEN);

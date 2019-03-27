@@ -201,6 +201,7 @@ class elfio
     ELFIO_HEADER_ACCESS_GET_SET( Elf64_Addr,    entry                  );
     ELFIO_HEADER_ACCESS_GET_SET( Elf64_Off,     sections_offset        );
     ELFIO_HEADER_ACCESS_GET_SET( Elf64_Off,     segments_offset        );
+    ELFIO_HEADER_ACCESS_GET_SET( Elf64_Off,     segments_num        );
     ELFIO_HEADER_ACCESS_GET_SET( Elf_Half,      section_name_str_index );
 
 //------------------------------------------------------------------------------
