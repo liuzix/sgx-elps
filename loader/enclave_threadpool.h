@@ -18,6 +18,7 @@ private:
     shared_ptr<EnclaveMainThread> mainThread;
 public:
     unordered_map <uint64_t, shared_ptr<EnclaveThread>> thread_map;
+    map<uint64_t, atomic<char>> sig_flag_map;
     EnclaveThreadPool(SwapperManager *_swapper);
     void idleBlock();
     void newThreadNotify();

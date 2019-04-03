@@ -7,15 +7,14 @@ DEFINE_LOGGER(enclave_thread, spdlog::level::debug)
 int EnclaveThread::threadCounter = 0;
 extern shared_ptr<EnclaveThreadPool> threadpool;
 
-std::map<uint64_t, atomic<char>> sig_flag_map;
 
-char get_flag(uint64_t rbx) {
-    char res = sig_flag_map[rbx].exchange(0);
+char get_flag(uint64_t tcs) {
+    char res = threadpool->sig_flag_map[tcs].exchange(0);
     return res;
 }
 
-void set_flag(uint64_t rbx, char flag) {
-    sig_flag_map[rbx].store(flag);
+void set_flag(uint64_t tcs, char flag) {
+    threadpool->sig_flag_map[tcs].store(flag);
 }
 
 extern "C" bool set_interrupt(uint64_t tcs) {
