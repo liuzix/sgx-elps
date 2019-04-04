@@ -7,6 +7,8 @@ DEFINE_LOGGER(enclave_thread, spdlog::level::debug)
 int EnclaveThread::threadCounter = 0;
 extern shared_ptr<EnclaveThreadPool> threadpool;
 
+int aexCounter = 0;
+
 std::map<uint64_t, atomic<char>> sig_flag_map;
 
 char get_flag(uint64_t rbx) {
@@ -43,24 +45,32 @@ extern "C" uint64_t do_aex(uint64_t tcs) {
     if (!intFlag) {
         if (dumpFlag) {
             console->debug("We decide to dump!");
-            ret =  1;
+            return 1;
         }
         else {
             duration<double> time_span = duration_cast<duration<double>>(high_resolution_clock::now() - last_interrupt);
             if (time_span.count() < 0.001) {
                 clear_interrupt(tcs);
+                aexCounter++;
                 return 0;
             }
             last_interrupt = high_resolution_clock::now();
-            ret = 2;
+            aexCounter++;           
+            return 2;
         }
     }
+    aexCounter++;    
     return ret;
 }
 
 void EnclaveThread::run() {
+    using namespace std::chrono;
+    static high_resolution_clock::time_point starttime = high_resolution_clock::now(), endtime;
+
     classLogger->info("entering enclave!");
     __eenter(this->tcs);
+    endtime =  high_resolution_clock::now();
+    classLogger->info("Total aex: {}, time: {}", aexCounter, duration<double>(endtime - starttime).count());
     classLogger->info("returned from enclave! ret = {}", sharedTLS.enclave_return_val);
 
 }

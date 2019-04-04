@@ -51,6 +51,7 @@ void __temp_libc_start_init(void)
 }
 
 }
+
 extern "C" int __async_swap(void* addr) {
     SwapRequest *req = createUnsafeObj<SwapRequest>();
     req->addr = (unsigned long)addr;

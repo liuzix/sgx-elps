@@ -11,9 +11,11 @@
 #include "request.h"
 #include "sys_format.h"
 #include "elf.h"
+#include "logging.h"
 
 #include <vector>
 #include <list>
+
 Queue<RequestBase*> *requestQueue = nullptr;
 extern "C" void __temp_libc_start_init(void);
 extern "C" void __eexit(int ret);
@@ -54,7 +56,7 @@ int newThread(int argc, char **argv) {
     libos_print(buf);
     */
     int ret = main(argc, argv); 
-    
+    //libos_print("Page Fault is performed: %d", aexCounter);
     //int ret = __libc_start_main((int (*)(int,char **,char **))&main, argc, argv);
     __eexit(ret);
     return 0;

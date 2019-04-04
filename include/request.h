@@ -112,8 +112,10 @@ RequestType *tryCast(RequestBase *basePtr) {
 class RequestDispatcher {
 private:
     unordered_map<int, function<void(RequestBase *)>> handlers;  
-    DEFINE_MEMBER_LOGGER("RequestDispatcher", spdlog::level::trace)
+    string __name;
+    DEFINE_MEMBER_LOGGER(__name, spdlog::level::trace);
 public:
+    RequestDispatcher(int i) { __name = "RequestDispatcher" + i; }
     template <typename RequestType>
     void addHandler(function<void(RequestType *)> handler) {
         auto realHandler = [=](RequestBase *basePtr) {

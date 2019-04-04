@@ -106,6 +106,7 @@ size_t *get_curr_auxv(void) {
     return auxv;
 }
 
+
 int main(int argc, char **argv, char **envp) {
     console->set_level(spdlog::level::trace);
     if (argc < 2) {
@@ -116,7 +117,7 @@ int main(int argc, char **argv, char **envp) {
     console->info("Welcome to the Loader");
     console->info("Start loading binary file: {}", argv[1]);
 
-    auto manager = make_shared<EnclaveManager>(0x0, SAFE_HEAP_LEN * 2);
+    auto manager = make_shared<EnclaveManager>(0x0, SAFE_HEAP_LEN * 4);
     
     ELFLoader loader(manager);
     loader.open(argv[1]);

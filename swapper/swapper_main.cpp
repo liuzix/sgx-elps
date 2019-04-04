@@ -17,7 +17,7 @@ void schedulerRequestHandler(SwapperManager *manager, SchedulerRequest *req);
 void SwapperManager::runWorker(int id) {
     console->info("Swapper thread started, id = {}", id); 
 
-    RequestDispatcher dispatcher;
+    RequestDispatcher dispatcher(id);
     dispatcher.addHandler<DebugRequest>(debugRequestHandler);
     dispatcher.addHandler<SyscallRequest>(syscallRequestHandler);
     dispatcher.addHandler<SwapRequest>(swapRequestHandler);

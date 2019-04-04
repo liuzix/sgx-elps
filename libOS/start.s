@@ -39,6 +39,7 @@ _start:
 # begin switching stack
 mov %gs:32, %r14            # get libos_data 
 
+# temporarily comment out the preempt
 cmp $2, %rdi
 jz __asm_do_interrupt
 
