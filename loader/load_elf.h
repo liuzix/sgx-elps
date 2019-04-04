@@ -33,6 +33,13 @@ private:
     uint64_t memOffsetToFile(uint64_t memoff);
     bool mapFile(const string &filename);
     int64_t calculateBias();
+    struct auxv_t{
+        uint64_t entry;
+        uint64_t phdr;
+        uint64_t phnum;
+        uint64_t phent;
+        uint64_t fd;
+    } aux_v;
 public:
     bool open(const string &filename);
     bool relocate();
@@ -41,6 +48,20 @@ public:
 
     ELFLoader(std::shared_ptr<EnclaveManager> manager) :
         enclaveManager(manager) { }
+
+
+    void setAuxEntry(uint64_t entry) { this->aux_v.entry = entry; }
+    void setAuxPhdr(uint64_t phdr) { this->aux_v.phdr = phdr; }
+    void setAuxPhnum(uint64_t phnum) { this->aux_v.phnum = phnum; }
+    void setAuxPhent(uint64_t phent) { this->aux_v.phent = phent; }
+    void setAuxFd(uint64_t fd) { this->aux_v.fd = fd; }
+
+    uint64_t getAuxEntry()  { return this->aux_v.entry; }
+    uint64_t getAuxPhdr() { return this->aux_v.phdr; }
+    uint64_t getAuxPhnum() { return this->aux_v.phnum; }
+    uint64_t getAuxPhent() { return this->aux_v.phent; }
+    uint64_t getAuxFd() { return this->aux_v.fd; }
+
 };
 
 #endif

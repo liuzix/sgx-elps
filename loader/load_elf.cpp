@@ -50,7 +50,7 @@ bool ELFLoader::mapFile(const string &filename) {
         console->error("mapFile: Cannot do mmap");
         return false;
     }
-
+    this->setAuxFd(fd);
     return true;
 }
 
@@ -126,14 +126,17 @@ shared_ptr<EnclaveMainThread> ELFLoader::load() {
 
     Elf_Half seg_num = reader.segments.size();
     int i;
+    uint64_t phdr;
 
     for (i = 0; i < seg_num; i++) {
         const segment *pseg = reader.segments[i];
 
         switch (pseg->get_type()) {
         case PT_DYNAMIC:
-            // TODO: dyn
+            /* Nothing */
             break;
+        case PT_PHDR:
+            phdr = pseg->get_virtual_address();
         case PT_LOAD:
             Elf64_Addr p_vaddr = pseg->get_virtual_address();
             Elf_Xword p_filesz = pseg->get_file_size();
@@ -148,7 +151,7 @@ shared_ptr<EnclaveMainThread> ELFLoader::load() {
             allocbegin = p_vaddr & pagemask;
             allocend = p_vaddr + p_memsz;
             allocend = (allocend + pageshift) & ~pageshift;
-            
+
             allocbegin += this->loadBias;
             allocend += this->loadBias;
             console->trace("allocbegin = 0x{:x}, allocend = 0x{:x}", allocbegin, allocend);
@@ -170,11 +173,18 @@ shared_ptr<EnclaveMainThread> ELFLoader::load() {
             munmap(base, allocend - allocbegin);
 
             break;
+
         }
     }
 
     auto ret = enclaveManager->createThread<EnclaveMainThread>((vaddr)reader.get_entry() + this->loadBias);
     ret->setBias(this->loadBias);
+
+    /* Set auxiliary vector */
+    this->setAuxEntry((uint64_t)reader.get_entry() + this->loadBias);
+    this->setAuxPhdr(phdr + this->loadBias);
+    this->setAuxPhent(reader.get_segment_entry_size());
+    this->setAuxPhnum(reader.get_segments_num());
     return ret;
 }
 
