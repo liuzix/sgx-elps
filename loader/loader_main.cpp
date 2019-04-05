@@ -29,6 +29,8 @@ DEFINE_LOGGER(main, spdlog::level::trace);
 uint64_t enclave_base, enclave_end;
 shared_ptr<EnclaveThreadPool> threadpool;
 
+uint64_t __jiffies = 0;
+
 void __timer() {
     while (true) {
         __jiffies++;
@@ -171,6 +173,7 @@ int main(int argc, char **argv, char **envp) {
     thread->setEnvs(envp);
     thread->setSwapper(swapperManager);
     thread->setHeap(heap, SAFE_HEAP_LEN);
+    thread->setJiffies(&__jiffies);
 
     void *unsafeHeap = makeUnsafeHeap(UNSAFE_HEAP_LEN);
     thread->setUnsafeHeap(unsafeHeap, UNSAFE_HEAP_LEN);

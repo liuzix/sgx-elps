@@ -57,6 +57,7 @@ public:
     void run();
     void setBias(size_t bias);
     vaddr getTcs() { return this->tcs; }
+    void setJiffies(uint64_t *p);
 
     friend class EnclaveThreadPool;
 };
@@ -65,7 +66,7 @@ extern std::map<uint64_t, shared_ptr<EnclaveThread>> thread_map;
 class EnclaveMainThread: public EnclaveThread {
 public:
     EnclaveMainThread(vaddr _stack, vaddr _tcs);
-   
+
     void setArgs(int argc, char **argv);
     void setHeap(vaddr base, size_t len);
     void setUnsafeHeap(void *base, size_t len);

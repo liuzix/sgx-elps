@@ -21,7 +21,6 @@ using namespace ELFIO;
 #define PAGESIZE 4096
 const unsigned long pagemask = ~(PAGESIZE - 1);
 const unsigned long pageshift = PAGESIZE - 1;
-uint64_t __jiffies = 0;
 
 bool ELFLoader::open(const string &filename) {
     if (!this->reader.load(filename)) {

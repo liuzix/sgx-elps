@@ -124,3 +124,7 @@ void EnclaveMainThread::setUnsafeHeap(void *base, size_t len) {
 void EnclaveThread::setBias(size_t len) {
     this->sharedTLS.loadBias = len;
 }
+
+void EnclaveThread::setJiffies(uint64_t *p) {
+    this->sharedTLS.pjiffies = p;
+}

@@ -52,12 +52,6 @@ void EnclaveThreadPool::addWorkerThread(shared_ptr<EnclaveThread> thread) {
     thread_map[thread->getTcs()] = thread;
 }
 
-void EnclaveThreadPool::timer() {
-    while (true) {
-        __jiffies++;
-    }
-}
-
 void EnclaveThreadPool::launch() {
     if (!mainThread) {
         console->error("mainThread is unset!");
@@ -65,7 +59,5 @@ void EnclaveThreadPool::launch() {
     }
 
     std::thread thread(std::bind(&EnclaveMainThread::run, mainThread));
-    std::thread ttimer(&EnclaveThreadPool::timer, this);
-    ttimer.detach();
     thread.detach();
 }

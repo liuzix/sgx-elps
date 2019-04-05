@@ -10,9 +10,11 @@
 
 int main(int argc, char **argv)
 {
-
+    uint64_t jiffies = *pjiffies;
     void *addr = libos_mmap(NULL, MEM_SIZE);
-    libos_print("");
+
+    hint(addr);
+    libos_print("hello: %ld, %ld\n", jiffies, *pjiffies);
     if (addr == (void *)-1) {
        return -1;
     }

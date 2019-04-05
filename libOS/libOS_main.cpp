@@ -22,7 +22,8 @@ extern "C" void __eexit(int ret);
 extern "C" int __async_swap(void *addr);
 extern "C" int __libc_start_main(int (*main)(int,char **,char **), int argc, char **argv);
 
-uint64_t __jiffies = 0;
+uint64_t *pjiffies;
+
 int idleThread() {
     libos_print("idling!");
     __eexit(0x1000);
@@ -161,6 +162,8 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
         __asm__("ud2");
     }
 
+    libOS_shared_tls *shared_tls = getSharedTLS();
+    pjiffies = shared_tls->pjiffies;
     ctrl_struct->isMain = false;
     requestQueue = ctrl_struct->requestQueue;
     initPanic(ctrl_struct->panic);
