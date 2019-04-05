@@ -28,13 +28,13 @@ void Scheduler::schedule() {
     if (*current && ++(*current)->timeSlot != MAXIMUM_SLOT) {
         return;
     }
-    
+
     lock.lock();
     if (*current) (*current)->timeSlot = 0;
 
     if (*current && (*current)->onQueue)
         queue.push_back(**current);
-    
+
     SchedEntity *prev = *current;
     if (!queue.empty()) {
         *current = &queue.front(); 
@@ -48,11 +48,11 @@ void Scheduler::schedule() {
         /* if it has already been idling */
         //if (!*current) return;
         *current = nullptr;
-        (*idle)->thread->jumpTo(prev ? prev->thread : (*idle)->thread); 
+        (*idle)->thread->jumpTo(prev ? prev->thread : (*idle)->thread);
     }
 }
 
 void Scheduler::setIdle(SchedEntity &se) {
      scheduler->dequeueTask(se);
-     *idle = &se; 
+     *idle = &se;
 }

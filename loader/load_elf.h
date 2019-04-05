@@ -27,8 +27,8 @@ class ELFLoader {
 private:
     elfio reader;
     char *mappedFile;
-    uint64_t loadBias;    
-    std::shared_ptr<EnclaveManager> enclaveManager; 
+    uint64_t loadBias;
+    std::shared_ptr<EnclaveManager> enclaveManager;
 
     uint64_t memOffsetToFile(uint64_t memoff);
     bool mapFile(const string &filename);

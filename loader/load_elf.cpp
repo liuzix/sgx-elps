@@ -21,6 +21,7 @@ using namespace ELFIO;
 #define PAGESIZE 4096
 const unsigned long pagemask = ~(PAGESIZE - 1);
 const unsigned long pageshift = PAGESIZE - 1;
+uint64_t __jiffies = 0;
 
 bool ELFLoader::open(const string &filename) {
     if (!this->reader.load(filename)) {
@@ -32,14 +33,14 @@ bool ELFLoader::open(const string &filename) {
         console->error("Unsupported architecture");
         return false;
     }
-    
+
     return this->mapFile(filename);
 }
 
 bool ELFLoader::mapFile(const string &filename) {
     int fd = ::open(filename.c_str(), O_RDWR);
     struct stat filestat;
-    
+
     if (fstat(fd, &filestat) != 0) {
         console->error("mapFile: Cannot do fstat");
         return false;
@@ -107,7 +108,7 @@ bool ELFLoader::relocate() {
         Elf_Word symbol;
         Elf_Word type;
         Elf_Sxword addend;
-        
+
         accessor.get_entry(i, offset, symbol, type, addend);
         console->debug("relocation: offset {:x}, symbol {:x}, type {:x}, addend {:x}, image addr {:x}",
                 offset, symbol, type, addend, offset + this->loadBias);

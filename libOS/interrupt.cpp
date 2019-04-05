@@ -6,7 +6,7 @@ void injectedFunc();
 #define SSAFRAME_SIZE 4
 extern "C" void do_interrupt(void *tcs) {
     libos_print("do_interrupt!");
-    
+
     ssa_gpr_t *ssa_gpr = (ssa_gpr_t *)((char *)tcs + 4096 + 4096 * SSAFRAME_SIZE - GPRSGX_SIZE);
     writeTLSField(preempt_rip, ssa_gpr->ip); 
     writeTLSField(stack, ssa_gpr->sp);

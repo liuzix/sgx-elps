@@ -28,6 +28,13 @@ using namespace std;
 DEFINE_LOGGER(main, spdlog::level::trace);
 uint64_t enclave_base, enclave_end;
 shared_ptr<EnclaveThreadPool> threadpool;
+
+void __timer() {
+    while (true) {
+        __jiffies++;
+    }
+}
+
 bool in_enclave(uint64_t rip) {
     console->error("rip: 0x{:x}, enclave_base: 0x{:x}, enclave_end: 0x{:x}", rip, enclave_base, enclave_end);
     return rip >= enclave_base && rip < enclave_end;
@@ -125,6 +132,8 @@ size_t *get_curr_auxv(ELFLoader &loader) {
 
 
 int main(int argc, char **argv, char **envp) {
+    std::thread ttimer(__timer);
+    ttimer.detach();
     console->set_level(spdlog::level::trace);
     if (argc < 2) {
         console->error("Usage: loader [binary file name]");
@@ -135,24 +144,25 @@ int main(int argc, char **argv, char **envp) {
     console->info("Start loading binary file: {}", argv[1]);
 
     auto manager = make_shared<EnclaveManager>(0x0, SAFE_HEAP_LEN * 4);
-    
+
     ELFLoader loader(manager);
     loader.open(argv[1]);
     loader.relocate();
-    
+
     enclave_base = manager->getBase();
     enclave_end = enclave_base + manager->getLen();
-    
+
+    threadpool = std::make_shared<EnclaveThreadPool>(&swapperManager);
     auto thread = loader.load();
     vaddr heap = manager->makeHeap(SAFE_HEAP_LEN);
-    
-    threadpool = std::make_shared<EnclaveThreadPool>(&swapperManager);
+
     threadpool->addMainThread(thread);
 
+    /*
     for (int i = 0; i < 1; i++) {
         threadpool->addWorkerThread(loader.makeWorkerThread());
-    }
-    
+    }*/
+
     manager->prepareLaunch();
 
     char const *testArgv[] ={"hello", "world", (char *)0};
@@ -164,9 +174,9 @@ int main(int argc, char **argv, char **envp) {
 
     void *unsafeHeap = makeUnsafeHeap(UNSAFE_HEAP_LEN);
     thread->setUnsafeHeap(unsafeHeap, UNSAFE_HEAP_LEN);
-    
+
     console->info("tcs: 0x{:x}", thread->getTcs());
-    
+
     swapperManager.launchWorkers();
     /* Set the sigsegv handler to dump the ssa */
     dump_sigaction();

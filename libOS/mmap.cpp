@@ -14,7 +14,7 @@ void *libos_mmap(void *base, size_t len) {
         libos_panic("mmap uninitialized!");
         return (void *)-1;
     }
-    
+
     if (!base)
         return pageManager->allocPages(len / 4096);
 
@@ -41,7 +41,7 @@ PageManager::PageManager(uint64_t base, size_t length) {
     this->availableBase = (this->availableBase + 4095) & (~4095);
     this->availableLength = base + length - this->availableBase;
     this->availableLength &= ~4095;
-    
+
     for (size_t i = 0; i < bitsetByteLen; i++)
         bitset[i] = 0;
 }

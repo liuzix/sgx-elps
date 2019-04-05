@@ -2,6 +2,7 @@
 #include "enclave_threadpool.h"
 #include "logging.h"
 #include <chrono>
+#include <x86intrin.h>
 
 DEFINE_LOGGER(enclave_thread, spdlog::level::debug)
 int EnclaveThread::threadCounter = 0;
@@ -17,11 +18,12 @@ char get_flag(uint64_t tcs) {
 }
 
 void set_flag(uint64_t tcs, char flag) {
+    console->trace("set_flag tcs: 0x{:x}", tcs);
     threadpool->sig_flag_map[tcs].store(flag);
 }
 
 extern "C" bool set_interrupt(uint64_t tcs) {
-    auto tls = threadpool->thread_map[tcs]->getSharedTLS();    
+    auto tls = threadpool->thread_map[tcs]->getSharedTLS();
     bool ret = tls->inInterrupt->exchange(true);
     console->trace("old interrupt flag = {}", ret);
     return ret;
@@ -29,7 +31,7 @@ extern "C" bool set_interrupt(uint64_t tcs) {
 
 extern "C" bool clear_interrupt(uint64_t tcs) {
     console->trace("clear interrupt! 0x{:x}", tcs);
-    auto tls = threadpool->thread_map[tcs]->getSharedTLS();    
+    auto tls = threadpool->thread_map[tcs]->getSharedTLS();
     return tls->inInterrupt->exchange(false);
 }
 
@@ -55,11 +57,11 @@ extern "C" uint64_t do_aex(uint64_t tcs) {
                 return 0;
             }
             last_interrupt = high_resolution_clock::now();
-            aexCounter++;           
+            aexCounter++;
             return 2;
         }
     }
-    aexCounter++;    
+    aexCounter++;
     return ret;
 }
 
@@ -68,9 +70,11 @@ void EnclaveThread::run() {
     static high_resolution_clock::time_point starttime = high_resolution_clock::now(), endtime;
 
     classLogger->info("entering enclave!");
+    uint64_t cc1 = __rdtsc();
     __eenter(this->tcs);
+    cc1 = __rdtsc() - cc1;
     endtime =  high_resolution_clock::now();
-    classLogger->info("Total aex: {}, time: {}", aexCounter, duration<double>(endtime - starttime).count());
+    classLogger->info("Total aex: {}, time: {}, CPU cycle: {}, jiffies: {}", aexCounter, duration<double>(endtime - starttime).count(), cc1, __jiffies);
     classLogger->info("returned from enclave! ret = {}", sharedTLS.enclave_return_val);
 
 }
@@ -86,7 +90,7 @@ EnclaveMainThread::EnclaveMainThread(vaddr _stack,  vaddr _tcs)
     this->controlStruct.isMain = 1;
     this->sharedTLS.isMain = true;
 }
-    
+
 void EnclaveMainThread::setArgs(int argc, char **argv) {
     this->controlStruct.mainArgs.argc = argc;
     this->controlStruct.mainArgs.argv = argv;

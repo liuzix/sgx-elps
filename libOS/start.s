@@ -37,15 +37,14 @@ call do_interrupt
 
 _start:
 # begin switching stack
-mov %gs:32, %r14            # get libos_data 
+mov %gs:32, %r14            # get libos_data
 
-# temporarily comment out the preempt
 cmp $2, %rdi
 jz __asm_do_interrupt
 
 mov %rsp, 8(%r14)           # save original rsp
-mov 16(%r14), %rsp          # swtich to enclave stack 
-# end switching stack 
+mov 16(%r14), %rsp          # swtich to enclave stack
+# end switching stack
 
 cmp $1, %rdi
 jz __asm_dump_ssa

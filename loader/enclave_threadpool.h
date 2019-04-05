@@ -7,6 +7,7 @@
 
 using namespace std;
 
+extern uint64_t __jiffies;
 class EnclaveThreadPool {
 private:
     atomic_int numTotalThread { 0 };
@@ -25,6 +26,7 @@ public:
     void schedReady();
     void addMainThread(shared_ptr<EnclaveMainThread> thread);
     void addWorkerThread(shared_ptr<EnclaveThread> thread);
+    void timer();
     void launch();
 
 };

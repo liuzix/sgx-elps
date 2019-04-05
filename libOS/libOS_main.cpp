@@ -22,6 +22,7 @@ extern "C" void __eexit(int ret);
 extern "C" int __async_swap(void *addr);
 extern "C" int __libc_start_main(int (*main)(int,char **,char **), int argc, char **argv);
 
+uint64_t __jiffies = 0;
 int idleThread() {
     libos_print("idling!");
     __eexit(0x1000);
@@ -33,10 +34,11 @@ int newThread(int argc, char **argv) {
     libos_print("We are in a new thread!");
     libos_print("Enabling interrupt");
     getSharedTLS()->inInterrupt->store(false);
-    
+
     auto schedReady = createUnsafeObj<SchedulerRequest>(SchedulerRequest::SchedulerRequestType::SchedReady);
     requestQueue->push(schedReady);
     schedReady->waitOnDone(-1);
+/*
     new UserThread([]{
         for (int i = 0; i < 10000000; i++)
             if (i % 10000 == 0)
@@ -44,18 +46,19 @@ int newThread(int argc, char **argv) {
         for (;;) {}
         return 0;
     });
-    
+
     for (size_t i = 0; i < 10000000; i++) {
         if (i % 10000 == 0)
             libos_print("[1]%d", i);
     }
+*/
     /*
     __async_swap((void *)&main);
     char buf[100];
     sprintf(buf, "main addr: 0x%lx", (uint64_t)&main);
     libos_print(buf);
     */
-    int ret = main(argc, argv); 
+    int ret = main(argc, argv);
     //libos_print("Page Fault is performed: %d", aexCounter);
     //int ret = __libc_start_main((int (*)(int,char **,char **))&main, argc, argv);
     __eexit(ret);
