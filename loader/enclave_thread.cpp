@@ -8,7 +8,7 @@ DEFINE_LOGGER(enclave_thread, spdlog::level::debug)
 int EnclaveThread::threadCounter = 0;
 extern shared_ptr<EnclaveThreadPool> threadpool;
 
-int aexCounter = 0;
+std::atomic<int> aexCounter = 0;
 
 std::map<uint64_t, atomic<char>> sig_flag_map;
 
@@ -42,6 +42,8 @@ extern "C" uint64_t do_aex(uint64_t tcs) {
     char dumpFlag = get_flag(tcs);
     bool intFlag = set_interrupt(tcs);
     int ret = 0;
+
+    aexCounter++;
     if (dumpFlag)
         return 1;
     if (!intFlag) {
@@ -53,15 +55,15 @@ extern "C" uint64_t do_aex(uint64_t tcs) {
             duration<double> time_span = duration_cast<duration<double>>(high_resolution_clock::now() - last_interrupt);
             if (time_span.count() < 0.001) {
                 clear_interrupt(tcs);
-                aexCounter++;
+                //aexCounter++;
                 return 0;
             }
             last_interrupt = high_resolution_clock::now();
-            aexCounter++;
+            //aexCounter++;
             return 2;
         }
     }
-    aexCounter++;
+    //aexCounter++;
     return ret;
 }
 

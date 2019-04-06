@@ -8,6 +8,9 @@
 #include "allocator.h"
 #include "libos.h"
 #include "panic.h"
+
+extern uint64_t *pjiffies;
+
 extern "C" {
 
 int __sprintf_chk(
@@ -56,7 +59,9 @@ extern "C" int __async_swap(void* addr) {
     SwapRequest *req = createUnsafeObj<SwapRequest>();
     req->addr = (unsigned long)addr;
     requestQueue->push(req);
+//    uint64_t jiffies = *pjiffies;
     req->waitOnDone(1000000000);
+//    libos_print("jiffies: %ld", *pjiffies - jiffies);
     int ret = (int)req->addr;
     unsafeFree(req);
     return ret;

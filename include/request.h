@@ -11,6 +11,7 @@
 #include "../libOS/allocator.h"
 
 using namespace std;
+extern uint64_t __jiffies;
 
 class RequestBase {
 private:
@@ -46,7 +47,7 @@ class DebugRequest: public RequestBase {
 public:
     constexpr static int typeTag = 0;
     enum class SubType { enclavePrint, enclaveCallDebugger, enclaveExit };
-   
+
     char *printBuf;
     DebugRequest() {
         this->requestType = typeTag;
@@ -127,10 +128,16 @@ public:
     }
 
     void dispatch(RequestBase *basePtr) {
+        extern std::shared_ptr<spdlog::logger> console;
         if (handlers.count(basePtr->requestType) != 1)
             classLogger->critical("Unknown request {}", basePtr->requestType);
         basePtr->setAck();
+        //uint64_t jiffies;
+        //if (basePtr->requestType == 3)
+            //jiffies = __jiffies;
         handlers[basePtr->requestType](basePtr);
+        //if (basePtr->requestType == 3)
+            //console->info("handler: {}", __jiffies - jiffies);
         basePtr->setDone();
     }
 };

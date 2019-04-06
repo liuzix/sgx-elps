@@ -4,6 +4,7 @@
 #include <fcntl.h>
 
 std::shared_ptr<spdlog::logger> swapConsole = spdlog::stdout_color_mt("swap");
+extern uint64_t __jiffies;
 
 static int deviceHandle() {
     static int fd = -1;
@@ -20,10 +21,9 @@ static int deviceHandle() {
 }
 
 void swapRequestHandler(SwapRequest *req) {
+//    uint64_t jiffies = __jiffies;
     struct sgx_enclave_swap_page sswap;
     sswap.addr = req->addr;
-    int res = ioctl(deviceHandle(), SGX_IOC_ENCLAVE_SWAP_PAGE, &sswap);
-    swapConsole->info("Return value from ioctl swap page: {}", res);
-    swapConsole->info("Address when calling to swap: 0x{:x}", req->addr);
-    swapConsole->info("swap arg addresss: 0x{:x}", (uint64_t)&sswap);
+    ioctl(deviceHandle(), SGX_IOC_ENCLAVE_SWAP_PAGE, &sswap);
+//    swapConsole->info("ioctl jiffies: {}", __jiffies - jiffies);
 }

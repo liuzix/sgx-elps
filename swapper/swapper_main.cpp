@@ -13,6 +13,8 @@ std::shared_ptr<spdlog::logger> console = spdlog::stdout_color_mt("swapper");
 #pragma GCC visibility pop
 SwapperManager swapperManager;
 
+extern uint64_t __jiffies;
+
 void schedulerRequestHandler(SwapperManager *manager, SchedulerRequest *req);
 void SwapperManager::runWorker(int id) {
     console->info("Swapper thread started, id = {}", id); 
@@ -25,7 +27,12 @@ void SwapperManager::runWorker(int id) {
     while (true) {
         RequestBase *request = 0x0;
         if (!this->queue.take(request)) continue;
+//        uint64_t jiffies;
+//        if (request->requestType == 3)
+//            jiffies = __jiffies;
         dispatcher.dispatch(request);
+//        if (request->requestType == 3)
+//            console->info("dispatch jiffies: {}", __jiffies - jiffies);
     }
     console->info("Swapper thread exits, id = {}", id);
 }

@@ -15,7 +15,7 @@ private:
     panic_struct panic; 
     function<void()> wakeUpThread;
     function<void()> schedReady;
-    int nThreads = 10;
+    int nThreads = 3;
     
     void runWorker(int id); 
 public:

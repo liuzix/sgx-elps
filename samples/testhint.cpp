@@ -5,28 +5,28 @@
 #include "../libOS/mmap.h"
 #include "../libOS/panic.h"
 
-#define MEM_SIZE 0x8000000
-#define STEP     0x800000
+#define MEM_SIZE 0x1000000
+#define STEP     0x1000
 
 int main(int argc, char **argv)
 {
-    uint64_t jiffies = *pjiffies;
     void *addr = libos_mmap(NULL, MEM_SIZE);
+    int j = 0;
 
-    hint(addr);
-    libos_print("hello: %ld, %ld\n", jiffies, *pjiffies);
     if (addr == (void *)-1) {
        return -1;
     }
-/*
+
     for(size_t i = 0; i < MEM_SIZE; i += STEP)
     {
-        hint((void *)((char *)addr + i));
+        //hint((void *)((char *)addr + i));
+        uint64_t jiffies = *pjiffies;
         *((char *)addr + i) = 'e';
-
-        return (int)(cc2 - cc1);
+        j++;
+        //libos_print("jiffies: %ld", *pjiffies - jiffies);
     }
-    */
+
+    libos_print("total access: %d", j);
     return 0;
 }
 
