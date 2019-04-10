@@ -12,6 +12,7 @@
 #include <map>
 
 #include <ssa_dump.h>
+#include "../libOS/allocator.h"
 
 extern "C" void (*__back)(void);
 extern "C" void (*__interrupt_back)(void);
@@ -47,7 +48,12 @@ public:
         sharedTLS.threadID = threadID;
         sharedTLS.inInterrupt = new std::atomic_bool(true);
         sharedTLS.interrupt_stack = (uint64_t)malloc(4096) + 4096 - 16;
+        //sharedTLS.request_obj = (uint64_t)createUnsafeObj<SwapRequest>();
+        sharedTLS.request_obj = (uint64_t)new SwapRequest();
         set_flag((uint64_t)_tcs, 0);
+    }
+    ~EnclaveThread() {
+        free((SwapRequest *)sharedTLS.request_obj);
     }
     void setSwapper(SwapperManager &swapperManager); 
     //void writeToConsole(const char *msg, size_t n);
@@ -58,6 +64,7 @@ public:
     void setBias(size_t bias);
     vaddr getTcs() { return this->tcs; }
     void setJiffies(uint64_t *p);
+    void print_buffer();
 
     friend class EnclaveThreadPool;
 };

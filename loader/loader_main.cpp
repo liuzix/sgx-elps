@@ -15,6 +15,7 @@
 #include "signature.h"
 #include "logging.h"
 #include "enclave_threadpool.h"
+#include <x86intrin.h>
 #include <ssa_dump.h>
 #include <sys/auxv.h>
 
@@ -33,7 +34,8 @@ uint64_t __jiffies = 0;
 
 void __timer() {
     while (true) {
-        __jiffies++;
+        __jiffies = __rdtsc();
+        //__jiffies++;
     }
 }
 

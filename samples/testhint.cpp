@@ -6,7 +6,7 @@
 #include "../libOS/panic.h"
 
 #define MEM_SIZE 0x1000000
-#define STEP     0x1000
+#define STEP     0x10000
 
 int main(int argc, char **argv)
 {
@@ -19,11 +19,11 @@ int main(int argc, char **argv)
 
     for(size_t i = 0; i < MEM_SIZE; i += STEP)
     {
+        //uint64_t jiffies = *pjiffies;
         //hint((void *)((char *)addr + i));
-        uint64_t jiffies = *pjiffies;
         *((char *)addr + i) = 'e';
-        j++;
         //libos_print("jiffies: %ld", *pjiffies - jiffies);
+        j++;
     }
 
     libos_print("total access: %d", j);

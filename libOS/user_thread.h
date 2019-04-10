@@ -13,8 +13,8 @@ class UserThread {
 public:
     fcontext_t fcxt;
     uint64_t preempt_stack;
-    function<int(void)> entry; 
-    SchedEntity se; 
+    function<int(void)> entry;
+    SchedEntity se;
     int id;
     void jumpTo(UserThread *from);
 

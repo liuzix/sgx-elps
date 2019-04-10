@@ -3,6 +3,7 @@
 #include "logging.h"
 #include <chrono>
 #include <x86intrin.h>
+#include <iostream>
 
 DEFINE_LOGGER(enclave_thread, spdlog::level::debug)
 int EnclaveThread::threadCounter = 0;
@@ -78,7 +79,14 @@ void EnclaveThread::run() {
     endtime =  high_resolution_clock::now();
     classLogger->info("Total aex: {}, time: {}, CPU cycle: {}, jiffies: {}", aexCounter, duration<double>(endtime - starttime).count(), cc1, __jiffies);
     classLogger->info("returned from enclave! ret = {}", sharedTLS.enclave_return_val);
+    print_buffer();
 
+}
+
+void EnclaveThread::print_buffer() {
+    classLogger->info("---------- printb buffer begin ----------");
+    std::cout << this->sharedTLS.buffer;
+    classLogger->info("----------- printb buffer end -----------");
 }
 
 void EnclaveThread::setSwapper(SwapperManager &swapperManager) {

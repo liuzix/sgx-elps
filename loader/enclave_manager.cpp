@@ -123,7 +123,7 @@ good:
     sec_info.flags |= (writable ? ENCLAVE_PAGE_WRITE : 0);
     sec_info.flags |= (executable ? ENCLAVE_PAGE_EXECUTE : 0);
     sec_info.flags |= (isTCS ? ENCLAVE_PAGE_THREAD_CONTROL : SI_FLAG_REG);
-    
+
     if (isTCS) {
         sec_info.flags &= ~ENCLAVE_PAGE_READ;
         sec_info.flags &= ~ENCLAVE_PAGE_WRITE;
@@ -178,7 +178,7 @@ vaddr EnclaveManager::allocate(size_t len) {
     return prev;
 }
 
-/* 
+/*
  * Stack layout | guard page | stack | guard page |
  * TCS+SSA+TLS layout | TCS | SSA 1 page 1 | SSA 1 page 2 | ... | guard page | TLS |
  */

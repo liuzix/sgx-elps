@@ -128,17 +128,20 @@ public:
     }
 
     void dispatch(RequestBase *basePtr) {
-        extern std::shared_ptr<spdlog::logger> console;
+        //uint64_t jiffies = 0;
+        //if (basePtr->requestType == 3)
+        //    jiffies = __jiffies;
         if (handlers.count(basePtr->requestType) != 1)
             classLogger->critical("Unknown request {}", basePtr->requestType);
         basePtr->setAck();
-        //uint64_t jiffies;
         //if (basePtr->requestType == 3)
-            //jiffies = __jiffies;
+            //classLogger->info("ack jiffies: {}", __jiffies - jiffies);
         handlers[basePtr->requestType](basePtr);
         //if (basePtr->requestType == 3)
-            //console->info("handler: {}", __jiffies - jiffies);
+         //   jiffies = __jiffies;
         basePtr->setDone();
+        //if (basePtr->requestType == 3)
+            //classLogger->info("done jiffies: {}", __jiffies - jiffies);
     }
 };
 #endif

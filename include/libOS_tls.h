@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 struct libOS_control_struct;
+#define PRINT_BUFFER_SIZE (1 << 17)
 
 struct libOS_shared_tls {
     uint64_t next_exit;           // set by the loader
@@ -23,6 +24,9 @@ struct libOS_shared_tls {
     std::atomic_int *numActiveThread;
     uint64_t isMain;
     uint64_t *pjiffies;
+    uint64_t request_obj;
+    int buffer_index = 0;
+    char buffer[PRINT_BUFFER_SIZE];
 }  __attribute__ ((packed));
 
 struct enclave_tls {

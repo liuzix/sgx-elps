@@ -56,14 +56,14 @@ void __temp_libc_start_init(void)
 }
 
 extern "C" int __async_swap(void* addr) {
-    SwapRequest *req = createUnsafeObj<SwapRequest>();
+    //uint64_t jiffies = *pjiffies;
+    SwapRequest *req = (SwapRequest *)getSharedTLS()->request_obj;
+
     req->addr = (unsigned long)addr;
     requestQueue->push(req);
-//    uint64_t jiffies = *pjiffies;
+    //libos_printb("__async_swap: get and push reqobj CPU cycles: %ld\n", *pjiffies - jiffies);
     req->waitOnDone(1000000000);
-//    libos_print("jiffies: %ld", *pjiffies - jiffies);
     int ret = (int)req->addr;
-    unsafeFree(req);
     return ret;
 }
 
@@ -78,9 +78,9 @@ extern "C" int __async_syscall(unsigned int n, ...) {
         libos_print("No support for system call [%u]", n);
         return 0;
     }
-    
+
     /* Create SyscallReq */
-    
+
     SyscallRequest *req = createUnsafeObj<SyscallRequest>();
     if (req == nullptr)
         return 0;

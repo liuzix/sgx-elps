@@ -25,14 +25,13 @@ void SwapperManager::runWorker(int id) {
     dispatcher.addHandler<SwapRequest>(swapRequestHandler);
     dispatcher.addHandler<SchedulerRequest>(std::bind(schedulerRequestHandler, this, std::placeholders::_1));
     while (true) {
+        //uint64_t jiffies;
+        //jiffies = __jiffies;
         RequestBase *request = 0x0;
         if (!this->queue.take(request)) continue;
-//        uint64_t jiffies;
-//        if (request->requestType == 3)
-//            jiffies = __jiffies;
+        //if (request->requestType == 3)
+            //console->info("take from queue jiffies: {}", __jiffies - jiffies);
         dispatcher.dispatch(request);
-//        if (request->requestType == 3)
-//            console->info("dispatch jiffies: {}", __jiffies - jiffies);
     }
     console->info("Swapper thread exits, id = {}", id);
 }
