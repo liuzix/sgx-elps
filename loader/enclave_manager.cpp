@@ -234,6 +234,7 @@ shared_ptr<ThreadType> EnclaveManager::createThread(vaddr entry_addr) {
     tls->stack = (void *)(stack_start(stack_enclave));
 
     vaddr stack_high = (vaddr)tls->stack + THREAD_STACK_NUM * SGX_PAGE_SIZE;
+
     auto ret = make_shared<ThreadType>(stack_high, tcs_enclave);
     tls->libOS_data = ret->getSharedTLS();
 

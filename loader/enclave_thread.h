@@ -53,7 +53,6 @@ public:
         //sharedTLS.request_obj = (uint64_t)new SwapRequest();
         sharedTLS.request_obj = 0;
         set_flag((uint64_t)_tcs, 0);
-        mlock(&this->sharedTLS, 0x1000);
     }
     ~EnclaveThread() {
         //free((SwapRequest *)sharedTLS.request_obj);

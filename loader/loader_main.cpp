@@ -157,7 +157,7 @@ int main(int argc, char **argv, char **envp) {
     console->info("Welcome to the Loader");
     console->info("Start loading binary file: {}", argv[1]);
 
-    auto manager = make_shared<EnclaveManager>(0x0, SAFE_HEAP_LEN * 4);
+    manager = make_shared<EnclaveManager>(0x0, SAFE_HEAP_LEN * 4);
 
     ELFLoader loader(manager);
     loader.open(argv[1]);
@@ -171,7 +171,6 @@ int main(int argc, char **argv, char **envp) {
     manager->setThreadpool(threadpool);
     auto thread = loader.load();
     vaddr heap = manager->makeHeap(SAFE_HEAP_LEN);
-
     threadpool->addMainThread(thread);
 
     /*

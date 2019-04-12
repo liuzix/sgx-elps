@@ -21,10 +21,10 @@ static int deviceHandle() {
 }
 
 void swapRequestHandler(SwapRequest *req) {
-    //uint64_t jiffies = __jiffies;
     struct sgx_enclave_swap_page sswap;
     sswap.addr = req->addr;
     //swapConsole->info("hint addr: {}", req->addr);
+    uint64_t jiffies = __jiffies;
     ioctl(deviceHandle(), SGX_IOC_ENCLAVE_SWAP_PAGE, &sswap);
-    //swapConsole->info("ioctl jiffies: {}", __jiffies - jiffies);
+    swapConsole->info("ioctl jiffies: {}", __jiffies - jiffies);
 }

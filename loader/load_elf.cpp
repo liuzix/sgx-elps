@@ -171,7 +171,6 @@ shared_ptr<EnclaveMainThread> ELFLoader::load() {
             enclaveManager->addPages(allocbegin, base, allocend - allocbegin);
 
             munmap(base, allocend - allocbegin);
-
             break;
 
         }
