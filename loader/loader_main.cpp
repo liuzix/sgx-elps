@@ -1,23 +1,20 @@
-#include "enclave_manager.h"
-
 #include <iostream>
 #include <memory>
 #include <string>
-
 #include <sys/mman.h>
-#include <signal.h>
 #include <elfio/elfio.hpp>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 #include <atomic>
-#include "swapper_interface.h"
-#include "load_elf.h"
-#include "signature.h"
-#include "logging.h"
-#include "enclave_threadpool.h"
+#include <swapper.h>
+#include <logging.h>
 #include <x86intrin.h>
 #include <ssa_dump.h>
 #include <sys/auxv.h>
+#include "load_elf.h"
+#include "enclave_manager.h"
+#include "enclave_threadpool.h"
+#include "signature.h"
 
 #define UNSAFE_HEAP_LEN 0x10000000
 #define SAFE_HEAP_LEN 0x10000000
@@ -27,8 +24,9 @@
 using namespace std;
 
 DEFINE_LOGGER(main, spdlog::level::trace);
+/* Do we really need these 2 varibles when manager is global? */
 uint64_t enclave_base, enclave_end;
-shared_ptr<EnclaveThreadPool> threadpool;
+shared_ptr<EnclaveManager> manager;
 
 uint64_t __jiffies = 0;
 
@@ -57,23 +55,28 @@ void sig_exit() {
     exit(-1);
 }
 
-static void __sigaction(int n, siginfo_t *, void *ucontext) {
+void EnclaveManager::__sigaction(int n, siginfo_t *siginfo, void *ucontext) {
     static int sigintCounter = 0;
     ucontext_t *context = (ucontext_t *)ucontext;
     uint64_t rip = context->uc_mcontext.gregs[REG_RIP];
+
     console->error("rip: 0x{:x}, __aex_handler: 0x{:x}", (uint64_t)rip, (uint64_t)&__aex_handler);
+    /* Signal outside the enclave */
     if (rip != (uint64_t)__aex_handler) {
         console->error("Segmentation Fault !");
         console->flush();
         exit(-1);
     }
+
     uint64_t rbx = context->uc_mcontext.gregs[REG_RBX];
     console->info("rbx in signal handler = 0x{:x}", rbx);
-    //Per-thread flag
+
+    /* Per-thread flag */
     set_flag(rbx, 1);
 
     uint64_t debugStack = (uint64_t)malloc(4096) + 4096 - 16;
-    threadpool->thread_map[rbx]->getSharedTLS()->enclave_stack = debugStack;
+    manager->getThreadpool()->thread_map[rbx]->getSharedTLS()->enclave_stack = debugStack;
+
     if (n == SIGSEGV)
         console->error("Segmentation Fault!");
     else if (n == SIGINT) {
@@ -85,12 +88,13 @@ static void __sigaction(int n, siginfo_t *, void *ucontext) {
     console->flush();
 }
 
-void dump_sigaction(void) {
+void EnclaveManager::dump_sigaction() {
     sigset_t msk = {0};
     struct sigaction sa;
+
     {
         sa.sa_handler = NULL;
-        sa.sa_sigaction = __sigaction;
+        sa.sa_sigaction = this->__sigaction;
         sa.sa_mask = msk;
         sa.sa_flags = SA_SIGINFO;
         sa.sa_restorer = NULL;
@@ -136,9 +140,15 @@ size_t *get_curr_auxv(ELFLoader &loader) {
 
 
 int main(int argc, char **argv, char **envp) {
+    /*
+     * Set up a timer outside the enclave for benchmarking
+     * This is a workaround for not being able to use rdtsc inside encalve
+     */
     std::thread ttimer(__timer);
     ttimer.detach();
+
     console->set_level(spdlog::level::trace);
+
     if (argc < 2) {
         console->error("Usage: loader [binary file name]");
         return -1;
@@ -156,7 +166,9 @@ int main(int argc, char **argv, char **envp) {
     enclave_base = manager->getBase();
     enclave_end = enclave_base + manager->getLen();
 
-    threadpool = std::make_shared<EnclaveThreadPool>(&swapperManager);
+    // TODO: threadpool now is a global varibale but we prefer it a member of manager
+    auto threadpool = std::make_shared<EnclaveThreadPool>(&swapperManager);
+    manager->setThreadpool(threadpool);
     auto thread = loader.load();
     vaddr heap = manager->makeHeap(SAFE_HEAP_LEN);
 
@@ -184,7 +196,7 @@ int main(int argc, char **argv, char **envp) {
 
     swapperManager.launchWorkers();
     /* Set the sigsegv handler to dump the ssa */
-    dump_sigaction();
+    manager->dump_sigaction();
 
     /* launch the enclave threads */
     threadpool->launch();

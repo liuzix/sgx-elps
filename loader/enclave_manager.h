@@ -8,8 +8,10 @@
 #include <sgx_user.h>
 #include <stddef.h>
 #include <string>
+#include <signal.h>
 
 #include "enclave_thread.h"
+#include "enclave_threadpool.h"
 #include "signature.h"
 
 using namespace std;
@@ -30,10 +32,14 @@ class EnclaveManager {
 
     secs_t secs;
 
-    /*allocate will find a hole in mappings that can accommodate len bytes*/
+    /* allocate will find a hole in mappings that can accommodate len bytes */
     vaddr allocate(size_t len);
+
+    shared_ptr<EnclaveThreadPool> threadpool;
+
   public:
-    /* `base` is only a hint. In case of mmap conflicts, base might be altered
+    /*
+     * base is only a hint. In case of mmap conflicts, base might be altered
      */
     EnclaveManager(vaddr base, size_t len);
 
@@ -47,6 +53,11 @@ class EnclaveManager {
     shared_ptr<ThreadType> createThread(vaddr entry);
     void prepareLaunch();
     vaddr makeHeap(size_t len);
+    void setThreadpool(shared_ptr<EnclaveThreadPool> p) { this->threadpool = p; }
+    shared_ptr<EnclaveThreadPool> getThreadpool() { return this->threadpool; }
+    static void __sigaction(int n, siginfo_t *siginfo, void *ucontext);
+    void dump_sigaction();
 };
 
+extern shared_ptr<EnclaveManager> manager;
 #endif

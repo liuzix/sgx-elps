@@ -14,7 +14,6 @@ include_directories(${OPENSSL_INCLUDE_DIR})
 include(FindProtobuf)
 find_package(Protobuf REQUIRED)
 find_package(Threads REQUIRED)
-#find_package(Threads REQUIRED)
 include_directories(${PROTOBUF_INCLUDE_DIR})
 
 PROTOBUF_GENERATE_CPP(PROTO_SRC PROTO_HEADER aesm.proto)

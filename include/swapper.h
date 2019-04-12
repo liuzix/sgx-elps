@@ -11,12 +11,12 @@
 class SwapperManager {
 private:
     vector<thread> threads;
-    Queue<RequestBase*> queue;    
+    Queue<RequestBase*> queue;
     panic_struct panic; 
     function<void()> wakeUpThread;
     function<void()> schedReady;
     int nThreads = 3;
-    
+
     void runWorker(int id); 
 public:
     void launchWorkers();

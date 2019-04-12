@@ -2,7 +2,7 @@
 #include <iostream>
 #include <functional>
 #include <logging.h>
-#include <swapper_interface.h>
+#include <swapper.h>
 #include "debug_request.h"
 #include "syscall_request.h"
 #include "swap_request.h"
@@ -47,3 +47,4 @@ void SwapperManager::waitWorkers() {
     for (int i = 0; i < this->nThreads; i++)
         this->threads[i].join();
 }
+

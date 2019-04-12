@@ -1,5 +1,6 @@
 #include "enclave_thread.h"
 #include "enclave_threadpool.h"
+#include "enclave_manager.h"
 #include "logging.h"
 #include <chrono>
 #include <x86intrin.h>
@@ -7,24 +8,27 @@
 
 DEFINE_LOGGER(enclave_thread, spdlog::level::debug)
 int EnclaveThread::threadCounter = 0;
-extern shared_ptr<EnclaveThreadPool> threadpool;
 
 std::atomic<int> aexCounter = 0;
 
 std::map<uint64_t, atomic<char>> sig_flag_map;
 
+/*
+ * We keep these functions outside the class because we want it to
+ * in assembly.
+ */
 char get_flag(uint64_t tcs) {
-    char res = threadpool->sig_flag_map[tcs].exchange(0);
+    char res = manager->getThreadpool()->sig_flag_map[tcs].exchange(0);
     return res;
 }
 
 void set_flag(uint64_t tcs, char flag) {
     console->trace("set_flag tcs: 0x{:x}", tcs);
-    threadpool->sig_flag_map[tcs].store(flag);
+    manager->getThreadpool()->sig_flag_map[tcs].store(flag);
 }
 
 extern "C" bool set_interrupt(uint64_t tcs) {
-    auto tls = threadpool->thread_map[tcs]->getSharedTLS();
+    auto tls = manager->getThreadpool()->thread_map[tcs]->getSharedTLS();
     bool ret = tls->inInterrupt->exchange(true);
     console->trace("old interrupt flag = {}", ret);
     return ret;
@@ -32,7 +36,7 @@ extern "C" bool set_interrupt(uint64_t tcs) {
 
 extern "C" bool clear_interrupt(uint64_t tcs) {
     console->trace("clear interrupt! 0x{:x}", tcs);
-    auto tls = threadpool->thread_map[tcs]->getSharedTLS();
+    auto tls = manager->getThreadpool()->thread_map[tcs]->getSharedTLS();
     return tls->inInterrupt->exchange(false);
 }
 

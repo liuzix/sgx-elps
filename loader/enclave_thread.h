@@ -3,15 +3,17 @@
 #define ENCLAVE_THREAD_H
 
 #include <sgx_arch.h>
-#include <swapper_interface.h>
+#include <swapper.h>
 #include <control_struct.h>
 #include <csignal>
 #include <logging.h>
 #include <libOS_tls.h>
 #include <atomic>
 #include <map>
+#include <sys/mman.h>
 
 #include <ssa_dump.h>
+#include <request.h>
 #include "../libOS/allocator.h"
 
 extern "C" void (*__back)(void);
@@ -48,12 +50,13 @@ public:
         sharedTLS.threadID = threadID;
         sharedTLS.inInterrupt = new std::atomic_bool(true);
         sharedTLS.interrupt_stack = (uint64_t)malloc(4096) + 4096 - 16;
-        //sharedTLS.request_obj = (uint64_t)createUnsafeObj<SwapRequest>();
-        sharedTLS.request_obj = (uint64_t)new SwapRequest();
+        //sharedTLS.request_obj = (uint64_t)new SwapRequest();
+        sharedTLS.request_obj = 0;
         set_flag((uint64_t)_tcs, 0);
+        mlock(&this->sharedTLS, 0x1000);
     }
     ~EnclaveThread() {
-        free((SwapRequest *)sharedTLS.request_obj);
+        //free((SwapRequest *)sharedTLS.request_obj);
     }
     void setSwapper(SwapperManager &swapperManager); 
     //void writeToConsole(const char *msg, size_t n);

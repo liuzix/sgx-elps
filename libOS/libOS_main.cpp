@@ -8,8 +8,8 @@
 #include "mmap.h"
 #include "thread_local.h"
 #include "user_thread.h"
-#include "request.h"
-#include "sys_format.h"
+#include <request.h>
+#include <syscall_format.h>
 #include "elf.h"
 #include "logging.h"
 

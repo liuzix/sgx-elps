@@ -38,10 +38,10 @@ class Queue {
         uint64_t pos = head.load();
         if (pos == r_tail) return false;
         if (!head.compare_exchange_weak(pos, pos + 1)) return false;
-        
+
         v = std::move(q[pos % size]);
         q[pos % size] = 0x0;
-        
+
         while (true) {
             uint64_t my_r_head = r_head.load();
             if (q[my_r_head % size] == nullptr && my_r_head < head) {

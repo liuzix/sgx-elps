@@ -7,7 +7,7 @@
 #include <cassert>
 #include <logging.h>
 #include <queue.h>
-#include <sys_format.h>
+#include <syscall_format.h>
 #include "../libOS/allocator.h"
 
 using namespace std;
@@ -43,7 +43,7 @@ public:
     RequestBase() {}
 };
 
-class DebugRequest: public RequestBase { 
+class DebugRequest: public RequestBase {
 public:
     constexpr static int typeTag = 0;
     enum class SubType { enclavePrint, enclaveCallDebugger, enclaveExit };
@@ -93,7 +93,7 @@ class SchedulerRequest: public RequestBase {
 public:
     constexpr static int typeTag = 2;
     enum class SchedulerRequestType { NewThread, SchedReady };
-    
+
     SchedulerRequestType subType;
     SchedulerRequest(SchedulerRequestType t) {
         this->requestType = SchedulerRequest::typeTag;

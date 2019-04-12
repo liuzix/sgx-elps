@@ -1,12 +1,11 @@
-#include "syscall_request.h"
 #include <logging.h>
 #include <sys/syscall.h>
-
+#include "syscall_request.h"
 
 std::shared_ptr<spdlog::logger> syscallConsole = spdlog::stdout_color_mt("syscall");
 
 void syscallRequestHandler(SyscallRequest *req) {
-    
+
 
     syscallConsole->info("-----SYSCALL({})-----", req->fm_list.syscall_num);
     for (int i = 0; i < 6; i++) {
@@ -22,5 +21,5 @@ void syscallRequestHandler(SyscallRequest *req) {
                                           req->args[3].arg,
                                           req->args[4].arg,
                                           req->args[5].arg);
-                                           
 }
+

@@ -1,10 +1,10 @@
-#include "sys_format.h"
-#include "allocator.h"
-#include "request.h"
-
+#include <syscall_format.h>
+#include <request.h>
 #include <vector>
 #include <unordered_map>
 #include <cstring>
+#include "allocator.h"
+
 using namespace std;
 
 /* support syscall: 0 1 2 3  */
@@ -27,7 +27,7 @@ void initSyscallTable() {
 
 bool interpretSyscall(format_t& fm_l, unsigned int index) {
     format_t fm;
-    
+
     auto it = syscall_table->find(index);
     if (it == syscall_table->end())
         return false;

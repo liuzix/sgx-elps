@@ -15,7 +15,7 @@ for i in range(0, 100):
         time.sleep(3)
         os.system('kill %d'%pid)
         with open('.py_test.log.' + str(id) + '.tmp', 'r') as f:
-            with open('py_test.log', 'a') as f2:
+            with open('py_test_no_hint.log', 'a') as f2:
                 for line in f.readlines():
                     #if 'jiff' in line and (not 'CPU' in line):
                     if 'time' in line:
