@@ -30,10 +30,10 @@ typedef list< SchedEntity
 class Scheduler {
 private:
     SpinLock lock;
-    PerCPU<SchedEntity *> current;
     PerCPU<SchedEntity *> idle;
     SchedQueue queue;
 public:
+    PerCPU<SchedEntity *> current;
     void schedule();
     void enqueueTask(SchedEntity &se);
     void dequeueTask(SchedEntity &se);

@@ -29,10 +29,10 @@ __attribute__((naked)) static void __clear_rbp(transfer_t) {
 
 UserThread::UserThread(function<int(void)> _entry)
     : se(this) {
-    
+
     this->id = counter.fetch_add(1);
     this->entry = _entry;
-    
+
     char *stack = (char *)libos_mmap(NULL, STACK_SIZE);
     stack += (STACK_SIZE - 16);
 
@@ -40,6 +40,7 @@ UserThread::UserThread(function<int(void)> _entry)
     this->preempt_stack = (uint64_t)libos_mmap(NULL, 4096);
     this->preempt_stack += 4096 - 16;
     scheduler->enqueueTask(this->se); 
+    request_obj = unsafeMalloc(sizeof(SwapRequest));
 }
 
 void UserThread::jumpTo(UserThread *from) {

@@ -3,13 +3,18 @@
 #include "panic.h"
 #include "allocator.h"
 #include "thread_local.h"
+#include "user_thread.h"
+#include "sched.h"
 #include "libos.h"
+
+extern Scheduler *scheduler;
 
 extern "C" int __async_swap(void* addr) {
     //uint64_t jiffies = *pjiffies;
-    libOS_shared_tls *tls = getSharedTLS();
-    SwapRequest *req;
+    //libOS_shared_tls *tls = getSharedTLS();
+    //SwapRequest *req = scheduler->current->thread->request_obj;
     //SwapRequest *req = (SwapRequest *)tls->request_obj;
+    /*
      if (!tls->request_obj) {
         req = (SwapRequest *)unsafeMalloc(sizeof(SwapRequest));
         tls->request_obj = (uint64_t)req;
@@ -17,8 +22,10 @@ extern "C" int __async_swap(void* addr) {
             libos_print("allocate unsafe obj failed.\n");
             return -1;
         }
-    }
-    req = new ((SwapRequest *)tls->request_obj) SwapRequest((unsigned long)addr);
+    }*/
+
+    SwapRequest *req = new ((SwapRequest *)(*scheduler->current)->thread->request_obj)
+                       SwapRequest((unsigned long)addr);
     req->addr = (unsigned long)addr;
     requestQueue->push(req);
     //libos_printb("__async_swap: get and push reqobj CPU cycles: %ld\n", *pjiffies - jiffies);

@@ -17,7 +17,7 @@ public:
     SchedEntity se;
     int id;
     void jumpTo(UserThread *from);
-
+    void *request_obj;
     /* for creating new thread */
     UserThread(function<int(void)> _entry);
 };
