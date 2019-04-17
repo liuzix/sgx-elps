@@ -18,7 +18,7 @@ using namespace std;
 template <typename T>
 class PerCPU {
 private:
-    SpinLock lock;
+    SpinLockNoTimer lock;
     unordered_map<uint64_t, T> map;    
 public:
     T &operator *() {
