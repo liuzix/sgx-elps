@@ -61,6 +61,7 @@ public:
     uint64_t getAuxPhnum() { return this->aux_v.phnum; }
     uint64_t getAuxPhent() { return this->aux_v.phent; }
     uint64_t getAuxFd() { return this->aux_v.fd; }
+    uint64_t getBias() { return this->loadBias; }
 
 };
 

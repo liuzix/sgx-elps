@@ -8,17 +8,17 @@
 extern "C" int __async_swap(void* addr) {
     //uint64_t jiffies = *pjiffies;
     libOS_shared_tls *tls = getSharedTLS();
-    SwapRequest *req = (SwapRequest *)tls->request_obj;
-    //SwapRequest *req = createUnsafeObj<SwapRequest>();
-    if (!req) {
-        //libos_print("__async_swap: create obj\n");
-        req = createUnsafeObj<SwapRequest>();
+    SwapRequest *req;
+    //SwapRequest *req = (SwapRequest *)tls->request_obj;
+     if (!tls->request_obj) {
+        req = (SwapRequest *)unsafeMalloc(sizeof(SwapRequest));
         tls->request_obj = (uint64_t)req;
         if (!req) {
             libos_print("allocate unsafe obj failed.\n");
             return -1;
         }
     }
+    req = new ((SwapRequest *)tls->request_obj) SwapRequest((unsigned long)addr);
     req->addr = (unsigned long)addr;
     requestQueue->push(req);
     //libos_printb("__async_swap: get and push reqobj CPU cycles: %ld\n", *pjiffies - jiffies);

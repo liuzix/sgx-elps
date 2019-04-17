@@ -17,7 +17,7 @@ int main(int argc, char **argv)
     if (addr == (void *)-1) {
        return -1;
     }
-
+    //j = *(int *)(0x0);
     for(size_t i = 0; i < MEM_SIZE; i += STEP)
     {
         //uint64_t jiffies = *pjiffies;

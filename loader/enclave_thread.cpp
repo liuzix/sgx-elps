@@ -5,6 +5,7 @@
 #include <chrono>
 #include <x86intrin.h>
 #include <iostream>
+#include <sys/ioctl.h>
 
 DEFINE_LOGGER(enclave_thread, spdlog::level::debug)
 int EnclaveThread::threadCounter = 0;
@@ -72,12 +73,37 @@ extern "C" uint64_t do_aex(uint64_t tcs) {
     return ret;
 }
 
+static int deviceHandle() {
+    static int fd = -1;
+    if (fd >= 0)
+        return fd;
+    fd = open("/dev/isgx", O_RDWR);
+    if (fd < 0) {
+        console->error("Opening /dev/isgx failed: {}.", strerror(errno));
+        console->info("Make sure you have the Intel SGX driver installed.");
+        exit(-1);
+    }
+
+    return fd;
+}
+
+struct sgx_user_data {
+	unsigned long load_bias;
+	unsigned long tcs_addr;
+};
+
+#define SGX_IOC_ENCLAVE_SET_USER_DATA \
+	_IOW(SGX_MAGIC, 0X04, struct sgx_user_data)
+
 void EnclaveThread::run() {
     using namespace std::chrono;
     static high_resolution_clock::time_point starttime = high_resolution_clock::now(), endtime;
 
     classLogger->info("entering enclave!");
     uint64_t cc1 = __rdtsc();
+    sgx_user_data u_data = {.load_bias = this->sharedTLS.loadBias, .tcs_addr = this->tcs};
+    ioctl(deviceHandle(), SGX_IOC_ENCLAVE_SET_USER_DATA, &u_data);
+
     __eenter(this->tcs);
     cc1 = __rdtsc() - cc1;
     endtime =  high_resolution_clock::now();

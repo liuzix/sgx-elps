@@ -11,6 +11,7 @@
 #include <x86intrin.h>
 #include <ssa_dump.h>
 #include <sys/auxv.h>
+#include <sys/ioctl.h>
 #include "load_elf.h"
 #include "enclave_manager.h"
 #include "enclave_threadpool.h"
@@ -138,6 +139,29 @@ size_t *get_curr_auxv(ELFLoader &loader) {
     return auxv;
 }
 
+/*
+static int deviceHandle() {
+    static int fd = -1;
+    if (fd >= 0)
+        return fd;
+    fd = open("/dev/isgx", O_RDWR);
+    if (fd < 0) {
+        console->error("Opening /dev/isgx failed: {}.", strerror(errno));
+        console->info("Make sure you have the Intel SGX driver installed.");
+        exit(-1);
+    }
+
+    return fd;
+}
+*/
+struct sgx_user_data {
+	unsigned long load_bias;
+	unsigned long tcs_addr;
+};
+
+#define SGX_IOC_ENCLAVE_SET_USER_DATA \
+	_IOW(SGX_MAGIC, 0X04, struct sgx_user_data)
+
 
 int main(int argc, char **argv, char **envp) {
     /*
@@ -179,7 +203,10 @@ int main(int argc, char **argv, char **envp) {
     }*/
 
     manager->prepareLaunch();
-
+    /*
+    sgx_user_data u_data = {.load_bias = thread->getSharedTLS()->loadBias, .tcs_addr = thread->getTcs()};
+    ioctl(deviceHandle(), SGX_IOC_ENCLAVE_SET_USER_DATA, &u_data);
+    */
     char const *testArgv[] ={"hello", "world", (char *)0};
     thread->setArgs(2, (char **)testArgv);
     thread->setAux(get_curr_auxv(loader));

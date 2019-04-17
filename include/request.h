@@ -58,8 +58,9 @@ class SwapRequest: public RequestBase {
 public:
     constexpr static int typeTag = 3;
     unsigned long addr;
-    SwapRequest() {
+    SwapRequest(unsigned long a) {
         this->requestType = typeTag;
+	this->addr = a;
     }
 };
 
