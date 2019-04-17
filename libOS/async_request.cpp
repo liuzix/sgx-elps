@@ -6,6 +6,23 @@
 #include "user_thread.h"
 #include "sched.h"
 #include "libos.h"
+#include "sched.h"
+
+std::atomic_int32_t ticket;
+
+struct ticket_is_key
+{
+   typedef int type;
+
+   const type & operator()(const SchedEntity& v) const
+   {  return v.ticket;  }
+}; 
+
+typedef set<SchedEntity, key_of_value<ticket_is_key> > OrderedMap;
+
+static inline uint32_t getTicket() {
+    return ticket.fetch_add(1);
+}
 
 extern Scheduler *scheduler;
 

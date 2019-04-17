@@ -28,6 +28,7 @@ public:
     }
 };
 
+/*
 class SpinLock {
     std::atomic_flag locked = ATOMIC_FLAG_INIT ;
 public:
@@ -39,4 +40,6 @@ public:
     }
 };
 
+*/
+using SpinLock = SpinLockNoTimer;
 #endif

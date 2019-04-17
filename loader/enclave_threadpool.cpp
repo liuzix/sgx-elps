@@ -18,6 +18,7 @@ void EnclaveThreadPool::idleBlock() {
         numActiveThread --;
         cv.wait(lk);
         numActiveThread ++;
+        if (numActiveThread == 1) break;
     }
 }
 

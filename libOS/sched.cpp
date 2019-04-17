@@ -2,12 +2,12 @@
 #include "user_thread.h"
 #include <spin_lock.h>
 
+std::atomic<steady_clock::duration> *timeStamp; 
 Scheduler *scheduler;
 
 void scheduler_init() {
     scheduler = new Scheduler;
 }
-
 
 void Scheduler::enqueueTask(SchedEntity &se) {
     lock.lock();
@@ -56,3 +56,5 @@ void Scheduler::setIdle(SchedEntity &se) {
      scheduler->dequeueTask(se);
      *idle = &se;
 }
+
+

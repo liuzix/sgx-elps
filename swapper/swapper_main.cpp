@@ -25,6 +25,7 @@ void SwapperManager::runWorker(int id) {
     dispatcher.addHandler<SwapRequest>(swapRequestHandler);
     dispatcher.addHandler<SchedulerRequest>(std::bind(schedulerRequestHandler, this, std::placeholders::_1));
     while (true) {
+        this->timeStamp.store(steady_clock::now().time_since_epoch());
         //uint64_t jiffies;
         //jiffies = __jiffies;
         RequestBase *request = 0x0;

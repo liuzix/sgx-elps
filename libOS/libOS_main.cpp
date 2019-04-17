@@ -164,6 +164,7 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
 
     libOS_shared_tls *shared_tls = getSharedTLS();
     pjiffies = shared_tls->pjiffies;
+    timeStamp = ctrl_struct->timeStamp;
     ctrl_struct->isMain = false;
     requestQueue = ctrl_struct->requestQueue;
     initPanic(ctrl_struct->panic);

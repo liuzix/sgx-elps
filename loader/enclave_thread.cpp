@@ -104,7 +104,13 @@ void EnclaveThread::run() {
     sgx_user_data u_data = {.load_bias = this->sharedTLS.loadBias, .tcs_addr = this->tcs};
     ioctl(deviceHandle(), SGX_IOC_ENCLAVE_SET_USER_DATA, &u_data);
 
-    __eenter(this->tcs);
+    for (;;) {
+        __eenter(this->tcs);
+        if (sharedTLS.enclave_return_val != 0x1000)
+            break;
+        this->threadPool->idleBlock();
+    };
+
     cc1 = __rdtsc() - cc1;
     endtime =  high_resolution_clock::now();
     classLogger->info("Total aex: {}, time: {}, CPU cycle: {}, jiffies: {}", aexCounter, duration<double>(endtime - starttime).count(), cc1, __jiffies);
@@ -122,6 +128,7 @@ void EnclaveThread::print_buffer() {
 void EnclaveThread::setSwapper(SwapperManager &swapperManager) {
     this->controlStruct.requestQueue = &swapperManager.queue;
     this->controlStruct.panic = &swapperManager.panic;
+    this->controlStruct.timeStamp = &swapperManager.timeStamp;
 }
 
 EnclaveMainThread::EnclaveMainThread(vaddr _stack,  vaddr _tcs)

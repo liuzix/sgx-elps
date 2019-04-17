@@ -4,15 +4,20 @@
 #include <vector>
 #include <thread>
 #include <functional>
+#include <chrono>
 #include <queue.h>
+#include <atomic>
 #include <request.h>
 #include <control_struct.h>
+
+using namespace std::chrono;
 
 class SwapperManager {
 private:
     vector<thread> threads;
     Queue<RequestBase*> queue;
     panic_struct panic; 
+    std::atomic<steady_clock::duration> timeStamp;
     function<void()> wakeUpThread;
     function<void()> schedReady;
     int nThreads = 3;

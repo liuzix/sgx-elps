@@ -94,7 +94,7 @@ __interrupt_back:
 pop %rbx 
 push %rbx
 mov %rbx, %rdi
-call clear_interrupt@plt
+/*call clear_interrupt@plt*/
 mov $3, %rax
 pop %rbx
 lea __aex_handler(%rip), %rcx

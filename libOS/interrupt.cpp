@@ -2,12 +2,13 @@
 #include "sched.h"
 #include "panic.h"
 #include "thread_local.h"
-
+bool disableInterrupt();
+void enableInterrupt();
 void injectedFunc();
 #define SSAFRAME_SIZE 4
 extern "C" void do_interrupt(void *tcs) {
     //libos_print("do_interrupt!");
-
+    disableInterrupt(); 
     ssa_gpr_t *ssa_gpr = (ssa_gpr_t *)((char *)tcs + 4096 + 4096 * SSAFRAME_SIZE - GPRSGX_SIZE);
     libos_print("do_interrupt. rip in file: 0x%lx", ssa_gpr->ip - getSharedTLS()->loadBias);
     writeTLSField(preempt_rip, ssa_gpr->ip); 
@@ -53,5 +54,6 @@ __attribute__((naked)) void injectedFunc() {
 
 extern "C" void do_preempt() {
     libos_print("preempt function injected!");
+    enableInterrupt();
     scheduler->schedule();
 }
