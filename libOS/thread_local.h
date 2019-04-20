@@ -34,10 +34,6 @@ public:
     }
 };
 
-<<<<<<< HEAD
 bool disableInterrupt();
 
 void enableInterrupt();
-=======
-
->>>>>>> get cureent function; pthread_self function
