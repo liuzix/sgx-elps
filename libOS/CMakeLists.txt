@@ -12,6 +12,7 @@ find_package(Boost REQUIRED COMPONENTS context)
 
 add_library(OSCore STATIC ${SOURCES})
 target_compile_definitions(OSCore PUBLIC IS_LIBOS)
+target_compile_definitions(OSCore PUBLIC BOOST_NO_EXCEPTIONS)
 
 find_library(LIB_MUSL libc.a PATHS "../musl/lib" NO_DEFAULT_PATH)
 execute_process(COMMAND ${CMAKE_C_COMPILER} -print-libgcc-file-name OUTPUT_VARIABLE GCC_LIB)

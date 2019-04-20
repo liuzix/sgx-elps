@@ -7,6 +7,7 @@
 #include <cassert>
 #include <logging.h>
 #include <queue.h>
+#include <boost/intrusive/list.hpp>
 #include <syscall_format.h>
 #include "../libOS/allocator.h"
 
@@ -19,6 +20,8 @@ private:
     atomic_bool done = {false};
     int returnVal = 0;
 public:
+    int ticket;
+    boost::intrusive::list_member_hook<> watchListHook;
     int requestType;
     bool waitOnAck(uint32_t cycles) {
         for (uint32_t i = 0; i < cycles; i++)
@@ -27,7 +30,7 @@ public:
     }
 
     bool waitOnDone(uint32_t cycles) {
-        for (uint32_t i = cycles; true; i++)
+        for (uint32_t i = 0; i < cycles; i++)
             if (done.load()) return true;
         return false;
     }

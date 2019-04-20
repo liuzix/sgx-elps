@@ -20,8 +20,9 @@ struct SchedEntity {
     int32_t ticket; 
     UserThread *thread;
     list_member_hook<> member_hook_;
-    set_member_hook<> map_hook_;
+    set_member_hook<> set_member_hook_;
     bool onQueue;
+    bool running;
     int timeSlot;
     SchedEntity(UserThread *_t) {
         thread = _t;

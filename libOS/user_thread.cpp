@@ -39,7 +39,7 @@ UserThread::UserThread(function<int(void)> _entry)
     this->fcxt = make_fcontext(stack, STACK_SIZE, __clear_rbp);
     this->preempt_stack = (uint64_t)libos_mmap(NULL, 4096);
     this->preempt_stack += 4096 - 16;
-    scheduler->enqueueTask(this->se); 
+    //scheduler->enqueueTask(this->se); 
     request_obj = unsafeMalloc(sizeof(SwapRequest));
 }
 

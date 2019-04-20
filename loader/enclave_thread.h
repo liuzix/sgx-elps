@@ -43,6 +43,7 @@ public:
         controlStruct.isMain = false;
         sharedTLS.isMain = 0;
         int threadID = threadCounter++;
+        sharedTLS.reentry = 0;
         sharedTLS.next_exit = (uint64_t)&__back;
         sharedTLS.interrupt_exit = (uint64_t)&__interrupt_back;
         sharedTLS.enclave_stack = _stack;

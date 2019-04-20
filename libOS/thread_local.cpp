@@ -13,6 +13,12 @@ void writeQWordToGS(size_t offset, uint64_t value) {
             ::"r" (value), "r"(offset));
 }
 
+
+libOS_shared_tls *getSharedTLS() {
+    return (libOS_shared_tls *)readTLSField(libOS_data);
+}
+
+
 bool disableInterrupt() {
     return getSharedTLS()->inInterrupt->exchange(true);
 }
@@ -20,9 +26,3 @@ bool disableInterrupt() {
 void enableInterrupt() {
     return getSharedTLS()->inInterrupt->store(false);
 }
-
-libOS_shared_tls *getSharedTLS() {
-    return (libOS_shared_tls *)readTLSField(libOS_data);
-}
-
-

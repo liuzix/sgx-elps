@@ -28,4 +28,12 @@ public:
         lock.unlock();
         return ret;
     }
+
+    T &get() {
+        return **this;
+    }
 };
+
+bool disableInterrupt();
+
+void enableInterrupt();

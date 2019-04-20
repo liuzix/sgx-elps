@@ -99,13 +99,15 @@ void EnclaveThread::run() {
     using namespace std::chrono;
     static high_resolution_clock::time_point starttime = high_resolution_clock::now(), endtime;
 
-    classLogger->info("entering enclave!");
     uint64_t cc1 = __rdtsc();
     sgx_user_data u_data = {.load_bias = this->sharedTLS.loadBias, .tcs_addr = this->tcs};
     ioctl(deviceHandle(), SGX_IOC_ENCLAVE_SET_USER_DATA, &u_data);
 
     for (;;) {
+        classLogger->info("entering enclave!");
         __eenter(this->tcs);
+        classLogger->info("exiting enclave!");
+        this->controlStruct.isMain = false;
         if (sharedTLS.enclave_return_val != 0x1000)
             break;
         this->threadPool->idleBlock();

@@ -49,6 +49,13 @@ mov 16(%r14), %rsp          # swtich to enclave stack
 cmp $1, %rdi
 jz __asm_dump_ssa
 
+# if reentry is set, jump to that address
+mov 24(%r14), %r13
+cmp $0, %r13
+je __no_reentry
+jmp *%r13
+
+__no_reentry:
 mov %rsp, %rbp
 mov 40(%r14), %rdi
 
@@ -78,17 +85,35 @@ __slave_thread:
 call __libOS_start
 ud2
 __eexit:
+push %rbp
+push %rbx
+push %r12
+push %r13
+push %r14
+push %r15
 # begin switching stack
 mov %gs:32, %r14            # get libos_data 
 mov %rsp, 16(%r14)          # save original rsp
 mov 8(%r14), %rsp           # swtich to normal stack 
 # end switching stack
+# store reentry point
+lea __reentry_point(%rip), %r13
+mov %r13, 24(%r14)
 
 mov (%r14), %rbx
 mov %rdi, 32(%r14) 
 mov $4, %rax
 enclu
-ud2
+__reentry_point:
+mov %gs:32, %r14
+mov 16(%r14), %rsp
+pop %r15
+pop %r14
+pop %r13
+pop %r12
+pop %rbx
+pop %rbp
+retq
 
 __interrupt_exit:
 mov %gs:32, %r14
