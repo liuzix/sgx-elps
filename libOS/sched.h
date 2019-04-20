@@ -53,5 +53,6 @@ class Scheduler {
 
 extern Scheduler *scheduler;
 void scheduler_init();
+void watchListCheck();
 
 #endif

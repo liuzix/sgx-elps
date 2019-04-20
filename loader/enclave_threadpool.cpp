@@ -1,13 +1,14 @@
 #include "enclave_threadpool.h"
 #include <functional>
-#include <thread>
 #include <logging.h>
+#include <thread>
 
 using namespace std;
 
 DEFINE_LOGGER(EnclaveThreadPool, spdlog::level::trace);
 
-EnclaveThreadPool::EnclaveThreadPool(SwapperManager *_swapper) : swapper(_swapper) {
+EnclaveThreadPool::EnclaveThreadPool(SwapperManager *_swapper)
+    : swapper(_swapper) {
     swapper->setWakeUp(std::bind(&EnclaveThreadPool::newThreadNotify, this));
     swapper->setSchedReady(std::bind(&EnclaveThreadPool::schedReady, this));
 }
@@ -19,50 +20,54 @@ void EnclaveThreadPool::idleBlock() {
         return;
     }
     while (numActiveThread > numTotalThread) {
-        numActiveThread --;
+        numActiveThread--;
         console->info("start cv wait");
         cv.wait(lk);
         console->info("end cv wait");
-        numActiveThread ++;
-        if (numActiveThread == 1) break;
+        numActiveThread++;
+        if (numActiveThread == 1)
+            break;
     }
     pendingWakeUp = false;
 }
 
 void EnclaveThreadPool::newThreadNotify() {
     unique_lock<std::mutex> lk(m);
-    console->info("cv broadcast");
-    console->info("numActiveThread = {}, numTotalThread = {}", numActiveThread, numTotalThread);
+    console->info("numActiveThread = {}, numTotalThread = {}", numActiveThread,
+                  numTotalThread);
     pendingWakeUp = true;
-    cv.notify_one();
+    if (numActiveThread < (int)threads.size()) {
+        console->info("cv broadcast");
+        cv.notify_one();
+    }
 }
 
 void EnclaveThreadPool::schedReady() {
-    for (auto thread: threads) {
-        if (thread == mainThread) continue;
-        std::thread thr([=]{
-            thread->run();
-        });
-        numActiveThread ++;
+    for (auto thread : threads) {
+        if (thread == mainThread)
+            continue;
+        std::thread thr([=] { thread->run(); });
+        numActiveThread++;
         thr.detach();
     }
 }
 
-void EnclaveThreadPool::addMainThread(shared_ptr<EnclaveMainThread> thread) {
+void EnclaveThreadPool::addThreadCommon(shared_ptr<EnclaveThread> thread) {
     thread->threadPool = this;
     thread->getSharedTLS()->numTotalThread = &numTotalThread;
+    thread->getSharedTLS()->numActiveThread = &numActiveThread;
     thread->setSwapper(*this->swapper);
     threads.push_back(thread);
     thread_map[thread->getTcs()] = thread;
+}
+
+void EnclaveThreadPool::addMainThread(shared_ptr<EnclaveMainThread> thread) {
+    addThreadCommon(thread);
     mainThread = thread;
 }
 
 void EnclaveThreadPool::addWorkerThread(shared_ptr<EnclaveThread> thread) {
-    thread->threadPool = this;
-    thread->getSharedTLS()->numTotalThread = &numTotalThread;
-    thread->setSwapper(*this->swapper);
-    threads.push_back(thread);
-    thread_map[thread->getTcs()] = thread;
+    addThreadCommon(thread);
 }
 
 void EnclaveThreadPool::launch() {
@@ -72,6 +77,6 @@ void EnclaveThreadPool::launch() {
     }
 
     std::thread thread(std::bind(&EnclaveMainThread::run, mainThread));
-    numActiveThread ++;
+    numActiveThread++;
     thread.detach();
 }

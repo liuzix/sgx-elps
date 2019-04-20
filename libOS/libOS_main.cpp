@@ -30,7 +30,8 @@ uint64_t *pjiffies;
 int idleThread() {
     for (;;) {
         libos_print("idling!");
-        __eexit(0x1000);
+        getSharedTLS()->numActiveThread --;
+        __eexit(0x1000); // yield cpu
         scheduler->schedule();
     }
     return 0;

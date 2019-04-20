@@ -15,9 +15,10 @@ private:
     bool pendingWakeUp = false;
     mutex m;
     SwapperManager *swapper;
-    int numActiveThread = 0;
+    atomic_int numActiveThread { 0 };
     vector<shared_ptr<EnclaveThread>> threads;
     shared_ptr<EnclaveMainThread> mainThread;
+    void addThreadCommon(shared_ptr<EnclaveThread> thread);
 public:
     unordered_map <uint64_t, shared_ptr<EnclaveThread>> thread_map;
     map<uint64_t, atomic<char>> sig_flag_map;

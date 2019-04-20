@@ -7,7 +7,6 @@
 std::atomic<steady_clock::duration> *timeStamp; 
 Scheduler *scheduler;
 
-void watchListCheck();
 
 void scheduler_init() {
     scheduler = new Scheduler;
