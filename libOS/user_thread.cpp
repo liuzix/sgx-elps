@@ -54,4 +54,5 @@ void UserThread::jumpTo(UserThread *from) {
         data->prev->fcxt = ret_t.fctx;
     }
     getSharedTLS()->preempt_injection_stack = data->cur->preempt_stack;
+    enableInterrupt();
 }

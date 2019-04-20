@@ -1,4 +1,5 @@
 #include "swap_request.h"
+#include "swapper.h"
 #include <logging.h>
 #include <sys/ioctl.h>
 #include <fcntl.h>
@@ -20,11 +21,13 @@ static int deviceHandle() {
     return fd;
 }
 
-void swapRequestHandler(SwapRequest *req) {
+void swapRequestHandler(SwapperManager *manager, SwapRequest *req) {
     struct sgx_enclave_swap_page sswap;
     sswap.addr = req->addr;
     //swapConsole->info("hint addr: {}", req->addr);
     uint64_t jiffies = __jiffies;
     ioctl(deviceHandle(), SGX_IOC_ENCLAVE_SWAP_PAGE, &sswap);
     swapConsole->info("ioctl jiffies: {}", __jiffies - jiffies);
+    req->setDone();
+    manager->wakeUpThread();
 }

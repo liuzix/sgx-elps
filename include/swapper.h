@@ -18,8 +18,6 @@ private:
     Queue<RequestBase*> queue;
     panic_struct panic; 
     std::atomic<steady_clock::duration> timeStamp;
-    function<void()> wakeUpThread;
-    function<void()> schedReady;
     int nThreads = 3;
 
     void runWorker(int id); 
@@ -27,6 +25,8 @@ public:
     void launchWorkers();
     void waitWorkers();
 
+    function<void()> wakeUpThread;
+    function<void()> schedReady;
     void setNumThreads(int n) {
         this->nThreads = n;
     }
@@ -40,7 +40,6 @@ public:
     }
 
     friend class EnclaveThread;
-    friend void schedulerRequestHandler(SwapperManager *, SchedulerRequest *);
 };
 
 extern SwapperManager swapperManager;

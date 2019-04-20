@@ -22,7 +22,7 @@ void SwapperManager::runWorker(int id) {
     RequestDispatcher dispatcher(id);
     dispatcher.addHandler<DebugRequest>(debugRequestHandler);
     dispatcher.addHandler<SyscallRequest>(syscallRequestHandler);
-    dispatcher.addHandler<SwapRequest>(swapRequestHandler);
+    dispatcher.addHandler<SwapRequest>(std::bind(swapRequestHandler, this, std::placeholders::_1));
     dispatcher.addHandler<SchedulerRequest>(std::bind(schedulerRequestHandler, this, std::placeholders::_1));
     while (true) {
         this->timeStamp.store(steady_clock::now().time_since_epoch());

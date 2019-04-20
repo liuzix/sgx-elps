@@ -1,4 +1,5 @@
 #include "sched.h"
+#include "libos.h"
 #include "panic.h"
 #include "user_thread.h"
 #include <spin_lock.h>
@@ -12,24 +13,46 @@ void scheduler_init() {
     scheduler = new Scheduler;
 }
 
+void Scheduler::schedNotify() {
+    SchedulerRequest *req = schedReqCache.get();
+    if (!req) {
+        req = (SchedulerRequest *)unsafeMalloc(sizeof(SchedulerRequest));
+        *schedReqCache = req;
+    }
+
+    getSharedTLS()->numTotalThread->fetch_add(1);
+    
+    new (req) SchedulerRequest(SchedulerRequest::SchedulerRequestType::NewThread);
+    requestQueue->push(req); 
+    req->blockOnDone(); 
+}
+
 void Scheduler::enqueueTask(SchedEntity &se) {
     lock.lock();
     if(!se.running && !se.onQueue)
         queue.push_back(se);
+    if (!se.onQueue) 
+        schedNotify();
     se.onQueue = true;
     lock.unlock();
 }
 
 void Scheduler::dequeueTask(SchedEntity &se) {
     lock.lock();
-    if (se.onQueue && !se.running)
+    if (se.onQueue && !se.running) {
         queue.erase(queue.iterator_to(se));
+    }
+
+    if (se.onQueue)
+        getSharedTLS()->numTotalThread->fetch_sub(1);
     se.onQueue = false;
     lock.unlock();
 }
 
 void Scheduler::schedule() {
+    disableInterrupt();
     watchListCheck();
+
     if (*current && ++(*current)->timeSlot != MAXIMUM_SLOT) {
         return;
     }
@@ -38,10 +61,7 @@ void Scheduler::schedule() {
     if (*current) (*current)->timeSlot = 0;
 
     if (*current && (*current)->onQueue) {
-        libos_print("pushing current task on queue");
         queue.push_back(**current);
-    } else {
-        libos_print("no current or current is not on queue");
     }
 
     SchedEntity *prev = *current;

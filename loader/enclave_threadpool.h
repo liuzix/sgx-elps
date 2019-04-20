@@ -12,6 +12,7 @@ class EnclaveThreadPool {
 private:
     atomic_int numTotalThread { 0 };
     condition_variable cv;
+    bool pendingWakeUp = false;
     mutex m;
     SwapperManager *swapper;
     int numActiveThread = 0;

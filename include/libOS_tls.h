@@ -21,7 +21,7 @@ struct libOS_shared_tls {
     uint64_t interrupt_outside_stack;
     uint64_t preempt_injection_stack;
     std::atomic_bool *inInterrupt;
-    std::atomic_int *numActiveThread;
+    std::atomic_int *numTotalThread;
     uint64_t isMain;
     uint64_t *pjiffies;
     uint64_t request_obj;

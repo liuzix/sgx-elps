@@ -29,6 +29,11 @@ public:
         return false;
     }
 
+    void blockOnDone() {
+        for (;;)
+            if (done.load()) return;
+    }
+
     bool waitOnDone(uint32_t cycles) {
         for (uint32_t i = 0; i < cycles; i++)
             if (done.load()) return true;
@@ -96,7 +101,7 @@ public:
 class SchedulerRequest: public RequestBase {
 public:
     constexpr static int typeTag = 2;
-    enum class SchedulerRequestType { NewThread, SchedReady };
+    enum class SchedulerRequestType { NewThread, SchedReady, DecThread };
 
     SchedulerRequestType subType;
     SchedulerRequest(SchedulerRequestType t) {

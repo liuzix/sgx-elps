@@ -1,6 +1,7 @@
 #ifndef SCHED_H
 #define SCHED_H
 #include "thread_local.h"
+#include "request.h"
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive/set.hpp>
 #include <chrono>
@@ -39,8 +40,11 @@ class Scheduler {
     SpinLockNoTimer lock;
     PerCPU<SchedEntity *> idle;
     SchedQueue queue;
+
+    void schedNotify();
   public:
     PerCPU<SchedEntity *> current;
+    PerCPU<SchedulerRequest *> schedReqCache;
     void schedule();
     void enqueueTask(SchedEntity &se);
     void dequeueTask(SchedEntity &se);

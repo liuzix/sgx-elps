@@ -43,29 +43,7 @@ int newThread(int argc, char **argv) {
 
     auto schedReady = createUnsafeObj<SchedulerRequest>(SchedulerRequest::SchedulerRequestType::SchedReady);
     requestQueue->push(schedReady);
-    schedReady->waitOnDone(-1);
-/*
-    new UserThread([]{
-        for (int i = 0; i < 10000000; i++)
-            if (i % 10000 == 0)
-                libos_print("[2]%d", i);
-        for (;;) {}
-        return 0;
-    });
-
-    for (size_t i = 0; i < 10000000; i++) {
-        if (i % 10000 == 0)
-            libos_print("[1]%d", i);
-    }
-*/
-    /*
-    __async_swap((void *)&main);
-    char buf[100];
-    sprintf(buf, "main addr: 0x%lx", (uint64_t)&main);
-    libos_print(buf);
-    */
     int ret = main(argc, argv);
-    //libos_print("Page Fault is performed: %d", aexCounter);
     //int ret = __libc_start_main((int (*)(int,char **,char **))&main, argc, argv);
     __eexit(ret);
     return 0;
