@@ -19,7 +19,7 @@ template <typename T>
 class PerCPU {
 private:
     SpinLockNoTimer lock;
-    unordered_map<uint64_t, T> map;    
+    unordered_map<uint64_t, T> map;
 public:
     T &operator *() {
         uint64_t cpuID = getSharedTLS()->threadID;
@@ -34,6 +34,10 @@ public:
     }
 };
 
+<<<<<<< HEAD
 bool disableInterrupt();
 
 void enableInterrupt();
+=======
+
+>>>>>>> get cureent function; pthread_self function

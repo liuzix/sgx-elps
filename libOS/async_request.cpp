@@ -66,28 +66,26 @@ void sleepWait(RequestBase *req) {
     req->ticket = ticket.fetch_add(1);
     scheduler->current.get()->ticket = req->ticket;
 
-
     bool intFlag = disableInterrupt();
-    
+
     watchListLock->lock();
     ticketList->insert(*scheduler->current.get());
     watchList->push_back(*req);
     watchListLock->unlock();
-    
+
     scheduler->dequeueTask(*scheduler->current.get());
-    
+
     if (!intFlag) enableInterrupt();
     scheduler->schedule();
 }
 
 
 extern "C" int __async_swap(void *addr) {
-    SwapRequest *req =
-        new ((SwapRequest *)(*scheduler->current)->thread->request_obj)
-            SwapRequest((unsigned long)addr);
+    SwapRequest *req = new ((SwapRequest *)(**scheduler->getCurrent())->thread->request_obj)
+                       SwapRequest((unsigned long)addr);
     req->addr = (unsigned long)addr;
-    requestQueue->push(req); 
-    
+    requestQueue->push(req);
+
     if (!req->waitOnDone(3000))
         sleepWait(req);
     int ret = (int)req->addr;

@@ -40,7 +40,6 @@ class Scheduler {
     SpinLockNoTimer lock;
     PerCPU<SchedEntity *> idle;
     SchedQueue queue;
-
     void schedNotify();
   public:
     PerCPU<SchedEntity *> current;
@@ -49,6 +48,7 @@ class Scheduler {
     void enqueueTask(SchedEntity &se);
     void dequeueTask(SchedEntity &se);
     void setIdle(SchedEntity &se);
+    PerCPU<SchedEntity *>* getCurrent() { return &this->current; }
 };
 
 extern Scheduler *scheduler;

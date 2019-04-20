@@ -56,3 +56,7 @@ void UserThread::jumpTo(UserThread *from) {
     getSharedTLS()->preempt_injection_stack = data->cur->preempt_stack;
     enableInterrupt();
 }
+
+extern "C" pthread* libos_pthread_self(void) {
+    return (**scheduler->getCurrent())->thread->getFs();
+}
