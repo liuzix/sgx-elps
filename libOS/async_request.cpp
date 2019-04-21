@@ -11,10 +11,9 @@
 #include <request.h>
 #include <syscall_format.h>
 
-using namespace boost::intrusive;
 using namespace std;
 
-typedef list<RequestBase, member_hook<RequestBase, list_member_hook<>,
+typedef boost::intrusive::list<RequestBase, member_hook<RequestBase, list_member_hook<>,
                                       &RequestBase::watchListHook>>
     WatchList;
 
@@ -24,7 +23,7 @@ struct ticket_is_key {
     const type &operator()(const SchedEntity &v) const { return v.ticket; }
 };
 
-typedef set<
+typedef boost::intrusive::set<
     SchedEntity,
     member_hook<SchedEntity, set_member_hook<>, &SchedEntity::set_member_hook_>,
     key_of_value<ticket_is_key>>

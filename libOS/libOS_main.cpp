@@ -12,6 +12,7 @@
 #include <syscall_format.h>
 #include "elf.h"
 #include "logging.h"
+#include "futex.h"
 
 #include <vector>
 #include <list>
@@ -161,15 +162,16 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
     mmap_init(ctrl_struct->mainArgs.heapBase, ctrl_struct->mainArgs.heapLength);
     initSafeMalloc(10 * 4096);
     libos_print("Safe malloc initialization successful");
-    test_auxv(sp, ctrl_struct->mainArgs.argc);
+    //test_auxv(sp, ctrl_struct->mainArgs.argc);
 
     initSyscallTable();
     scheduler_init();
     initWatchList();
+    INIT_FUTEX_QUEUE();
     scheduler->setIdle((new UserThread(idleThread))->se);
-    auto mainThr = new UserThread(std::bind(newThread, ctrl_struct->mainArgs.argc, ctrl_struct->mainArgs.argv)); 
+    auto mainThr = new UserThread(std::bind(newThread, ctrl_struct->mainArgs.argc, ctrl_struct->mainArgs.argv));
     scheduler->enqueueTask(mainThr->se);
-    scheduler->schedule(); 
+    scheduler->schedule();
     libos_panic("Shouldn't have reached here!");
     __asm__("ud2");
     return 0;

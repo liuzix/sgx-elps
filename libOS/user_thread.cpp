@@ -43,6 +43,11 @@ UserThread::UserThread(function<int(void)> _entry)
     request_obj = unsafeMalloc(sizeof(SwapRequest));
 }
 
+UserThread::UserThread(int tid)
+    : se(this) {
+   this->pt_local.tid = tid;
+}
+
 void UserThread::jumpTo(UserThread *from) {
     libos_print("switching to thread %d, from thread %d", this->id, from ? from->id: -1); 
     transfer_data t = { .prev = from, .cur = this };

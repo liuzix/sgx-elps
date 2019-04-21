@@ -24,18 +24,18 @@ public:
    //This is a member hook
     list_member_hook<link_mode<safe_link>> list_hook_;
     set_member_hook<> rbtree_hook_;
-   
+
     int checksum;
     void setChecksum()
     {
         checksum = 0;
-        for (size_t i = 0; i < offsetof(MemoryArea, checksum); i++)  
+        for (size_t i = 0; i < offsetof(MemoryArea, checksum); i++)
             checksum += ((char *)this)[i];
 
     }
     void checkIntegrity() {
         int actualChecksum = 0;
-        for (size_t i = 0; i < offsetof(MemoryArea, checksum); i++)  
+        for (size_t i = 0; i < offsetof(MemoryArea, checksum); i++)
             actualChecksum += ((char *)this)[i];
         assert(this->checksum == actualChecksum);
     }

@@ -2,6 +2,8 @@
 #include "sched.h"
 #include <boost/context/detail/fcontext.hpp>
 #include <functional>
+#include <boost/intrusive/unordered_set.hpp>
+#include <boost/functional/hash.hpp>
 
 #define STACK_SIZE 8192
 using namespace std;
@@ -49,12 +51,12 @@ struct pthread {
     uintptr_t *dtv_copy;
 };
 
-class UserThread {
+class UserThread : public boost::intrusive::unordered_set_base_hook<> {
     void start();
     void terminate();
-    pthread pt_local;
 public:
     fcontext_t fcxt;
+    pthread pt_local;
     uint64_t preempt_stack;
     function<int(void)> entry;
     SchedEntity se;
@@ -63,6 +65,9 @@ public:
     void *request_obj;
     /* for creating new thread */
     UserThread(function<int(void)> _entry);
+    UserThread(int tid);
     pthread* getFs() { return &this->pt_local; }
+    boost::intrusive::unordered_set_member_hook<> member_hook_;
 };
+
 

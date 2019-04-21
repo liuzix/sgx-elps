@@ -4,7 +4,7 @@
 #include "user_thread.h"
 #include <spin_lock.h>
 
-std::atomic<steady_clock::duration> *timeStamp; 
+std::atomic<steady_clock::duration> *timeStamp;
 Scheduler *scheduler;
 
 
@@ -20,17 +20,17 @@ void Scheduler::schedNotify() {
     }
 
     getSharedTLS()->numTotalThread->fetch_add(1);
-    
+
     new (req) SchedulerRequest(SchedulerRequest::SchedulerRequestType::NewThread);
-    requestQueue->push(req); 
-    req->blockOnDone(); 
+    requestQueue->push(req);
+    req->blockOnDone();
 }
 
 void Scheduler::enqueueTask(SchedEntity &se) {
     lock.lock();
     if(!se.running && !se.onQueue)
         queue.push_back(se);
-    if (!se.onQueue) 
+    if (!se.onQueue)
         schedNotify();
     se.onQueue = true;
     lock.unlock();
@@ -67,7 +67,7 @@ void Scheduler::schedule() {
     if (prev)
         prev->running = false;
     if (!queue.empty()) {
-        *current = &queue.front(); 
+        *current = &queue.front();
         current.get()->running = true;
         queue.pop_front();
         lock.unlock();
@@ -88,5 +88,4 @@ void Scheduler::setIdle(SchedEntity &se) {
      scheduler->dequeueTask(se);
      *idle = &se;
 }
-
 
