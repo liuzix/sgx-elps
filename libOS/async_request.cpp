@@ -93,19 +93,19 @@ extern "C" int __async_swap(void *addr) {
 
 extern "C" int __async_syscall(unsigned int n, ...) {
     libos_print("Async call [%u]", n);
+
     /* Interpret correspoding syscall args types */
     format_t fm_l;
-    if (!interpretSyscall(fm_l, n)) {
+    int ret_tmp = interpretSyscall(fm_l, n);
+    if (!ret_tmp) {
         libos_print("No support for system call [%u]", n);
-        return 0;
+        return -1;
     }
 
     /* Create SyscallReq */
-
     SyscallRequest *req = createUnsafeObj<SyscallRequest>();
-    sleepWait(req);
     if (req == nullptr)
-        return 0;
+        return -1;
     /* Give this format info to req  */
     req->fm_list = fm_l;
 
@@ -123,11 +123,14 @@ extern "C" int __async_syscall(unsigned int n, ...) {
     if (!req->fillArgs()) {
         req->~SyscallRequest();
         unsafeFree(req);
-        return 0;
+        return -1;
     }
 
     requestQueue->push(req);
-    req->waitOnDone(1000000000);
+//    req->blockOnDone();
+//        sleepWait(req);
+    if (!req->waitOnDone(3000))
+        sleepWait(req);
     libos_print("return val: %ld", req->sys_ret);
     int ret = (int)req->sys_ret;
     req->fillEnclave(enclave_args);
