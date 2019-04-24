@@ -74,6 +74,8 @@ void Scheduler::schedule() {
         /* decide if we do need a context switch */
         if (*current != prev)
             (*current)->thread->jumpTo(prev ? prev->thread : nullptr);
+        else
+            enableInterrupt();
     } else {
         lock.unlock();
         /* if it has already been idling */
@@ -81,6 +83,8 @@ void Scheduler::schedule() {
         *current = idle.get();
         if (*current != prev)
             (*idle)->thread->jumpTo(prev ? prev->thread : nullptr);
+        else
+            enableInterrupt();
     }
 
 }
