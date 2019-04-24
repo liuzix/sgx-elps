@@ -8,6 +8,7 @@
 #define STACK_SIZE 8192
 using namespace std;
 using namespace boost::context::detail;
+using namespace boost;
 
 struct pthread {
     /* Part 1 -- these fields may be external or
@@ -51,7 +52,7 @@ struct pthread {
     uintptr_t *dtv_copy;
 };
 
-class UserThread : public boost::intrusive::unordered_set_base_hook<> {
+class UserThread : public boost::intrusive::list_base_hook<> {
     void start();
     void terminate();
 public:
@@ -67,7 +68,7 @@ public:
     UserThread(function<int(void)> _entry);
     UserThread(int tid);
     pthread* getFs() { return &this->pt_local; }
-    boost::intrusive::unordered_set_member_hook<> member_hook_;
+    intrusive::list_member_hook<> member_hook_;
 };
 
 

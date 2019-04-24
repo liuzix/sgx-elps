@@ -63,5 +63,10 @@ void UserThread::jumpTo(UserThread *from) {
 }
 
 extern "C" pthread* libos_pthread_self(void) {
+    struct pthread *self;
+    __asm__ ("mov %%fs:0,%0" : "=r" (self) );
+
+    if (self)
+        return self;
     return (**scheduler->getCurrent())->thread->getFs();
 }

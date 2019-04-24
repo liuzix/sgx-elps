@@ -13,6 +13,7 @@ int EnclaveThread::threadCounter = 0;
 std::atomic<int> aexCounter = 0;
 
 std::map<uint64_t, atomic<char>> sig_flag_map;
+extern std::atomic_flag __in_enclave;
 
 /*
  * We keep these functions outside the class because we want it to

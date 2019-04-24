@@ -18,6 +18,7 @@
 #include <list>
 
 Queue<RequestBase*> *requestQueue = nullptr;
+
 extern "C" void __temp_libc_start_init(void);
 extern "C" void __eexit(int ret);
 extern "C" int __async_swap(void *addr);

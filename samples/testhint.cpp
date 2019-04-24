@@ -4,63 +4,48 @@
 #include <stdlib.h>
 #include "../libOS/mmap.h"
 #include "../libOS/panic.h"
-#include <pthread.h>
+#include "../libOS/futex.h"
 
 #define MEM_SIZE 0x1000000
 #define STEP     0x10000
 
-struct pthread {
-    /* Part 1 -- these fields may be external or
-     * internal (accessed via asm) ABI. Do not change. */
-    struct pthread *self;
-    uintptr_t *dtv;
-    struct pthread *prev, *next; /* non-ABI */
-    uintptr_t sysinfo;
-    uintptr_t canary, canary2;
+uint32_t j = 0;
 
-    /* Part 2 -- implementation details, non-ABI. */
-    int tid = 0xBEEFBEEF;
-    int errno_val;
-    volatile int detach_state;
-    volatile int cancel;
-    volatile unsigned char canceldisable, cancelasync;
-    unsigned char tsd_used:1;
-    unsigned char dlerror_flag:1;
-    unsigned char *map_base;
-    size_t map_size;
-    void *stack;
-    size_t stack_size;
-    size_t guard_size;
-    void *result;
-    struct __ptcb *cancelbuf;
-    void **tsd;
-    struct {
-        volatile void *volatile head;
-        long off;
-        volatile void *volatile pending;
-    } robust_list;
-    volatile int timer_id;
-    locale_t locale;
-    volatile int killlock[1];
-    char *dlerror_buf;
-    void *stdio_locks;
-
-    /* Part 3 -- the positions of these fields relative to
-     * the end of the structure is external and internal ABI. */
-    uintptr_t canary_at_end;
-    uintptr_t *dtv_copy;
-};
+int workerThread(void) {
+    unsigned long i;
+    libos_print("Worker Thread Launched.");
+    getSharedTLS()->inInterrupt->store(false);
+    while (1) {
+        libos_print("[2]: Interrupt state: %d", (int)*getSharedTLS()->inInterrupt);
+        libos_futex(&j, FUTEX_WAKE, 0, 0, 0, 0);
+        libos_print("[2]: Wake up finished.");
+        scheduler->schedule();
+        while (i < 0xffffff)
+            i++;
+        i = 0;
+    }
+    return 0;
+}
 
 int main(int argc, char **argv)
 {
     void *addr = libos_mmap(NULL, MEM_SIZE);
-    int j = 0;
     unsigned long self;
-    pthread_t p;
 
-    p = pthread_self();
-    libos_print("tid: 0x%lx", ((pthread *)p)->tid);
-    return 0;
+    libos_print("[1]: main thread launched queue len: %d", scheduler->queueSize());
+    auto worker = new UserThread(workerThread);
+    scheduler->enqueueTask(worker->se);
+    libos_print("[1]: Enqueue thread 2, queue len: %d", scheduler->queueSize());
+
+    int i = 5;
+    while (i--) {
+        libos_print("We are gonna sleep!");
+        libos_print("[1]: Interrupt state: %d", (int)*getSharedTLS()->inInterrupt);
+        libos_futex(&j, FUTEX_WAIT, 0, 0, 0, 0);
+    }
+
+    while (j < 0xffffffffff)
+        j++;
     libos_print("application addr: 0x%lx", (uint64_t)addr);
     if (addr == (void *)-1) {
        return -1;
@@ -79,4 +64,5 @@ int main(int argc, char **argv)
     libos_print("total access: %d", j);
     return 0;
 }
+
 

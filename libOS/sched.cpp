@@ -82,6 +82,7 @@ void Scheduler::schedule() {
         if (*current != prev)
             (*idle)->thread->jumpTo(prev ? prev->thread : nullptr);
     }
+
 }
 
 void Scheduler::setIdle(SchedEntity &se) {

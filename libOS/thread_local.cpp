@@ -1,5 +1,9 @@
 #include "thread_local.h"
 #include <libOS_tls.h>
+#include <atomic>
+#include "panic.h"
+
+class UserThread;
 
 uint64_t readQWordFromGS(size_t offset) {
     uint64_t ret;
