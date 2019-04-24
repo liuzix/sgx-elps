@@ -127,7 +127,8 @@ shared_ptr<EnclaveMainThread> ELFLoader::load() {
     Elf_Half seg_num = reader.segments.size();
     int i;
     uint64_t phdr;
-
+    vaddr tlsBase = 0;
+    size_t tlsLen = 0;
     for (i = 0; i < seg_num; i++) {
         const segment *pseg = reader.segments[i];
 
@@ -137,7 +138,7 @@ shared_ptr<EnclaveMainThread> ELFLoader::load() {
             break;
         case PT_PHDR:
             phdr = pseg->get_virtual_address();
-        case PT_LOAD:
+        case PT_LOAD: {
             Elf64_Addr p_vaddr = pseg->get_virtual_address();
             Elf_Xword p_filesz = pseg->get_file_size();
             Elf_Xword p_memsz = pseg->get_memory_size();
@@ -172,13 +173,18 @@ shared_ptr<EnclaveMainThread> ELFLoader::load() {
 
             munmap(base, allocend - allocbegin);
             break;
-
+        }
+        case PT_TLS:
+            tlsBase = pseg->get_virtual_address();
+            tlsLen = pseg->get_memory_size();
+            break;
         }
     }
 
     auto ret = enclaveManager->createThread<EnclaveMainThread>((vaddr)reader.get_entry() + this->loadBias);
     ret->setBias(this->loadBias);
-
+    ret->setUserTLS(tlsBase + this->loadBias, tlsLen);
+    console->trace("ELF load: TLS base = 0x{:x}, TLS size = 0x{:x}", tlsBase, tlsLen);
     /* Set auxiliary vector */
     this->setAuxEntry((uint64_t)reader.get_entry() + this->loadBias);
     this->setAuxPhdr(phdr + this->loadBias);

@@ -5,6 +5,9 @@
 #include <atomic>
 
 std::atomic_int counter;
+void *tlsBase;
+size_t tlsLength;
+
 
 struct transfer_data {
     UserThread *prev;
@@ -19,6 +22,7 @@ extern "C" void __entry_helper(transfer_t transfer) {
     }
     getSharedTLS()->preempt_injection_stack = data->cur->preempt_stack;
     data->cur->entry();
+    enableInterrupt();
 }
 
 /* this is just to make the debugger happy */
@@ -41,15 +45,23 @@ UserThread::UserThread(function<int(void)> _entry)
     this->preempt_stack += 4096 - 16;
     //scheduler->enqueueTask(this->se); 
     request_obj = unsafeMalloc(sizeof(SwapRequest));
+    
+    pt_local = allocateTCB();
 }
 
 UserThread::UserThread(int tid)
     : se(this) {
-   this->pt_local.tid = tid;
+    pt_local = allocateTCB();
+    this->pt_local->tid = tid;
+}
+
+static inline void setFSReg(uint64_t val) {
+    __asm__("wrfsbase %0":: "r"(val));
 }
 
 void UserThread::jumpTo(UserThread *from) {
     libos_print("switching to thread %d, from thread %d", this->id, from ? from->id: -1); 
+    setFSReg((uint64_t)this->pt_local);
     transfer_data t = { .prev = from, .cur = this };
     libos_print("loading context %lx", this->fcxt);
     transfer_t ret_t = jump_fcontext(this->fcxt, (void *)&t);
@@ -63,5 +75,18 @@ void UserThread::jumpTo(UserThread *from) {
 }
 
 extern "C" pthread* libos_pthread_self(void) {
-    return (**scheduler->getCurrent())->thread->getFs();
+    pthread *ret;
+    __asm__("movq %%fs:0, %0": "=r"(ret));
+    return ret;
+
 }
+
+pthread *allocateTCB () {
+    char *TCB = (char *)malloc(tlsLength + sizeof(pthread));
+    auto pthreadPtr = new (TCB + tlsLength) pthread;
+    pthreadPtr->self = pthreadPtr;
+    libos_print("tlbBase = 0x%lx", tlsBase);
+    memcpy(TCB, tlsBase, tlsLength);
+    return pthreadPtr;
+}
+

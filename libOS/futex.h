@@ -1,7 +1,7 @@
 #ifndef _LIBOS_FUTEX_H_
 #define _LIBOS_FUTEX_H_
 #include "user_thread.h"
-#include "panic.cpp"
+#include "panic.h"
 
 #include <boost/intrusive/unordered_set.hpp>
 #include <boost/functional/hash.hpp>
@@ -14,7 +14,7 @@ using namespace boost;
 
 struct UserThreadEqual {
     bool operator()(const UserThread &lhs, const UserThread &rhs) const {
-        return lhs.pt_local.tid == rhs.pt_local.tid ;
+        return lhs.pt_local->tid == rhs.pt_local->tid ;
     }
     typedef UserThread first_argument_type;
     typedef UserThread second_argument_type;
@@ -24,7 +24,7 @@ struct UserThreadEqual {
 struct UserThreadHash {
     std::size_t operator()(UserThread const&t) const {
         boost::hash<int> hasher;
-        return hasher(t.pt_local.tid);
+        return hasher(t.pt_local->tid);
     }
 };
 
@@ -35,16 +35,18 @@ typedef intrusive::unordered_set<UserThread,
 //FutexQueue *futexQueue;
 
 inline void INIT_FUTEX_QUEUE(void) {
-    FutexQueue::bucket_type futex_queue_buckets[MAX_FUTEX_VAR];
+    FutexQueue::bucket_type *futex_queue_buckets = new FutexQueue::bucket_type[MAX_FUTEX_VAR];
     FutexQueue futexQueue= FutexQueue(FutexQueue::bucket_traits(futex_queue_buckets, MAX_FUTEX_VAR));
 
-    UserThread u(123);
+    UserThread *u = new UserThread(123);
     UserThread u2(1234);
     UserThread u3(1235);
     UserThread u4(12);
     UserThread u5(13);
     libos_print("testing thread created.");
-    futexQueue.insert(u);
+    futexQueue.insert(*u);
+    
+
     //futexQueue.insert(u2);
     //futexQueue.insert(u3);
     //futexQueue.insert(u4);

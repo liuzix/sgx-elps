@@ -5,6 +5,9 @@
 #include <boost/intrusive/unordered_set.hpp>
 #include <boost/functional/hash.hpp>
 
+extern void *tlsBase;
+extern size_t tlsLength;
+
 #define STACK_SIZE 8192
 using namespace std;
 using namespace boost::context::detail;
@@ -52,11 +55,10 @@ struct pthread {
 };
 
 class UserThread : public boost::intrusive::unordered_set_base_hook<> {
-    void start();
     void terminate();
 public:
     fcontext_t fcxt;
-    pthread pt_local;
+    pthread *pt_local;
     uint64_t preempt_stack;
     function<int(void)> entry;
     SchedEntity se;
@@ -66,8 +68,8 @@ public:
     /* for creating new thread */
     UserThread(function<int(void)> _entry);
     UserThread(int tid);
-    pthread* getFs() { return &this->pt_local; }
     boost::intrusive::unordered_set_member_hook<> member_hook_;
 };
 
+pthread *allocateTCB();
 

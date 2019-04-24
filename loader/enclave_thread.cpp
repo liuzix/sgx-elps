@@ -177,3 +177,8 @@ void EnclaveThread::setBias(size_t len) {
 void EnclaveThread::setJiffies(uint64_t *p) {
     this->sharedTLS.pjiffies = p;
 }
+
+void EnclaveMainThread::setUserTLS(vaddr base, size_t len) {
+    this->controlStruct.mainArgs.tlsBase = (void *)base;
+    this->controlStruct.mainArgs.tlsSize = len;
+}

@@ -23,11 +23,8 @@ struct main_args_t {
     size_t heapLength;
     void *unsafeHeapBase;
     size_t unsafeHeapLength;
-};
-
-struct slave_args_t {
-    void *(*job)(void *);
-    void *arg;
+    void *tlsBase;
+    size_t tlsSize;
 };
 
 struct panic_struct {
@@ -41,10 +38,7 @@ struct panic_struct {
 };
 
 struct libOS_control_struct {
-    union {
-        main_args_t mainArgs;
-        slave_args_t slaveArgs;
-    };
+    main_args_t mainArgs;
 
     /* for debugging */
     unsigned int magic = CONTROL_STRUCT_MAGIC;

@@ -6,6 +6,7 @@
 #include "../libOS/panic.h"
 #include <pthread.h>
 
+__thread int test = 0;
 #define MEM_SIZE 0x1000000
 #define STEP     0x10000
 
@@ -53,6 +54,7 @@ struct pthread {
 
 int main(int argc, char **argv)
 {
+    test ++;
     void *addr = libos_mmap(NULL, MEM_SIZE);
     int j = 0;
     unsigned long self;

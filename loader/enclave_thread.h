@@ -82,6 +82,7 @@ public:
     void setUnsafeHeap(void *base, size_t len);
     void setEnvs(char **envp);
     void setAux(size_t *auxv);
+    void setUserTLS(vaddr base, size_t len);
 };
 
 extern "C" int __eenter(vaddr tcs);

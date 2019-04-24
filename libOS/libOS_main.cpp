@@ -43,6 +43,7 @@ int newThread(int argc, char **argv) {
     libos_print("Enabling interrupt");
     getSharedTLS()->inInterrupt->store(false);
 
+    INIT_FUTEX_QUEUE();
     auto schedReady = createUnsafeObj<SchedulerRequest>(SchedulerRequest::SchedulerRequestType::SchedReady);
     requestQueue->push(schedReady);
     int ret = main(argc, argv);
@@ -153,6 +154,10 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
     requestQueue = ctrl_struct->requestQueue;
     initPanic(ctrl_struct->panic);
     libos_print("We are inside LibOS!");
+    
+    // set TLS initialization parameters
+    tlsBase = ctrl_struct->mainArgs.tlsBase;
+    tlsLength = ctrl_struct->mainArgs.tlsSize;
 
     initUnsafeMalloc(ctrl_struct->mainArgs.unsafeHeapBase, ctrl_struct->mainArgs.unsafeHeapLength);
     writeToConsole("UnsafeMalloc intialization successful.");
@@ -167,7 +172,7 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
     initSyscallTable();
     scheduler_init();
     initWatchList();
-    INIT_FUTEX_QUEUE();
+    //INIT_FUTEX_QUEUE();
     scheduler->setIdle((new UserThread(idleThread))->se);
     auto mainThr = new UserThread(std::bind(newThread, ctrl_struct->mainArgs.argc, ctrl_struct->mainArgs.argv));
     scheduler->enqueueTask(mainThr->se);

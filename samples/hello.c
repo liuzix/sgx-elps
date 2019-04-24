@@ -10,7 +10,7 @@ int main () {
     int i = 0;
     int test  = 0;
     int* p = NULL;
-
+    test++;
     for (; i <= 10000; i++)
         test += i;
 /*    asm volatile ("mov $0x1234, %%rax\n\t"
