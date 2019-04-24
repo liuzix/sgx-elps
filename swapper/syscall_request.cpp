@@ -4,7 +4,7 @@
 
 std::shared_ptr<spdlog::logger> syscallConsole = spdlog::stdout_color_mt("syscall");
 
-void syscallRequestHandler(SyscallRequest *req) {
+void syscallRequestHandler(SwapperManager *manager, SyscallRequest *req) {
 
 
     syscallConsole->info("-----SYSCALL({})-----", req->fm_list.syscall_num);
@@ -21,5 +21,7 @@ void syscallRequestHandler(SyscallRequest *req) {
                                           req->args[3].arg,
                                           req->args[4].arg,
                                           req->args[5].arg);
+    req->setDone();
+    manager->wakeUpThread();
 }
 

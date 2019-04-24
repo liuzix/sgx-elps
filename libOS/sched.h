@@ -18,7 +18,7 @@ extern std::atomic<steady_clock::duration> *timeStamp;
 class UserThread;
 
 struct SchedEntity {
-    int32_t ticket; 
+    int32_t ticket;
     UserThread *thread;
     list_member_hook<> member_hook_;
     set_member_hook<> set_member_hook_;
@@ -48,6 +48,7 @@ class Scheduler {
     void enqueueTask(SchedEntity &se);
     void dequeueTask(SchedEntity &se);
     void setIdle(SchedEntity &se);
+    size_t queueSize() { return queue.size(); };
     PerCPU<SchedEntity *>* getCurrent() { return &this->current; }
 };
 

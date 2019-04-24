@@ -3,14 +3,14 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
-__thread int test = 0;
+//__thread int test = 0;
 
 
 int main () {
     int i = 0;
     int test  = 0;
-    int* p = NULL;
-    test++;
+//    int* p = NULL;
+
     for (; i <= 10000; i++)
         test += i;
 /*    asm volatile ("mov $0x1234, %%rax\n\t"
@@ -20,19 +20,14 @@ int main () {
             :::"rax", "rbx", "rcx", "rdx");
 */
     int fd;
-//    fd = syscall(2,"/home/kaige/sgx-elps/samples/read_dst.txt", O_RDWR);
-//    char buf[10] = "----------";
-    char buf[256];
-//    syscall(0, fd, buf, 256);
-//    syscall(1, fd, buf, 10);
-//    syscall(3, fd);
+    char buf[256] = "testtesttest";
+    buf[255] = 0;
 
-    fd = open("../samples/read_dst.txt", O_RDWR);
-    read(fd, buf, 256);
-    close(fd);
+//    fd = open("../samples/read_dst.txt", O_RDWR);
+//    write(fd, buf, 256);
+//    close(fd);
 
-
-//    printf("try this\n");
+    printf("--------------------try this\n---\n");
+    printf("should print this\n");
     return test;
 }
-

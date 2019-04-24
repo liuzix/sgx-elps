@@ -91,9 +91,12 @@ public:
     }
     ~SyscallRequest() {
         for (int i = 0; i < 6; i++)
-            if (args[i].data != nullptr)
+            if (args[i].data != nullptr) {
+                deepClean(i);
                 unsafeFree(args[i].data);
+            }
     }
+    void deepClean(int i);
     bool fillArgs();
     void fillEnclave(long* enclave_args);
 };

@@ -9,5 +9,5 @@ int ioctl(int fd, int req, ...)
 	va_start(ap, req);
 	arg = va_arg(ap, void *);
 	va_end(ap);
-	return syscall(SYS_ioctl, fd, req, arg);
+	return __async_syscall(SYS_ioctl, fd, req, arg);
 }

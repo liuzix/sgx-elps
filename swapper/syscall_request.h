@@ -1,6 +1,7 @@
 #pragma once
   
 #include <request.h>
+#include <swapper.h>
 
-void syscallRequestHandler(SyscallRequest *req);
+void syscallRequestHandler(SwapperManager *manager, SyscallRequest *req);
 
