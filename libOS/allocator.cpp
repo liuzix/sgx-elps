@@ -1,8 +1,13 @@
 #include "allocator.h"
+#include "singleton.h"
+#include <unordered_map>
 #include "panic.h"
 #include "mmap.h"
+#include "user_thread.h"
+#include "sched.h"
 #include <iostream>
 #include <new>
+#include "request.h"
 #include <cmath>
 #include <iterator>
 #define MA_SIZE sizeof(MemoryArea)
@@ -173,3 +178,26 @@ size_t Allocator::getLen(void *ptr) {
     MemoryArea *ma = (MemoryArea *)((char *)ptr -  MA_SIZE);
     return ma->len;
 }
+
+/*
+template <typename ReqT>
+ReqT* Singleton<ReqT>::getRequest(void *addr) {
+    if (umap[(**scheduler->getCurrent())->thread->id] == NULL) {
+        ReqT *tmp = (ReqT *)unsafeMalloc(sizeof(ReqT));
+        req = new (tmp) ReqT((unsigned long)addr);
+    }
+    else
+        req = new ((ReqT *)(**scheduler->getCurrent())->thread->request_obj) ReqT((unsigned long)addr);
+    umap[(**scheduler->getCurrent())->thread->id] = req;
+    return req;
+}
+
+*/
+
+template<typename ReqT>
+std::unordered_map<int, ReqT*>* Singleton<ReqT>::umap;
+
+template class Singleton<SwapRequest>;
+template class Singleton<DebugRequest>;
+template class Singleton<SyscallRequest>;
+template class Singleton<SchedulerRequest>;

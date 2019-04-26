@@ -80,6 +80,8 @@ void EnclaveManager::__sigaction(int n, siginfo_t *siginfo, void *ucontext) {
 
     if (n == SIGSEGV)
         console->error("Segmentation Fault!");
+    else if (n == SIGFPE)
+        console->error("Floating point error!");
     else if (n == SIGINT) {
         console->error("SIGINT received");
         if (sigintCounter++ == 1)
@@ -104,7 +106,7 @@ void EnclaveManager::dump_sigaction() {
     sigaction(SIGSEGV, &sa, NULL);
     sigaction(7, &sa, NULL);
     sigaction(SIGILL, &sa, NULL);
-
+    sigaction(SIGFPE, &sa, NULL);
 }
 
 size_t *get_curr_auxv(ELFLoader &loader) {

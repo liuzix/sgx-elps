@@ -23,7 +23,7 @@ extern "C" void __temp_libc_start_init(void);
 extern "C" void __eexit(int ret);
 extern "C" int __async_swap(void *addr);
 extern "C" int __libc_start_main(int (*main)(int,char **,char **), int argc, char **argv);
-
+//extern Singleton<SwapRequest> sg;
 void initWatchList();
 
 
@@ -173,7 +173,6 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
     initSyscallTable();
     scheduler_init();
     initWatchList();
-    //INIT_FUTEX_QUEUE();
     scheduler->setIdle((new UserThread(idleThread))->se);
     auto mainThr = new UserThread(std::bind(newThread, ctrl_struct->mainArgs.argc, ctrl_struct->mainArgs.argv));
     scheduler->enqueueTask(mainThr->se);
