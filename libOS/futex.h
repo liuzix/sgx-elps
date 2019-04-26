@@ -63,7 +63,9 @@
 
 #define get_user_val(uval, addr) \
     {                           \
+        disableInterrupt();     \
         uval = *addr;           \
+        enableInterrupt();      \
     }
 
 using namespace boost;
@@ -71,6 +73,7 @@ using namespace boost;
 typedef intrusive::list<SchedEntity, member_hook<SchedEntity, list_member_hook<>,
                                      &SchedEntity::member_hook_> > FutexQueue;
 
+/* This is a bad name */
 class FutexBucket : public unordered_set_base_hook<>{
 private:
     FutexQueue q;
@@ -99,6 +102,12 @@ public:
         libos_print("remove thread: %d", (*it).thread->id);
         q.erase(q.iterator_to(se));
     }
+
+    friend bool operator== (const FutexBucket &a, const FutexBucket &b)
+    {  return a.waitAddr == b.waitAddr;  }
+
+    friend std::size_t hash_value(const FutexBucket &value)
+    {  return std::size_t(value.waitAddr); }
 };
 
 struct BucketEqual {
@@ -110,18 +119,21 @@ struct BucketEqual {
 struct BucketHash {
     std::size_t operator()(FutexBucket const &t) const {
         boost::hash<uint32_t *> hasher;
-        return hasher(t.waitAddr);
+        size_t res = hasher(t.waitAddr);
+        libos_print("[Hasher] 0x%lx -> 0x%lx", (uint64_t)t.waitAddr, res);
+        return res;
     }
 };
 
-typedef intrusive::unordered_set<FutexBucket,
+typedef intrusive::unordered_set<FutexBucket /*,
                                  intrusive::equal<BucketEqual>,
-                                 intrusive::hash<BucketHash>> FutexHash;
+                                 intrusive::hash<BucketHash>*/> FutexHash;
 
 template class intrusive::equal<BucketEqual>;
 template class intrusive::hash<BucketHash>;
-template class intrusive::unordered_set<FutexBucket, intrusive::equal<BucketEqual>, intrusive::hash<BucketHash>>;
+template class intrusive::unordered_set<FutexBucket/*, intrusive::equal<BucketEqual>, intrusive::hash<BucketHash>*/>;
 
+extern SpinLockNoTimer futexHashLock;
 extern FutexHash *futexHash;
 extern FutexHash::bucket_type *futex_queue_buckets;
 
@@ -135,31 +147,19 @@ inline void INIT_FUTEX_QUEUE(void) {
     UserThread u3(1235);
     UserThread u4(12);
     UserThread u5(13);
+
     libos_print("testing thread created.");
-
-    FutexBucket fb((uint64_t *)0x123);
-    FutexBucket fb2((uint64_t *)0x456);
+    FutexBucket fb((uint32_t *)0x7f7280393ec0);
+    fb.enqueue(u.se);
+    FutexBucket fb2((uint32_t *)0x7f7280393ec4);
     libos_print("testing bucket created.");
-
     futexHash->insert(fb);
     futexHash->insert(fb2);
-    auto b = futexHash->find((uint64_t*)0x123);
-    auto b3 = futexHash->find((uint64_t*)0x456);
 
-    (*b).enqueue(u);
-    (*b3).enqueue(u2);
-    auto b2 = futexHash->find((uint64_t*)0x123);
-    auto b4 = futexHash->find((uint64_t*)0x456);
-    auto t = (*b2).pop_front();
-    auto t2 = (*b4).pop_front();
-    libos_print("find tid: %d", t.pt_local.tid);
-    libos_print("find tid: %d", t2.pt_local.tid);
-    libos_print("find bucket: 0x%lx", (uint64_t)(*b).waitAddr);
-    libos_print("find bucket: 0x%lx", (uint64_t)(*b2).waitAddr);
-    libos_print("find bucket: 0x%lx", (uint64_t)(*b3).waitAddr);
-    libos_print("find bucket: 0x%lx", (uint64_t)(*b4).waitAddr);
-    futexHash->erase((uint64_t*)0x123);
-    futexHash->erase((uint64_t*)0x456);
+    fb.pop_front();
+    futexHash->erase((uint32_t*)0x7f7280393ec0);
+    futexHash->erase((uint32_t*)0x7f7280393ec4);
+    libos_print("Test passed.");
 */
 }
 

@@ -48,6 +48,7 @@ UserThread::UserThread(function<int(void)> _entry)
     request_obj = unsafeMalloc(sizeof(SwapRequest));
     
     pt_local = allocateTCB();
+    pt_local->tid = 0xbeefbeef;
 }
 
 UserThread::UserThread(int tid)
