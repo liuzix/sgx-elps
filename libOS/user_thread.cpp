@@ -16,14 +16,23 @@ struct transfer_data {
 
 extern "C" void __entry_helper(transfer_t transfer) {
     transfer_data *data = (transfer_data *)transfer.data;
-    if (data->prev) {
+    auto prev = data->prev;
+    auto cur = data->cur;
+    if (prev) {
         libos_print("saving context %lx to thread %d", transfer.fctx, data->prev->id);
-        data->prev->fcxt = transfer.fctx;
+        prev->fcxt = transfer.fctx;
     }
-    getSharedTLS()->preempt_injection_stack = data->cur->preempt_stack;
+    getSharedTLS()->preempt_injection_stack = cur->preempt_stack;
+    if (prev) {
+        libos_print("unlock %d", prev->id);
+        prev->contextLock.unlock();
+    }
+
+    libos_print("unlock %d", cur->id);
+    cur->contextLock.unlock();
     enableInterrupt();
-    int val = data->cur->entry();
-    data->cur->terminate(val);
+    int val = cur->entry();
+    cur->terminate(val);
 }
 
 /* this is just to make the debugger happy */
@@ -71,14 +80,20 @@ static inline void setFSReg(uint64_t val) {
 void UserThread::jumpTo(UserThread *from) {
     libos_print("switching to thread %d, from thread %d", this->id, from ? from->id: -1); 
     setFSReg((uint64_t)this->pt_local);
-    transfer_data *t = new transfer_data{ .prev = from, .cur = this };
+    transfer_data t{ .prev = from, .cur = this };
     libos_print("loading context %lx", this->fcxt);
-    transfer_t ret_t = jump_fcontext(this->fcxt, (void *)t);
+    transfer_t ret_t = jump_fcontext(this->fcxt, (void *)&t);
     transfer_data *data = (transfer_data *)ret_t.data;
-    if (data->prev) {
+    auto prev = data->prev;
+    auto cur = data->cur;
+    if (prev) {
         libos_print("saving context %lx to thread %d", ret_t.fctx, data->prev->id);
-        data->prev->fcxt = ret_t.fctx;
+        prev->fcxt = ret_t.fctx;
+        libos_print("unlock %d", prev->id);
+        prev->contextLock.unlock();
     }
+    libos_print("unlock %d", cur->id);
+    cur->contextLock.unlock();
     getSharedTLS()->preempt_injection_stack = data->cur->preempt_stack;
     enableInterrupt();
 }

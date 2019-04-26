@@ -1,5 +1,6 @@
 #pragma once
 #include "sched.h"
+#include "panic.h"
 #include <boost/context/detail/fcontext.hpp>
 #include <functional>
 #include <boost/intrusive/unordered_set.hpp>
@@ -57,6 +58,7 @@ struct pthread {
 
 class UserThread : public boost::intrusive::list_base_hook<> {
 public:
+    SpinLock contextLock;
     fcontext_t fcxt;
     pthread *pt_local;
     uint64_t preempt_stack;
@@ -74,3 +76,17 @@ public:
 
 pthread *allocateTCB();
 
+static inline void doubleLockThread(UserThread *t1, UserThread *t2) {
+    libos_print("t1 = %d, t2 = %d", t1 ? t1->id : -1,
+            t2 ? t2->id : -1);
+    if (t1 == t2) return;
+    else if (!t1) t2->contextLock.lock();
+    else if (!t2) t1->contextLock.lock();
+    else if (t1->id > t2->id) {
+        t2->contextLock.lock();
+        t1->contextLock.lock();
+    } else {
+        t1->contextLock.lock();
+        t2->contextLock.lock();
+    }
+}

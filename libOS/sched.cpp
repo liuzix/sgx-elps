@@ -70,6 +70,7 @@ void Scheduler::schedule() {
         *current = &queue.front();
         current.get()->running = true;
         queue.pop_front();
+        doubleLockThread(current.get()->thread, prev ? prev->thread : nullptr);
         lock.unlock();
         /* decide if we do need a context switch */
         if (*current != prev)
@@ -77,6 +78,7 @@ void Scheduler::schedule() {
         else
             enableInterrupt();
     } else {
+        doubleLockThread(current.get()->thread, prev ? prev->thread : nullptr);
         lock.unlock();
         /* if it has already been idling */
         //if (!*current) return;
