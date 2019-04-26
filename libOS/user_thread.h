@@ -56,7 +56,6 @@ struct pthread {
 };
 
 class UserThread : public boost::intrusive::list_base_hook<> {
-    void terminate();
 public:
     fcontext_t fcxt;
     pthread *pt_local;
@@ -70,6 +69,7 @@ public:
     UserThread(function<int(void)> _entry);
     UserThread(int tid);
     intrusive::list_member_hook<> member_hook_;
+    void terminate(int val);
 };
 
 pthread *allocateTCB();

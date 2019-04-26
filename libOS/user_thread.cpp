@@ -21,8 +21,9 @@ extern "C" void __entry_helper(transfer_t transfer) {
         data->prev->fcxt = transfer.fctx;
     }
     getSharedTLS()->preempt_injection_stack = data->cur->preempt_stack;
-    data->cur->entry();
     enableInterrupt();
+    int val = data->cur->entry();
+    data->cur->terminate(val);
 }
 
 /* this is just to make the debugger happy */
@@ -55,6 +56,14 @@ UserThread::UserThread(int tid)
     this->pt_local->tid = tid;
 }
 
+void UserThread::terminate(int val) {
+    libos_print("Thread %d: returned %d",
+            this->id, val);
+    disableInterrupt();
+    scheduler->dequeueTask(*scheduler->current.get());
+    scheduler->schedule();
+}
+
 static inline void setFSReg(uint64_t val) {
     __asm__("wrfsbase %0":: "r"(val));
 }
@@ -62,9 +71,9 @@ static inline void setFSReg(uint64_t val) {
 void UserThread::jumpTo(UserThread *from) {
     libos_print("switching to thread %d, from thread %d", this->id, from ? from->id: -1); 
     setFSReg((uint64_t)this->pt_local);
-    transfer_data t = { .prev = from, .cur = this };
+    transfer_data *t = new transfer_data{ .prev = from, .cur = this };
     libos_print("loading context %lx", this->fcxt);
-    transfer_t ret_t = jump_fcontext(this->fcxt, (void *)&t);
+    transfer_t ret_t = jump_fcontext(this->fcxt, (void *)t);
     transfer_data *data = (transfer_data *)ret_t.data;
     if (data->prev) {
         libos_print("saving context %lx to thread %d", ret_t.fctx, data->prev->id);

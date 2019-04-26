@@ -16,7 +16,8 @@ int workerThread(void) {
     unsigned long i;
     libos_print("Worker Thread Launched.");
     getSharedTLS()->inInterrupt->store(false);
-    while (1) {
+    int k = 0;
+    while (k++ < 20) {
         libos_print("[2]: Interrupt state: %d", (int)*getSharedTLS()->inInterrupt);
         libos_futex(&j, FUTEX_WAKE, 0, 0, 0, 0);
         libos_print("[2]: Wake up finished.");
