@@ -64,7 +64,7 @@ void EnclaveManager::__sigaction(int n, siginfo_t *siginfo, void *ucontext) {
     console->error("rip: 0x{:x}, __aex_handler: 0x{:x}", (uint64_t)rip, (uint64_t)&__aex_handler);
     /* Signal outside the enclave */
     if (rip != (uint64_t)__aex_handler) {
-        console->error("Segmentation Fault !");
+        console->error("Receive signal {} outside the enclave.", n);
         console->flush();
         exit(-1);
     }
