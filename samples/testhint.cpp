@@ -45,6 +45,7 @@ int workerThread(void) {
 
         libos_futex(&j, FUTEX_REQUEUE, 1, 5, &k, 0);
         libos_print("[13]: Requeue finished. %d", scheduler->queueSize());
+        libos_print("Interrupt status: %d", (int)*getSharedTLS()->inInterrupt);
         while (i < 0xfffffff)
             i++;
         i = 0;
@@ -69,6 +70,7 @@ int sleepThread(int i) {
 
 int main(int argc, char **argv)
 {
+/*
     test ++;
     void *addr = libos_mmap(NULL, MEM_SIZE);
     unsigned long self;
@@ -110,7 +112,10 @@ int main(int argc, char **argv)
     if (addr == (void *)-1) {
        return -1;
     }
-    //j = *(int *)(0x0);
+*/
+
+    void *addr = libos_mmap(NULL, MEM_SIZE);
+    int j = 0;
     for(size_t i = 0; i < MEM_SIZE; i += STEP)
     {
         //uint64_t jiffies = *pjiffies;

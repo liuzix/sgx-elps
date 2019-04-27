@@ -82,8 +82,6 @@ void sleepWait(RequestBase *req) {
 
 
 extern "C" int __async_swap(void *addr) {
-    //SwapRequest *req = new ((SwapRequest *)(**scheduler->getCurrent())->thread->request_obj)
-                       //SwapRequest((unsigned long)addr);
     SwapRequest *req = Singleton<SwapRequest>::getRequest();
     req->addr = (unsigned long)addr;
     requestQueue->push(req);
