@@ -60,6 +60,10 @@ UserThread::UserThread(function<int(void)> _entry)
     pt_local->tid = 0xbeefbeef;
 }
 
+UserThread::UserThread() : se(this) {
+    this->id = counter.fetch_add(1);
+}
+
 UserThread::UserThread(int tid)
     : se(this) {
     pt_local = allocateTCB();
@@ -115,3 +119,26 @@ pthread *allocateTCB () {
     return pthreadPtr;
 }
 
+extern "C" long __set_tid_address(int *tidptr) {
+    UserThread *cur = scheduler->getCurrent()->get()->thread;
+    cur->clear_child_tid = tidptr;
+    *tidptr = cur->id;
+    return cur->id;
+}
+
+extern "C" int libos_clone(int (*fn)(void *), void *stack, void *arg, void *newtls, int *detach) {
+    libos_print("libos_clone!");
+    auto userThread = new UserThread;
+    userThread->fcxt = make_fcontext(stack, STACK_SIZE, __clear_rbp);
+    userThread->preempt_stack = (uint64_t)libos_mmap(NULL, 4096);
+    userThread->preempt_stack += 4096 - 16;
+    
+    pthread *pt = (pthread *)newtls;
+    pt->tid = userThread->id;
+    userThread->pt_local = pt;
+    
+    auto entry = std::bind(fn, arg);
+    userThread->entry = entry; 
+    userThread->clear_child_tid = detach;
+    return 0;
+}

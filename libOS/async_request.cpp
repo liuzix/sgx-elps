@@ -99,6 +99,7 @@ extern "C" int __async_syscall(unsigned int n, ...) {
     int ret_tmp = interpretSyscall(fm_l, n);
     if (!ret_tmp) {
         libos_print("No support for system call [%u]", n);
+        __asm__("ud2");
         return -1;
     }
 

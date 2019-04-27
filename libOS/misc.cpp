@@ -34,14 +34,12 @@ extern weak hidden void (*const __init_array_start)(void), (*const __init_array_
 
 void __temp_libc_start_init(void)
 {
-    _init();
+    //_init();
 
     uintptr_t a = (uintptr_t)&__init_array_start;
-    libos_print("init_array: %p", a);
     for (; a<(uintptr_t)&__init_array_end; a+=sizeof(void(*)())) {
-        libos_print("init function: %p", *(void **)a);
         uintptr_t cur_func = *(uintptr_t *)a;
-        libos_print("calling function: 0x%lx", cur_func);
+        libos_print("calling function: 0x%lx", cur_func - getSharedTLS()->loadBias);
         ((void (*)(void))cur_func)();
     }
 }

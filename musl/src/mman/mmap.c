@@ -13,29 +13,8 @@ weak_alias(dummy, __vm_wait);
 
 void *__mmap(void *start, size_t len, int prot, int flags, int fd, off_t off)
 {
-	long ret;
-	if (off & OFF_MASK) {
-		errno = EINVAL;
-		return MAP_FAILED;
-	}
-	if (len >= PTRDIFF_MAX) {
-		errno = ENOMEM;
-		return MAP_FAILED;
-	}
-	if (flags & MAP_FIXED) {
-		__vm_wait();
-	}
-#ifdef SYS_mmap2
-	ret = __async_syscall(SYS_mmap2, start, len, prot, flags, fd, off/UNIT);
-#else
-	ret = __async_syscall(SYS_mmap, start, len, prot, flags, fd, off);
-#endif
-	/* Fixup incorrect EPERM from kernel. */
-	if (ret == -EPERM && !start && (flags&MAP_ANON) && !(flags&MAP_FIXED))
-		ret = -ENOMEM;
-	return (void *)__syscall_ret(ret);
+    mmap(start, len, prot, flags, fd, off);    
 }
 
-weak_alias(__mmap, mmap);
 
-weak_alias(mmap, mmap64);
+weak_alias(__mmap, mmap64);

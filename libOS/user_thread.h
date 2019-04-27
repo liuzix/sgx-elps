@@ -58,19 +58,35 @@ struct pthread {
 
 class UserThread : public boost::intrusive::list_base_hook<> {
 public:
+    /* on context switch we lock the context lock of both threads */
     SpinLock contextLock;
+
+    /* this is actually the stack pointer of the saved context */
     fcontext_t fcxt;
+
+    /* for pthread implementation */
     pthread *pt_local;
+
+    /* the stack where the injected preemption function is run */
     uint64_t preempt_stack;
+
     function<int(void)> entry;
     SchedEntity se;
+
+    int *clear_child_tid = 0;
     int id;
-    void jumpTo(UserThread *from);
-    void *request_obj;
     /* for creating new thread */
     UserThread(function<int(void)> _entry);
+
+    /* for implementing pthread */
+    UserThread();
     UserThread(int tid);
+
     intrusive::list_member_hook<> member_hook_;
+    
+    // ==============================
+    void jumpTo(UserThread *from);
+    void *request_obj;
     void terminate(int val);
 };
 

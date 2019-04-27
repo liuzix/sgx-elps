@@ -1,4 +1,5 @@
 #include <control_struct.h>
+#include <iostream>
 #include <functional>
 #include <string.h>
 #include "panic.h"
@@ -26,7 +27,6 @@ extern "C" int __libc_start_main(int (*main)(int,char **,char **), int argc, cha
 
 void initWatchList();
 
-
 uint64_t *pjiffies;
 
 int idleThread() {
@@ -47,8 +47,9 @@ int newThread(int argc, char **argv) {
     INIT_FUTEX_QUEUE();
     auto schedReady = createUnsafeObj<SchedulerRequest>(SchedulerRequest::SchedulerRequestType::SchedReady);
     requestQueue->push(schedReady);
-    int ret = main(argc, argv);
-    //int ret = __libc_start_main((int (*)(int,char **,char **))&main, argc, argv);
+    //int ret = main(argc, argv);
+    int ret = __libc_start_main((int (*)(int,char **,char **))&main, argc, argv);
+    std::cout << "test!" << std::endl;
     __eexit(ret);
     return 0;
 }
