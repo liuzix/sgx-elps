@@ -9,6 +9,7 @@
 #include "thread_local.h"
 #include "user_thread.h"
 #include <request.h>
+#include "singleton.h"
 #include <syscall_format.h>
 #include "elf.h"
 #include "logging.h"
@@ -45,7 +46,8 @@ int newThread(int argc, char **argv) {
     getSharedTLS()->inInterrupt->store(false);
 
     INIT_FUTEX_QUEUE();
-    auto schedReady = createUnsafeObj<SchedulerRequest>(SchedulerRequest::SchedulerRequestType::SchedReady);
+    //auto schedReady = createUnsafeObj<SchedulerRequest>(SchedulerRequest::SchedulerRequestType::SchedReady);
+    auto schedReady = Singleton<SchedulerRequest>::getRequest(SchedulerRequest::SchedulerRequestType::SchedReady);
     requestQueue->push(schedReady);
     int ret = main(argc, argv);
     //int ret = __libc_start_main((int (*)(int,char **,char **))&main, argc, argv);
