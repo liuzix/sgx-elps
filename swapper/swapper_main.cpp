@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <sys/epoll.h>
 #include <atomic>
+#include <sched.h>
 
 #define MAX_EVENTS 10
 
@@ -45,6 +46,17 @@ int fd_set_blocking(int fd, int blocking) {
         
 void SwapperManager::runWorker(int id) {
     console->info("Swapper thread started, id = {}", id); 
+
+    sched_param sp;
+    sp.sched_priority = sched_get_priority_max(SCHED_FIFO);
+    sched_setscheduler(0, SCHED_FIFO, &sp);
+    cpu_set_t  mask;
+    CPU_ZERO(&mask);
+    CPU_SET(6, &mask);
+    CPU_SET(3, &mask);
+    CPU_SET(4, &mask);
+    CPU_SET(5, &mask);
+    sched_setaffinity(0, sizeof(mask), &mask);
 
     RequestDispatcher dispatcher(id);
     dispatcher.addHandler<DebugRequest>(debugRequestHandler);

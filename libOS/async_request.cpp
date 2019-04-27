@@ -53,9 +53,9 @@ void watchListCheck() {
                 __asm__("ud2");
             }
             SchedEntity &se = *ticketIt;
-            scheduler->enqueueTask(se);
             ticketList->erase(ticketIt);
-            it = watchList->erase(it); 
+            it = watchList->erase(it);
+            scheduler->enqueueTask(se);
         } else {
             it++;
         }
@@ -83,6 +83,7 @@ void sleepWait(RequestBase *req) {
 
 extern "C" int __async_swap(void *addr) {
     SwapRequest *req = Singleton<SwapRequest>::getRequest();
+    //SwapRequest *req = createUnsafeObj<SwapRequest>();
     req->addr = (unsigned long)addr;
     requestQueue->push(req);
 

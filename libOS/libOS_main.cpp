@@ -155,7 +155,7 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
     requestQueue = ctrl_struct->requestQueue;
     initPanic(ctrl_struct->panic);
     libos_print("We are inside LibOS!");
-    
+
     // set TLS initialization parameters
     tlsBase = ctrl_struct->mainArgs.tlsBase;
     tlsLength = ctrl_struct->mainArgs.tlsSize;
