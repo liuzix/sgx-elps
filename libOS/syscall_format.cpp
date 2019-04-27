@@ -18,7 +18,7 @@ static unordered_map<unsigned int, unsigned int>* type_table;
 
 void initSyscallTable() {
     syscall_table = new unordered_map<unsigned int, vector<unsigned int>>();
-    type_table = new unordered_map<unsigned int, unsigned int>(); 
+    type_table = new unordered_map<unsigned int, unsigned int>();
 
     add_type_size(CHAR_PTR, 256);
     add_type_size(EVENT_PTR, sizeof(struct epoll_event));

@@ -101,7 +101,8 @@ void EnclaveThread::run() {
     static high_resolution_clock::time_point starttime = high_resolution_clock::now(), endtime;
 
     uint64_t cc1 = __rdtsc();
-    sgx_user_data u_data = {.load_bias = this->sharedTLS.loadBias, .tcs_addr = this->tcs};
+    //sgx_user_data u_data = {.load_bias = this->sharedTLS.loadBias, .tcs_addr = this->tcs};
+    sgx_user_data u_data = {.load_bias = 0, .tcs_addr = 0};
     ioctl(deviceHandle(), SGX_IOC_ENCLAVE_SET_USER_DATA, &u_data);
 
     for (;;) {

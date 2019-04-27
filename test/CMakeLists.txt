@@ -11,6 +11,4 @@ include_directories(../deps)
 add_executable(testall test.cpp)
 target_link_libraries(testall ${GTEST_LIBRARIES} pthread)
 
-add_executable(testMalloc test_malloc.cpp ../libOS/allocator.cpp)
-target_link_libraries(testMalloc ${GTEST_LIBRARIES} pthread)
 

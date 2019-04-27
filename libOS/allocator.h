@@ -8,6 +8,7 @@
 #include <cassert>
 #include <boost/intrusive/list.hpp>
 #include <boost/intrusive/rbtree.hpp>
+#include <unordered_map>
 #define CHUNK_LIST_SIZE 40
 using namespace boost::intrusive;
 
@@ -108,6 +109,7 @@ template <class T, class U>
 bool operator==(const UnsafeAllocator<T>&, const UnsafeAllocator<U>&) { return true; }
 template <class T, class U>
 bool operator!=(const UnsafeAllocator<T>&, const UnsafeAllocator<U>&) { return false; }
+
 
 
 #endif

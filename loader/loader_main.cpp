@@ -10,6 +10,7 @@
 #include <logging.h>
 #include <x86intrin.h>
 #include <ssa_dump.h>
+#include <sched.h>
 #include <sys/auxv.h>
 #include <sys/ioctl.h>
 #include "load_elf.h"
@@ -80,6 +81,8 @@ void EnclaveManager::__sigaction(int n, siginfo_t *siginfo, void *ucontext) {
 
     if (n == SIGSEGV)
         console->error("Segmentation Fault!");
+    else if (n == SIGFPE)
+        console->error("Floating point error!");
     else if (n == SIGINT) {
         console->error("SIGINT received");
         if (sigintCounter++ == 1)
@@ -104,7 +107,7 @@ void EnclaveManager::dump_sigaction() {
     sigaction(SIGSEGV, &sa, NULL);
     sigaction(7, &sa, NULL);
     sigaction(SIGILL, &sa, NULL);
-
+    sigaction(SIGFPE, &sa, NULL);
 }
 
 size_t *get_curr_auxv(ELFLoader &loader) {
@@ -162,12 +165,17 @@ struct sgx_user_data {
 #define SGX_IOC_ENCLAVE_SET_USER_DATA \
 	_IOW(SGX_MAGIC, 0X04, struct sgx_user_data)
 
-
 int main(int argc, char **argv, char **envp) {
     /*
      * Set up a timer outside the enclave for benchmarking
      * This is a workaround for not being able to use rdtsc inside encalve
      */
+    cpu_set_t  mask;
+    CPU_ZERO(&mask);
+    CPU_SET(0, &mask);
+    CPU_SET(1, &mask);
+    sched_setaffinity(0, sizeof(mask), &mask);
+
     std::thread ttimer(__timer);
     ttimer.detach();
 
@@ -223,6 +231,9 @@ int main(int argc, char **argv, char **envp) {
     swapperManager.launchWorkers();
     /* Set the sigsegv handler to dump the ssa */
     manager->dump_sigaction();
+    sched_param sp;
+    sp.sched_priority = sched_get_priority_max(SCHED_FIFO);
+    sched_setscheduler(0, SCHED_FIFO, &sp);
 
     /* launch the enclave threads */
     threadpool->launch();

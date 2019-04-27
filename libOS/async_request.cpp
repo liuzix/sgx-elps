@@ -1,6 +1,7 @@
 #include "allocator.h"
 #include "libos.h"
 #include "panic.h"
+#include "singleton.h"
 #include "sched.h"
 #include "thread_local.h"
 #include "user_thread.h"
@@ -33,6 +34,7 @@ WatchList *watchList;
 std::atomic_int32_t ticket;
 SpinLock *watchListLock;
 OrderedMap *ticketList;
+//extern Singleton<SwapRequest> sg;
 
 void initWatchList() {
     watchListLock = new SpinLock;
@@ -51,9 +53,9 @@ void watchListCheck() {
                 __asm__("ud2");
             }
             SchedEntity &se = *ticketIt;
-            scheduler->enqueueTask(se);
             ticketList->erase(ticketIt);
-            it = watchList->erase(it); 
+            it = watchList->erase(it);
+            scheduler->enqueueTask(se);
         } else {
             it++;
         }
@@ -80,8 +82,8 @@ void sleepWait(RequestBase *req) {
 
 
 extern "C" int __async_swap(void *addr) {
-    SwapRequest *req = new ((SwapRequest *)(**scheduler->getCurrent())->thread->request_obj)
-                       SwapRequest((unsigned long)addr);
+    SwapRequest *req = Singleton<SwapRequest>::getRequest();
+    //SwapRequest *req = createUnsafeObj<SwapRequest>();
     req->addr = (unsigned long)addr;
     requestQueue->push(req);
 
@@ -104,7 +106,10 @@ extern "C" int __async_syscall(unsigned int n, ...) {
     }
 
     /* Create SyscallReq */
-    SyscallRequest *req = createUnsafeObj<SyscallRequest>();
+
+    //SyscallRequest *req = createUnsafeObj<SyscallRequest>();
+    
+    SyscallRequest *req = Singleton<SyscallRequest>::getRequest();
     if (req == nullptr)
         return -1;
     /* Give this format info to req  */

@@ -1,4 +1,5 @@
 #include "sched.h"
+#include "singleton.h"
 #include "libos.h"
 #include "panic.h"
 #include "user_thread.h"
@@ -11,7 +12,7 @@ Scheduler *scheduler;
 void scheduler_init() {
     scheduler = new Scheduler;
 }
-
+/*
 void Scheduler::schedNotify() {
     SchedulerRequest *req = schedReqCache.get();
     if (!req) {
@@ -25,7 +26,14 @@ void Scheduler::schedNotify() {
     requestQueue->push(req);
     req->blockOnDone();
 }
+*/
+void Scheduler::schedNotify() {
 
+    getSharedTLS()->numTotalThread->fetch_add(1);
+    SchedulerRequest *req = Singleton<SchedulerRequest>::getRequest(SchedulerRequest::SchedulerRequestType::NewThread);
+    requestQueue->push(req); 
+    req->blockOnDone(); 
+}
 void Scheduler::enqueueTask(SchedEntity &se) {
     lock.lock();
     if(!se.running && !se.onQueue)

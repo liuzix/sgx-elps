@@ -10,6 +10,7 @@
 #include "thread_local.h"
 #include "user_thread.h"
 #include <request.h>
+#include "singleton.h"
 #include <syscall_format.h>
 #include "elf.h"
 #include "logging.h"
@@ -24,7 +25,7 @@ extern "C" void __temp_libc_start_init(void);
 extern "C" void __eexit(int ret);
 extern "C" int __async_swap(void *addr);
 extern "C" int __libc_start_main(int (*main)(int,char **,char **), int argc, char **argv);
-
+//extern Singleton<SwapRequest> sg;
 void initWatchList();
 
 uint64_t *pjiffies;
@@ -45,7 +46,8 @@ int newThread(int argc, char **argv) {
     getSharedTLS()->inInterrupt->store(false);
 
     INIT_FUTEX_QUEUE();
-    auto schedReady = createUnsafeObj<SchedulerRequest>(SchedulerRequest::SchedulerRequestType::SchedReady);
+    //auto schedReady = createUnsafeObj<SchedulerRequest>(SchedulerRequest::SchedulerRequestType::SchedReady);
+    auto schedReady = Singleton<SchedulerRequest>::getRequest(SchedulerRequest::SchedulerRequestType::SchedReady);
     requestQueue->push(schedReady);
     //int ret = main(argc, argv);
     int ret = __libc_start_main((int (*)(int,char **,char **))&main, argc, argv);
@@ -156,7 +158,7 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
     requestQueue = ctrl_struct->requestQueue;
     initPanic(ctrl_struct->panic);
     libos_print("We are inside LibOS!");
-    
+
     // set TLS initialization parameters
     tlsBase = ctrl_struct->mainArgs.tlsBase;
     tlsLength = ctrl_struct->mainArgs.tlsSize;
@@ -174,7 +176,6 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
     initSyscallTable();
     scheduler_init();
     initWatchList();
-    //INIT_FUTEX_QUEUE();
     scheduler->setIdle((new UserThread(idleThread))->se);
     auto mainThr = new UserThread(std::bind(newThread, ctrl_struct->mainArgs.argc, ctrl_struct->mainArgs.argv));
     scheduler->enqueueTask(mainThr->se);
