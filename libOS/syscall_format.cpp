@@ -13,10 +13,13 @@
 
 using namespace std;
 
-static unordered_map<unsigned int, vector<unsigned int>>* syscall_table;
+unordered_map<unsigned int, vector<unsigned int>>* syscall_table;
 static unordered_map<unsigned int, unsigned int>* type_table;
+static SpinLock *table_lock;
 
 void initSyscallTable() {
+    if (table_lock) __asm__("ud2");
+    table_lock = new SpinLock;
     syscall_table = new unordered_map<unsigned int, vector<unsigned int>>();
     type_table = new unordered_map<unsigned int, unsigned int>();
 
@@ -56,12 +59,11 @@ static bool isIOsyscall(unsigned int num) {
 /* populate format struct */
 bool interpretSyscall(format_t& fm_l, unsigned int index) {
     format_t fm;
-
-    libos_print("syscall_table = 0x%lx", syscall_table);
-    libos_print("syscall_table size = %d", syscall_table->size());
+    table_lock->lock();
     auto it = syscall_table->find(index);
     if (it == syscall_table->end()) {
         libos_print("[%d] not found", index);
+        table_lock->unlock();
         return false;
     }
 
@@ -76,6 +78,7 @@ bool interpretSyscall(format_t& fm_l, unsigned int index) {
         fm.sizes[i] = 0;
     }
     fm_l = fm;
+    table_lock->unlock();
     return true;
 }
 
@@ -230,4 +233,8 @@ void SyscallRequest::fillEnclave(long* enclave_args) {
         if (needWriteBack(this->fm_list.syscall_num, i))
             writeBack(this, enclave_args, i);
      }
+
+}
+
+extern "C" void print_syscall_table_size() {
 }

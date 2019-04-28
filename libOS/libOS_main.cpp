@@ -54,7 +54,7 @@ int newThread(int argc, char **argv) {
     requestQueue->push(schedReady);
     //int ret = main(argc, argv);
     int ret = __libc_start_main((int (*)(int,char **,char **))&main, argc, argv);
-    std::cout << "test!" << std::endl;
+    //std::cout << "test!" << std::endl;
     __eexit(ret);
     return 0;
 }

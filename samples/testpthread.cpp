@@ -1,6 +1,6 @@
 #include <pthread.h>
 #include <stdio.h>
-
+extern "C" void print_syscall_table_size();
 /* this function is run by the second thread */
 void *inc_x(void *x_void_ptr) {
 
@@ -39,11 +39,10 @@ int main() {
 
     /* wait for the second thread to finish */
     if (pthread_join(inc_x_thread, NULL)) {
-
-        fprintf(stderr, "Error joining thread\n");
+        __asm__("ud2");
+        //fprintf(stderr, "Error joining thread\n");
         return 2;
     }
-
     /* show the results - x is now 100 thanks to the second thread */
     printf("x: %d, y: %d\n", x, y);
 

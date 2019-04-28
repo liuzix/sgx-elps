@@ -30,11 +30,9 @@ extern "C" void __entry_helper(transfer_t transfer) {
     }
     getSharedTLS()->preempt_injection_stack = cur->preempt_stack;
     if (prev) {
-        libos_print("unlock %d", prev->id);
         prev->contextLock.unlock();
     }
 
-    libos_print("unlock %d", cur->id);
     cur->contextLock.unlock();
     enableInterrupt();
     int val = cur->entry();
@@ -62,19 +60,15 @@ UserThread::UserThread(function<int(void)> _entry)
     //scheduler->enqueueTask(this->se); 
     request_obj = unsafeMalloc(sizeof(SwapRequest));
     
-    pt_local = allocateTCB();
-    pt_local->tid = 0xbeefbeef;
+    // this is just to make libOS runnable before libc initializes pthread 
+    this->fs_base = (uint64_t)allocateTCB();
+    //pt_local->tid = 0xbeefbeef;
 }
 
 UserThread::UserThread() : se(this) {
     this->id = counter.fetch_add(1);
 }
 
-UserThread::UserThread(int tid)
-    : se(this) {
-    pt_local = allocateTCB();
-    this->pt_local->tid = tid;
-}
 
 void UserThread::terminate(int val) {
     libos_print("Thread %d: returned %d",
@@ -94,9 +88,16 @@ static inline void setFSReg(uint64_t val) {
     __asm__("wrfsbase %0":: "r"(val));
 }
 
+static inline uint64_t getFSReg() {
+    uint64_t ret;
+    __asm__("rdfsbase %0": "=r"(ret));
+    return ret;
+}
+
 void UserThread::jumpTo(UserThread *from) {
     libos_print("switching to thread %d, from thread %d", this->id, from ? from->id: -1); 
-    setFSReg((uint64_t)this->pt_local);
+    if (from) from->fs_base = getFSReg();
+    setFSReg(this->fs_base);
     transfer_data t{ .prev = from, .cur = this };
     libos_print("loading context %lx", this->fcxt);
     transfer_t ret_t = jump_fcontext(this->fcxt, (void *)&t);
@@ -106,10 +107,8 @@ void UserThread::jumpTo(UserThread *from) {
     if (prev) {
         libos_print("saving context %lx to thread %d", ret_t.fctx, data->prev->id);
         prev->fcxt = ret_t.fctx;
-        libos_print("unlock %d", prev->id);
         prev->contextLock.unlock();
     }
-    libos_print("unlock %d", cur->id);
     cur->contextLock.unlock();
     getSharedTLS()->preempt_injection_stack = data->cur->preempt_stack;
     enableInterrupt();
@@ -147,8 +146,8 @@ extern "C" int libos_clone(int (*fn)(void *), void *stack, void *arg, void *newt
     
     pthread *pt = (pthread *)newtls;
     pt->tid = userThread->id;
-    userThread->pt_local = pt;
-    
+    //userThread->pt_local = pt;
+    userThread->fs_base = (uint64_t) pt; 
     auto entry = std::bind(fn, arg);
     userThread->entry = entry; 
     userThread->clear_child_tid = detach;

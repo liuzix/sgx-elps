@@ -1,6 +1,6 @@
 #include "pthread_impl.h"
 #include <sys/mman.h>
-
+void print_syscall_table_size();
 static int __pthread_timedjoin_np(pthread_t t, void **res, const struct timespec *at)
 {
 	int state, cs, r = 0;
@@ -9,6 +9,7 @@ static int __pthread_timedjoin_np(pthread_t t, void **res, const struct timespec
 	if (cs == PTHREAD_CANCEL_ENABLE) __pthread_setcancelstate(cs, 0);
 	while ((state = t->detach_state) && r != ETIMEDOUT && r != EINVAL) {
 		if (state >= DT_DETACHED) a_crash();
+
 		r = __timedwait_cp(&t->detach_state, state, CLOCK_REALTIME, at, 0);
 	}
 	__pthread_setcancelstate(cs, 0);

@@ -102,7 +102,7 @@ uint64_t futex_wake(uint32_t *addr, unsigned int flags, uint32_t nr_wake, uint32
     auto fbit = futexHash->find(addr);
     FutexBucket *fb;
     int ret = 0;
-
+    
     /* 1 or ALL */
     if (nr_wake != 1)
         nr_wake = INT_MAX;

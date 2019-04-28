@@ -91,6 +91,5 @@ static int libc_start_main_stage2(int (*main)(int,char **,char **), int argc, ch
 	__libc_start_init();
 
 	/* Pass control to the application */
-	exit(main(argc, argv, envp));
-	return 0;
+	return (main(argc, argv, envp));
 }

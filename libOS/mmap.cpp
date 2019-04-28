@@ -24,12 +24,13 @@ void *libos_mmap(void *base, size_t len) {
 }
 
 void libos_munmap(void *base, size_t len) {
+    libos_print("munmap: 0x%lx, len = %d", base, len);
     if (!pageManager) {
         libos_panic("mmap uninitialized!");
     }
 
     len = (len + 4095) & (~4095);
-    pageManager->freePages(base, len);
+    pageManager->freePages(base, len / 4096);
 }
 
 

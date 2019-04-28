@@ -29,7 +29,7 @@ typedef boost::intrusive::set<
     member_hook<SchedEntity, set_member_hook<>, &SchedEntity::set_member_hook_>,
     key_of_value<ticket_is_key>>
     OrderedMap;
-
+extern unordered_map<unsigned int, vector<unsigned int>>* syscall_table;
 WatchList *watchList;
 std::atomic_int32_t ticket;
 SpinLock *watchListLock;
@@ -95,7 +95,6 @@ extern "C" int __async_swap(void *addr) {
 
 extern "C" int __async_syscall(unsigned int n, ...) {
     libos_print("Async call [%u]", n);
-
     /* Interpret correspoding syscall args types */
     format_t fm_l;
     int ret_tmp = interpretSyscall(fm_l, n);

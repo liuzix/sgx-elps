@@ -31,6 +31,7 @@ extern "C" void free(void *ptr) {
 }
 
 extern "C" void *realloc(void *ptr, size_t newSize) {
+    libos_print("realloc!");
     void *newChunk = malloc(newSize);
     memcpy(newChunk, ptr, safeAllocator->getLen(ptr)); 
     return newChunk;

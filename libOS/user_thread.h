@@ -65,8 +65,9 @@ public:
     fcontext_t fcxt;
 
     /* for pthread implementation */
-    pthread *pt_local;
+    //pthread *pt_local;
 
+    uint64_t fs_base;
     /* the stack where the injected preemption function is run */
     uint64_t preempt_stack;
 

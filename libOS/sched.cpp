@@ -63,7 +63,6 @@ void Scheduler::schedule() {
     if (*current && ++(*current)->timeSlot != MAXIMUM_SLOT) {
         return;
     }
-
     lock.lock();
     if (*current) (*current)->timeSlot = 0;
 
