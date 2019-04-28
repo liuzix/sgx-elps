@@ -19,7 +19,7 @@ std::shared_ptr<spdlog::logger> console = spdlog::stdout_color_mt("swapper");
 #pragma GCC visibility pop
 SwapperManager swapperManager;
 
-extern uint64_t __jiffies;
+extern volatile uint64_t __jiffies;
 
 void schedulerRequestHandler(SwapperManager *manager, SchedulerRequest *req);
 
@@ -52,10 +52,11 @@ void SwapperManager::runWorker(int id) {
     sched_setscheduler(0, SCHED_FIFO, &sp);
     cpu_set_t  mask;
     CPU_ZERO(&mask);
-    CPU_SET(6, &mask);
+    CPU_SET(2, &mask);
     CPU_SET(3, &mask);
     CPU_SET(4, &mask);
     CPU_SET(5, &mask);
+    CPU_SET(6, &mask);
     sched_setaffinity(0, sizeof(mask), &mask);
 
     RequestDispatcher dispatcher(id);

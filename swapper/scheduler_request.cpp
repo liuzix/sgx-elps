@@ -6,7 +6,7 @@ DEFINE_LOGGER(SchedulerRequests, spdlog::level::trace);
 
 void schedulerRequestHandler(SwapperManager *manager, SchedulerRequest *req) {
     if (req->subType == SchedulerRequest::SchedulerRequestType::NewThread) {
-        console->info("New Thread reqeust");
+        //console->info("New Thread reqeust");
         manager->wakeUpThread();
     }
     else if (req->subType == SchedulerRequest::SchedulerRequestType::SchedReady) {

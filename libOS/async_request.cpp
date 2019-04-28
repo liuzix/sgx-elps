@@ -13,6 +13,7 @@
 #include <syscall_format.h>
 
 using namespace std;
+extern volatile uint64_t *pjiffies;
 
 typedef boost::intrusive::list<RequestBase, member_hook<RequestBase, list_member_hook<>,
                                       &RequestBase::watchListHook>>
@@ -44,7 +45,6 @@ void initWatchList() {
 
 /* this is called by the scheduler */
 void watchListCheck() {
-    watchListLock->lock();
     auto it = watchList->begin();
     while (it != watchList->end()) {
         if (it->waitOnDone(1)) {
@@ -81,14 +81,15 @@ void sleepWait(RequestBase *req) {
 }
 
 
+extern volatile uint64_t *pjiffies;
 extern "C" int __async_swap(void *addr) {
     SwapRequest *req = Singleton<SwapRequest>::getRequest();
     //SwapRequest *req = createUnsafeObj<SwapRequest>();
     req->addr = (unsigned long)addr;
     requestQueue->push(req);
 
-    if (!req->waitOnDone(3000))
-        sleepWait(req);
+    //sleepWait(req);
+    req->waitOnDone(0xffffffff);
     int ret = (int)req->addr;
     return ret;
 }

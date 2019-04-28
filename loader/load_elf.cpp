@@ -92,7 +92,7 @@ bool ELFLoader::relocate() {
     section *rela = nullptr;
     for (auto &sec: reader.sections) {
        if (sec->get_type() == SHT_RELA) {
-           console->info("Found relocation section: name {}", sec->get_name());
+           //console->info("Found relocation section: name {}", sec->get_name());
            rela = sec;
        }
     }
@@ -109,15 +109,16 @@ bool ELFLoader::relocate() {
         Elf_Sxword addend;
 
         accessor.get_entry(i, offset, symbol, type, addend);
+        /*
         console->debug("relocation: offset {:x}, symbol {:x}, type {:x}, addend {:x}, image addr {:x}",
                 offset, symbol, type, addend, offset + this->loadBias);
+        */
         if (type == R_X86_64_RELATIVE) {
             uint64_t *loc = (uint64_t *)(mappedFile + this->memOffsetToFile(offset));
             *loc = (uint64_t)addend + this->loadBias; 
-            console->debug("relocated to 0x{:x}", *loc);
-        } else {
+            //console->debug("relocated to 0x{:x}", *loc);
+        } else
             console->critical("Unknown relocation type {}", type);
-        }
     }
     return true;
 }
@@ -126,7 +127,6 @@ shared_ptr<EnclaveMainThread> ELFLoader::load() {
 
     Elf_Half seg_num = reader.segments.size();
     int i;
-    uint64_t phdr;
     vaddr tlsBase = 0;
     size_t tlsLen = 0;
     for (i = 0; i < seg_num; i++) {
@@ -136,8 +136,6 @@ shared_ptr<EnclaveMainThread> ELFLoader::load() {
         case PT_DYNAMIC:
             /* Nothing */
             break;
-        case PT_PHDR:
-            phdr = pseg->get_virtual_address();
         case PT_LOAD: {
             Elf64_Addr p_vaddr = pseg->get_virtual_address();
             Elf_Xword p_filesz = pseg->get_file_size();
@@ -187,7 +185,7 @@ shared_ptr<EnclaveMainThread> ELFLoader::load() {
     console->trace("ELF load: TLS base = 0x{:x}, TLS size = 0x{:x}", tlsBase, tlsLen);
     /* Set auxiliary vector */
     this->setAuxEntry((uint64_t)reader.get_entry() + this->loadBias);
-    this->setAuxPhdr(phdr + this->loadBias);
+    this->setAuxPhdr(0 + this->loadBias);
     this->setAuxPhent(reader.get_segment_entry_size());
     this->setAuxPhnum(reader.get_segments_num());
     return ret;

@@ -21,9 +21,9 @@ void EnclaveThreadPool::idleBlock() {
     }
     while (numActiveThread > numTotalThread) {
         numActiveThread--;
-        console->info("start cv wait");
+        //console->info("start cv wait");
         cv.wait(lk);
-        console->info("end cv wait");
+        //console->info("end cv wait");
         numActiveThread++;
         if (numActiveThread == 1)
             break;
@@ -33,11 +33,13 @@ void EnclaveThreadPool::idleBlock() {
 
 void EnclaveThreadPool::newThreadNotify() {
     unique_lock<std::mutex> lk(m);
+    /*
     console->info("numActiveThread = {}, numTotalThread = {}", numActiveThread,
                   numTotalThread);
+    */
     pendingWakeUp = true;
     if (numActiveThread < (int)threads.size()) {
-        console->info("cv broadcast");
+        //console->info("cv broadcast");
         cv.notify_one();
     }
 }

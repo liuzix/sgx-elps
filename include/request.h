@@ -12,7 +12,7 @@
 #include "../libOS/allocator.h"
 
 using namespace std;
-extern uint64_t __jiffies;
+extern volatile uint64_t __jiffies;
 
 class RequestBase {
 private:

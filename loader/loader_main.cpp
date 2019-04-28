@@ -30,13 +30,20 @@ DEFINE_LOGGER(main, spdlog::level::trace);
 uint64_t enclave_base, enclave_end;
 shared_ptr<EnclaveManager> manager;
 
-uint64_t __jiffies = 0;
+volatile uint64_t __jiffies = 0;
 
 void __timer() {
-    while (true) {
+    cpu_set_t  mask;
+    CPU_ZERO(&mask);
+    CPU_SET(7, &mask);
+    sched_setaffinity(0, sizeof(mask), &mask);
+    sched_param sp;
+    sp.sched_priority = sched_get_priority_max(SCHED_FIFO);
+    sched_setscheduler(0, SCHED_FIFO, &sp);
+    console->info("Timer launched.");
+    while (true)
         __jiffies = __rdtsc();
-        //__jiffies++;
-    }
+
 }
 
 bool in_enclave(uint64_t rip) {

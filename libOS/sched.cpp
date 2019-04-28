@@ -31,8 +31,8 @@ void Scheduler::schedNotify() {
 
     getSharedTLS()->numTotalThread->fetch_add(1);
     SchedulerRequest *req = Singleton<SchedulerRequest>::getRequest(SchedulerRequest::SchedulerRequestType::NewThread);
-    requestQueue->push(req); 
-    req->blockOnDone(); 
+    requestQueue->push(req);
+    req->blockOnDone();
 }
 void Scheduler::enqueueTask(SchedEntity &se) {
     lock.lock();

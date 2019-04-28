@@ -5,7 +5,7 @@
 #include <fcntl.h>
 
 std::shared_ptr<spdlog::logger> swapConsole = spdlog::stdout_color_mt("swap");
-extern uint64_t __jiffies;
+extern volatile uint64_t __jiffies;
 
 static int deviceHandle() {
     static int fd = -1;

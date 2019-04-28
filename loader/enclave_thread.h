@@ -66,7 +66,7 @@ public:
     void run();
     void setBias(size_t bias);
     vaddr getTcs() { return this->tcs; }
-    void setJiffies(uint64_t *p);
+    void setJiffies(volatile uint64_t *p);
     void print_buffer();
 
     friend class EnclaveThreadPool;

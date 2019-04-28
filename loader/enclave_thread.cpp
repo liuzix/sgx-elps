@@ -25,19 +25,19 @@ char get_flag(uint64_t tcs) {
 }
 
 void set_flag(uint64_t tcs, char flag) {
-    console->trace("set_flag tcs: 0x{:x}", tcs);
+    //console->trace("set_flag tcs: 0x{:x}", tcs);
     manager->getThreadpool()->sig_flag_map[tcs].store(flag);
 }
 
 extern "C" bool set_interrupt(uint64_t tcs) {
     auto tls = manager->getThreadpool()->thread_map[tcs]->getSharedTLS();
     bool ret = tls->inInterrupt->exchange(true);
-    console->trace("old interrupt flag = {}", ret);
+    //console->trace("old interrupt flag = {}", ret);
     return ret;
 }
 
 extern "C" bool clear_interrupt(uint64_t tcs) {
-    console->trace("clear interrupt! 0x{:x}", tcs);
+    //console->trace("clear interrupt! 0x{:x}", tcs);
     auto tls = manager->getThreadpool()->thread_map[tcs]->getSharedTLS();
     return tls->inInterrupt->exchange(false);
 }
@@ -106,9 +106,9 @@ void EnclaveThread::run() {
     ioctl(deviceHandle(), SGX_IOC_ENCLAVE_SET_USER_DATA, &u_data);
 
     for (;;) {
-        classLogger->info("entering enclave!");
+        //classLogger->info("entering enclave!");
         __eenter(this->tcs);
-        classLogger->info("exiting enclave!");
+        //classLogger->info("exiting enclave!");
         this->controlStruct.isMain = false;
         if (sharedTLS.enclave_return_val != 0x1000)
             break;
@@ -117,7 +117,7 @@ void EnclaveThread::run() {
 
     cc1 = __rdtsc() - cc1;
     endtime =  high_resolution_clock::now();
-    classLogger->info("Total aex: {}, time: {}, CPU cycle: {}, jiffies: {}", aexCounter, duration<double>(endtime - starttime).count(), cc1, __jiffies);
+    classLogger->info("Total aex: {}, time: {}, [trash]: {}", aexCounter, duration<double>(endtime - starttime).count(), cc1);
     classLogger->info("returned from enclave! ret = {}", sharedTLS.enclave_return_val);
     print_buffer();
 
@@ -176,7 +176,7 @@ void EnclaveThread::setBias(size_t len) {
     this->sharedTLS.loadBias = len;
 }
 
-void EnclaveThread::setJiffies(uint64_t *p) {
+void EnclaveThread::setJiffies(volatile uint64_t *p) {
     this->sharedTLS.pjiffies = p;
 }
 

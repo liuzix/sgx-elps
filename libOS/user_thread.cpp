@@ -17,7 +17,7 @@ struct transfer_data {
 extern "C" void __entry_helper(transfer_t transfer) {
     transfer_data *data = (transfer_data *)transfer.data;
     if (data->prev) {
-        libos_print("saving context %lx to thread %d", transfer.fctx, data->prev->id);
+        //libos_print("saving context %lx to thread %d", transfer.fctx, data->prev->id);
         data->prev->fcxt = transfer.fctx;
     }
     getSharedTLS()->preempt_injection_stack = data->cur->preempt_stack;
@@ -46,7 +46,7 @@ UserThread::UserThread(function<int(void)> _entry)
     this->preempt_stack += 4096 - 16;
     //scheduler->enqueueTask(this->se); 
     request_obj = unsafeMalloc(sizeof(SwapRequest));
-    
+
     pt_local = allocateTCB();
     pt_local->tid = 0xbeefbeef;
 }
@@ -70,14 +70,14 @@ static inline void setFSReg(uint64_t val) {
 }
 
 void UserThread::jumpTo(UserThread *from) {
-    libos_print("switching to thread %d, from thread %d", this->id, from ? from->id: -1); 
+    //libos_print("switching to thread %d, from thread %d", this->id, from ? from->id: -1); 
     setFSReg((uint64_t)this->pt_local);
     transfer_data *t = new transfer_data{ .prev = from, .cur = this };
-    libos_print("loading context %lx", this->fcxt);
+    //libos_print("loading context %lx", this->fcxt);
     transfer_t ret_t = jump_fcontext(this->fcxt, (void *)t);
     transfer_data *data = (transfer_data *)ret_t.data;
     if (data->prev) {
-        libos_print("saving context %lx to thread %d", ret_t.fctx, data->prev->id);
+        //libos_print("saving context %lx to thread %d", ret_t.fctx, data->prev->id);
         data->prev->fcxt = ret_t.fctx;
     }
     getSharedTLS()->preempt_injection_stack = data->cur->preempt_stack;

@@ -27,13 +27,13 @@ extern "C" int __libc_start_main(int (*main)(int,char **,char **), int argc, cha
 void initWatchList();
 
 
-uint64_t *pjiffies;
+volatile uint64_t *pjiffies;
 
 int idleThread() {
     for (;;) {
-        libos_print("idling!");
-        getSharedTLS()->numActiveThread --;
-        __eexit(0x1000); // yield cpu
+        //libos_print("idling!");
+        //getSharedTLS()->numActiveThread --;
+        //__eexit(0x1000); // yield cpu
         scheduler->schedule();
     }
     return 0;

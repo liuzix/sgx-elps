@@ -9,8 +9,8 @@ void injectedFunc();
 extern "C" void do_interrupt(void *tcs) {
     //libos_print("do_interrupt!");
     ssa_gpr_t *ssa_gpr = (ssa_gpr_t *)((char *)tcs + 4096 + 4096 * SSAFRAME_SIZE - GPRSGX_SIZE);
-    libos_print("do_interrupt. rip in file: 0x%lx", ssa_gpr->ip - getSharedTLS()->loadBias);
-    writeTLSField(preempt_rip, ssa_gpr->ip); 
+    //libos_print("do_interrupt. rip in file: 0x%lx", ssa_gpr->ip - getSharedTLS()->loadBias);
+    writeTLSField(preempt_rip, ssa_gpr->ip);
     writeTLSField(stack, ssa_gpr->sp);
     ssa_gpr->ip = (uint64_t)&injectedFunc;
     ssa_gpr->sp = (uint64_t)getSharedTLS()->preempt_injection_stack;
@@ -52,6 +52,6 @@ __attribute__((naked)) void injectedFunc() {
 }
 
 extern "C" void do_preempt() {
-    libos_print("preempt function injected!");
+    //libos_print("preempt function injected!");
     scheduler->schedule();
 }
