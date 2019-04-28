@@ -6,7 +6,7 @@ set(CMAKE_EXE_LINKER_FLAGS "-nostdlib -static-pie -O0")
 SET(EXTRA_OBJS ../musl/lib/crti.o ../musl/lib/crtn.o)
 include_directories(../include ../deps)
 
-add_executable(hello "client.c" ${EXTRA_OBJS})
+add_executable(hello "hello.c" ${EXTRA_OBJS})
 set_source_files_properties(${EXTRA_OBJS} PROPERTIES EXTERNAL_OBJECT true GENERATED true)
 target_link_libraries(hello OS)
 
