@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <sys/epoll.h>
+#include <type_traits>
 #include <request.h>
 #include <cstring>
 #include "panic.h"
@@ -29,6 +30,7 @@ void initSyscallTable() {
     add_type_size(IOVEC_PTR, sizeof(struct iovec));
     add_type_size(IOC_PTR, sizeof(struct winsize));
     add_type_size(SOKADDR_PTR, sizeof(struct sockaddr));
+    add_type_size(MSGHDR_PTR, sizeof(struct msghdr));
 
     add_syscall0(SYS_GETGID);
     add_syscall1(SYS_CLOSE, NON_PTR);
@@ -46,9 +48,13 @@ void initSyscallTable() {
     add_syscall3(SYS_SOCKET, NON_PTR, NON_PTR, NON_PTR);
     add_syscall3(SYS_WRITE, NON_PTR, CHAR_PTR, NON_PTR);
     add_syscall3(SYS_WRITEV, NON_PTR, IOVEC_PTR, NON_PTR);
+    add_syscall3(SYS_SENDMSG, NON_PTR, MSGHDR_PTR, NON_PTR);
+    add_syscall3(SYS_RECVMSG, NON_PTR, MSGHDR_PTR, NON_PTR);
     add_syscall4(SYS_EPOLL_CTL, NON_PTR, NON_PTR, NON_PTR, EVENT_PTR);
     add_syscall4(SYS_EPOLL_WAIT, NON_PTR, NON_PTR, NON_PTR, EVENT_PTR);
     add_syscall5(SYS_SETSOCKOPT, NON_PTR, NON_PTR, NON_PTR, CHAR_PTR, NON_PTR);
+    add_syscall6(SYS_SENDTO, NON_PTR, CHAR_PTR, NON_PTR, NON_PTR, SOKADDR_PTR, NON_PTR);
+    add_syscall6(SYS_RECVFROM, NON_PTR, CHAR_PTR, NON_PTR, NON_PTR, SOKADDR_PTR, INT_PTR);
 }
 
 /* not really useful*/
@@ -91,7 +97,10 @@ static bool needWriteBack(unsigned int num, unsigned int index) {
         || (num == SYS_GETSOCKNAME && index == 1)
         || (num == SYS_GETSOCKNAME && index == 2)
         || (num == SYS_ACCEPT && index == 1)
-        || (num == SYS_ACCEPT && index == 2);
+        || (num == SYS_ACCEPT && index == 2)
+        || (num == SYS_RECVFROM && index == 4)
+        || (num == SYS_RECVFROM && index == 5)
+        || (num == SYS_RECVMSG && index == 1);
 }
 
 /* some syscalls have pointer args instead of size_t indicating the arg size
@@ -105,7 +114,17 @@ static unsigned int getSize(const SyscallRequest* req, unsigned int i) {
         case SYS_WRITE:
         case SYS_BIND:
         case SYS_SETSOCKOPT:
+        case SYS_SENDTO:
+        case SYS_CONNECT:
             res = (unsigned int)req->args[i + 1].arg;
+            break;
+        case SYS_RECVFROM:
+            if (i == 1)
+                res = (unsigned int)req->args[i + 1].arg;
+            else if (i == 4)
+                res = (unsigned int)*((int*)req->args[i + 1].arg);
+            else
+                res = sizeof(int);
             break;
         case SYS_ACCEPT:
         case SYS_GETSOCKNAME:
@@ -116,10 +135,10 @@ static unsigned int getSize(const SyscallRequest* req, unsigned int i) {
             break;
         case SYS_EPOLL_WAIT:
         case SYS_WRITEV:
-            if (type_table->count(req->fm_list.types[i]) == 0)
+            if (type_table->count(req->fm_list.types[i]) != 1)
                 return 0;
             res = type_table->at(req->fm_list.types[i])
-                    * (unsigned int)req->args[i + 1].arg;
+                    * (int)req->args[i + 1].arg;
             break;
         default:
             if (type_table->count(req->fm_list.types[i]) == 0)
@@ -132,9 +151,14 @@ static unsigned int getSize(const SyscallRequest* req, unsigned int i) {
 
 /* deep copy helper*/
 template<typename obj, typename member, typename length>
-void memberCopy(obj* src, obj* des, member tar, length len) {
-    des->*tar = unsafeMalloc(src->*len);
-    memcpy(des->*tar, src->*tar, src->*len);
+void memberCopy(obj* src, obj* des, member tar, length len, int fac = 1) {
+    using tar_t = decltype(des->*tar);
+    using mem_t = typename remove_reference<tar_t>::type;
+
+    int size = (src->*len) * fac;
+    libos_print("deepcopy alloca size[%d]", size);
+    des->*tar = (mem_t)unsafeMalloc(size);
+    memcpy(des->*tar, src->*tar, size);
 }
 
 /* deep copy if necessary
@@ -145,12 +169,40 @@ void deepCopy(SyscallRequest* req, unsigned int index) {
 
     switch (syscall_n) {
         case SYS_WRITEV:{
+            /* struct iovec {
+             * void  *iov_base;
+             * size_t iov_len; 
+             * }
+             */
             iovec* src = (iovec*)req->args[index].arg;
             iovec* des = (iovec*)req->args[index].data;
             for (int i = 0; i < req->args[index + 1].arg; i++)
                 memberCopy(src++, des++, &iovec::iov_base, &iovec::iov_len);
             break;
         }
+        case SYS_RECVMSG:
+        case SYS_SENDMSG:{
+            /* struct msghdr {
+             * void         *msg_name;
+             * socklen_t     msg_namelen;
+             * struct iovec *msg_iov;
+             * size_t        msg_iovlen;
+             * void         *msg_control;
+             * size_t        msg_controllen;
+             * int           msg_flags;
+             * }
+             */
+            msghdr* src = (msghdr*)req->args[index].arg;
+            msghdr* des = (msghdr*)req->args[index].data;
+            memberCopy(src, des, &msghdr::msg_name, &msghdr::msg_namelen);
+            memberCopy(src, des, &msghdr::msg_iov, &msghdr::msg_iovlen, sizeof(struct iovec));
+            memberCopy(src, des, &msghdr::msg_control, &msghdr::msg_controllen);
+            iovec* src_iov = src->msg_iov;
+            iovec* des_iov = des->msg_iov;
+            for (unsigned int i = 0; i < src->msg_iovlen; i++)
+                memberCopy(src_iov++, des_iov++, &iovec::iov_base, &iovec::iov_len);
+            break;
+                         }
         default:
             break;
     }
@@ -164,10 +216,11 @@ bool SyscallRequest::fillArgs() {
         else {
             unsigned int arg_size;
             arg_size = getSize(this, i);
-            if (arg_size == 0)
+            if (arg_size < 0)
                 return false;
             this->fm_list.sizes[i] = arg_size;
             this->args[i].data = (char*)unsafeMalloc(arg_size);
+            libos_print("alloca size[%d]\n", arg_size);
             memcpy(this->args[i].data, (void*)this->args[i].arg, arg_size);
             deepCopy(this, i);
             this->args[i].arg = (long)this->args[i].data;
@@ -193,14 +246,31 @@ void SyscallRequest::deepClean(int index) {
 
     switch (syscall_n) {
         case SYS_WRITEV:{
-            iovec* src = (iovec*)this->args[index].data;
+            iovec* src = (iovec*)this->args[index].arg;
             for (int i = 0; i < this->args[index + 1].arg; i++)
                 memberClean(src++, &iovec::iov_base);
             break;
                         }
+        case SYS_RECVMSG:
+        case SYS_SENDMSG:{
+            msghdr* src = (msghdr*)this->args[index].arg;
+            memberClean(src, &msghdr::msg_name);
+            memberClean(src, &msghdr::msg_control);
+            iovec* src_iov = src->msg_iov;
+            for (unsigned int i = 0; i < src->msg_iovlen; i++)
+                memberClean(src_iov++, &iovec::iov_base);
+            memberClean(src, &msghdr::msg_iov);
+            break;
+                         }
         default:
             break;
     }
+}
+
+/* write back helper2*/
+template<typename obj, typename member>
+void memberWriteBack(obj* src, obj* des, member tar, int len) {
+    memcpy(des->*tar, src->*tar, len);
 }
 
 /* write back helper
@@ -216,10 +286,35 @@ void writeBack(SyscallRequest* req, long* enclave_args, unsigned int index) {
     switch (syscall_n) {
         case SYS_ACCEPT:
         case SYS_GETSOCKNAME: {
-            unsigned int size = req->args[index + 1].arg;
-            memcpy((void*)enclave_args[index], (void*)req->args[index].arg, size);
+            if (index == 1) {
+                unsigned int size = *((int*)req->args[index + 1].arg);
+                memcpy((void*)enclave_args[index], (void*)req->args[index].arg, size);
+            } else
+                memcpy((void*)enclave_args[index], (void*)req->args[index].arg,
+                       req->fm_list.sizes[index]);
             break;
                               }
+        case SYS_RECVFROM: {
+            if (index == 4) {
+                unsigned int size = *((int*)req->args[index + 1].arg);
+                memcpy((void*)enclave_args[index], (void*)req->args[index].arg, size);
+            } else
+                memcpy((void*)enclave_args[index], (void*)req->args[index].arg,
+                       req->fm_list.sizes[index]);
+                           }
+        case SYS_RECVMSG: {
+                msghdr* src = (msghdr*)req->args[index].arg;
+                msghdr* des = (msghdr*)enclave_args[index];
+                memberWriteBack(src, des, &msghdr::msg_name, src->msg_namelen);
+                memberWriteBack(src, des, &msghdr::msg_control, src->msg_controllen);
+                iovec* src_t = src->msg_iov;
+                iovec* des_t = des->msg_iov;
+                for (unsigned int i = 0; i < src->msg_iovlen; i++, src_t++, des_t++) {
+                    memberWriteBack(src_t, des_t, &iovec::iov_base, src_t->iov_len);
+                    des_t->iov_len = src_t->iov_len;
+                }
+            break;
+                          }
         default:
             memcpy((void*)enclave_args[index], (void*)req->args[index].arg,
                    req->fm_list.sizes[index]);

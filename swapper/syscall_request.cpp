@@ -11,7 +11,7 @@ void syscallRequestHandler(SwapperManager *manager, SyscallRequest *req) {
     for (int i = 0; i < 6; i++) {
         syscallConsole->info("arg[{}] arg_content[{:x}]", i+1, req->args[i].arg);
         if (req->fm_list.sizes[i])
-            syscallConsole->info("buf: {}", req->args[i].data);
+            syscallConsole->info("buf: {}", (char*)req->args[i].arg);
     }
 
     req->sys_ret = (long)syscall(req->fm_list.syscall_num,
@@ -21,6 +21,7 @@ void syscallRequestHandler(SwapperManager *manager, SyscallRequest *req) {
                                           req->args[3].arg,
                                           req->args[4].arg,
                                           req->args[5].arg);
+    syscallConsole->info("finish syscall({})", req->fm_list.syscall_num);
     req->setDone();
     manager->wakeUpThread();
 }

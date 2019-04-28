@@ -99,6 +99,7 @@ extern "C" int __async_syscall(unsigned int n, ...) {
     format_t fm_l;
     int ret_tmp = interpretSyscall(fm_l, n);
     if (!ret_tmp) {
+//        __asm__("ud2");
         libos_print("No support for system call [%u]", n);
         __asm__("ud2");
         return -1;
@@ -126,16 +127,17 @@ extern "C" int __async_syscall(unsigned int n, ...) {
     va_end(vl);
     /* populate arguments in request */
     if (!req->fillArgs()) {
+        libos_print("SYSCALL[%d] fillargs failed", n);
         req->~SyscallRequest();
         //unsafeFree(req);
         return -1;
     }
 
     requestQueue->push(req);
-//    req->blockOnDone();
+    req->blockOnDone();
 //        sleepWait(req);
-    if (!req->waitOnDone(3000))
-        sleepWait(req);
+//    if (!req->waitOnDone(3000))
+//        sleepWait(req);
     libos_print("return val: %ld", req->sys_ret);
     int ret = (int)req->sys_ret;
     req->fillEnclave(enclave_args);

@@ -9,6 +9,7 @@
 #define IOVEC_PTR 5
 #define IOC_PTR 6
 #define SOKADDR_PTR 7
+#define MSGHDR_PTR 8
 
 #define SYS_READ 0
 #define SYS_WRITE 1
@@ -21,12 +22,10 @@
 #define SYS_SOCKET 41
 #define SYS_CONNECT 42
 #define SYS_ACCEPT 43
-/*
 #define SYS_SENDTO 44
 #define SYS_RECVFROM 45
 #define SYS_SENDMSG 46
 #define SYS_RECVMSG 47
-*/
 #define SYS_BIND 49
 #define SYS_LISTEN 50
 #define SYS_GETSOCKNAME 51
@@ -46,7 +45,7 @@
 #define add_syscall5(n, a, b, c, d, e) syscall_table->emplace(n, \
         vector<unsigned int>({a, b, c, d, e}))
 #define add_syscall6(n, a, b, c, d, e, f) syscall_table->emplace(n, \
-        vecotr<unsigned int>({a, b, c, d, e, f}))
+        vector<unsigned int>({a, b, c, d, e, f}))
 #define add_type_size(n, s) type_table->emplace(n, s)
 
 struct format_t {

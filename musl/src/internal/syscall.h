@@ -68,10 +68,10 @@ hidden long __syscall_ret(unsigned long), __async_syscall(syscall_arg_t, ...),
 #define syscall_cp(...) __syscall_ret(__syscall_cp(__VA_ARGS__))
 
 #ifndef SYSCALL_USE_SOCKETCALL
-#define __socketcall(nm,a,b,c,d,e,f) syscall(SYS_##nm, a, b, c, d, e, f)
+#define __socketcall(nm,a,b,c,d,e,f) __async_syscall(SYS_##nm, a, b, c, d, e, f)
 #define __socketcall_cp(nm,a,b,c,d,e,f) syscall_cp(SYS_##nm, a, b, c, d, e, f)
 #else
-#define __socketcall(nm,a,b,c,d,e,f) syscall(SYS_socketcall, __SC_##nm, \
+#define __socketcall(nm,a,b,c,d,e,f) __async_syscall(SYS_socketcall, __SC_##nm, \
     ((long [6]){ (long)a, (long)b, (long)c, (long)d, (long)e, (long)f }))
 #define __socketcall_cp(nm,a,b,c,d,e,f) syscall_cp(SYS_socketcall, __SC_##nm, \
     ((long [6]){ (long)a, (long)b, (long)c, (long)d, (long)e, (long)f }))
