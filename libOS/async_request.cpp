@@ -18,28 +18,31 @@ typedef boost::intrusive::list<RequestBase, member_hook<RequestBase, list_member
                                       &RequestBase::watchListHook>>
     WatchList;
 
+/*
 struct ticket_is_key {
     typedef int type;
 
     const type &operator()(const SchedEntity &v) const { return v.ticket; }
 };
+*/
 
-typedef boost::intrusive::set<
+/*typedef boost::intrusive::set<
     SchedEntity,
     member_hook<SchedEntity, set_member_hook<>, &SchedEntity::set_member_hook_>,
     key_of_value<ticket_is_key>>
     OrderedMap;
-extern unordered_map<unsigned int, vector<unsigned int>>* syscall_table;
+*/
+//extern unordered_map<unsigned int, vector<unsigned int>>* syscall_table;
 WatchList *watchList;
 std::atomic_int32_t ticket;
 SpinLock *watchListLock;
-OrderedMap *ticketList;
+//OrderedMap *ticketList;
 //extern Singleton<SwapRequest> sg;
 
 void initWatchList() {
     watchListLock = new SpinLock;
     watchList = new WatchList;
-    ticketList = new OrderedMap;
+    //ticketList = new OrderedMap;
 }
 
 /* this is called by the scheduler */
@@ -48,13 +51,10 @@ void watchListCheck() {
     auto it = watchList->begin();
     while (it != watchList->end()) {
         if (it->waitOnDone(1)) {
-            auto ticketIt = ticketList->find(it->ticket);
-            if (ticketIt == ticketList->end()) {
+            if (!it->owner)
                 __asm__("ud2");
-            }
-            SchedEntity &se = *ticketIt;
-            ticketList->erase(ticketIt);
-            it = watchList->erase(it);
+            SchedEntity &se = it->owner->se;
+            it->owner = nullptr;
             scheduler->enqueueTask(se);
         } else {
             it++;
@@ -64,13 +64,14 @@ void watchListCheck() {
 }
 
 void sleepWait(RequestBase *req) {
-    req->ticket = ticket.fetch_add(1);
-    scheduler->current.get()->ticket = req->ticket;
+    //req->ticket = ticket.fetch_add(1);
+    //scheduler->current.get()->ticket = req->ticket;
 
     bool intFlag = disableInterrupt();
 
     watchListLock->lock();
-    ticketList->insert(*scheduler->current.get());
+    //ticketList->insert(*scheduler->current.get());
+    req->owner = scheduler->getCurrent()->get()->thread;
     watchList->push_back(*req);
     watchListLock->unlock();
 

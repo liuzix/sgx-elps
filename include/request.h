@@ -13,6 +13,7 @@
 
 using namespace std;
 extern uint64_t __jiffies;
+class UserThread;
 
 class RequestBase {
 private:
@@ -20,7 +21,7 @@ private:
     atomic_bool done = {false};
     int returnVal = 0;
 public:
-    int ticket;
+    UserThread *owner = nullptr;
     boost::intrusive::list_member_hook<> watchListHook;
     int requestType;
     bool waitOnAck(uint32_t cycles) {
