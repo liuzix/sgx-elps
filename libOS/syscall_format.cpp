@@ -57,6 +57,8 @@ static bool isIOsyscall(unsigned int num) {
 bool interpretSyscall(format_t& fm_l, unsigned int index) {
     format_t fm;
 
+    libos_print("syscall_table = 0x%lx", syscall_table);
+    libos_print("syscall_table size = %d", syscall_table->size());
     auto it = syscall_table->find(index);
     if (it == syscall_table->end()) {
         libos_print("[%d] not found", index);

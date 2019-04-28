@@ -128,7 +128,7 @@ extern "C" int __async_syscall(unsigned int n, ...) {
     /* populate arguments in request */
     if (!req->fillArgs()) {
         req->~SyscallRequest();
-        unsafeFree(req);
+        //unsafeFree(req);
         return -1;
     }
 
@@ -141,7 +141,8 @@ extern "C" int __async_syscall(unsigned int n, ...) {
     int ret = (int)req->sys_ret;
     req->fillEnclave(enclave_args);
     req->~SyscallRequest();
-    unsafeFree(req);
+    //unsafeFree(req);
+    libos_print("Async call end");
     return ret;
 }
 

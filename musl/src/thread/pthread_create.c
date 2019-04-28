@@ -7,7 +7,7 @@
 #include <string.h>
 #include <stddef.h>
 extern int libos_clone(int (*fn)(void *), void *stack, void *arg, void *newtls, int *detach);
-
+extern void libos_exit_thread(int val);
 static void dummy_0()
 {
 }
@@ -120,8 +120,8 @@ _Noreturn void __pthread_exit(void *result)
 	 * it that it's no longer available. */
 	self->tid = 0;
 	UNLOCK(self->killlock);
-
-	for (;;) __async_syscall(SYS_exit, 0);
+    libos_exit_thread(0);
+	//for (;;) __async_syscall(SYS_exit, 0);
 }
 
 void __do_cleanup_push(struct __ptcb *cb)

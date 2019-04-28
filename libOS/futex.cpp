@@ -23,6 +23,7 @@ static inline FutexBucket* libos_get_bucket(uint32_t *addr) {
         libos_print("Create new bucket for addr: 0x%lx.", (uint64_t)addr);
         futexHash->insert(*fb);
         futexHashLock.unlock();
+        libos_print("Finished creating bucket");
     }
     else {
         libos_print("Bucket found.");
@@ -80,7 +81,10 @@ uint64_t libos_futex_wait(uint32_t *addr, unsigned int flags, uint32_t val,
 
     fb->lock.unlock();
     enableInterrupt();
-    libos_print("We are sleeping on addr: 0x%lx.", (uint64_t)addr);
+    libos_print("[%d] We are sleeping on addr: 0x%lx.",
+            scheduler->getCurrent()->get()->thread->id, (uint64_t)addr);
+    libos_print("caller address 0x%lx",
+            (uint64_t)__builtin_return_address(3) - getSharedTLS()->loadBias);
     scheduler->schedule();
 
     /* Wake up */

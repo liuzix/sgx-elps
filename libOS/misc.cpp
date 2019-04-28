@@ -44,5 +44,10 @@ void __temp_libc_start_init(void)
     }
 }
 
+void raise(int sig) {
+    libos_print("libc trying to raise signal %d", sig);
+    return;
+}
+
 }
 

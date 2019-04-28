@@ -4,6 +4,12 @@
 #include "mmap.h"
 #include <atomic>
 
+/* copied from futex.h. */
+extern "C" uint64_t libos_futex(uint32_t *addr, int op, uint32_t val,
+                                uint64_t utime, uint32_t *addr2, uint32_t val3);
+#define FUTEX_WAKE      1
+/* we do not have a seperate futex_impl.h, so including futex.h causes circular dependency */
+
 std::atomic_int counter;
 void *tlsBase;
 size_t tlsLength;
@@ -73,6 +79,12 @@ UserThread::UserThread(int tid)
 void UserThread::terminate(int val) {
     libos_print("Thread %d: returned %d",
             this->id, val);
+
+    if (this->clear_child_tid) {
+        *this->clear_child_tid = 0;
+        libos_futex((uint32_t *)this->clear_child_tid, FUTEX_WAKE, 1, 0, 0, 0); 
+    }
+
     disableInterrupt();
     scheduler->dequeueTask(*scheduler->current.get());
     scheduler->schedule();
@@ -140,5 +152,13 @@ extern "C" int libos_clone(int (*fn)(void *), void *stack, void *arg, void *newt
     auto entry = std::bind(fn, arg);
     userThread->entry = entry; 
     userThread->clear_child_tid = detach;
+
+    scheduler->enqueueTask(userThread->se);
     return 0;
+}
+
+extern "C" void libos_exit_thread(int val) {
+    auto cur = scheduler->getCurrent()->get()->thread; 
+    cur->terminate(val);
+    __asm__("ud2");
 }

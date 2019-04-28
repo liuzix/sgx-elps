@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include "syscall.h"
 #include "pthread_impl.h"
-
+/*
 int raise(int sig)
 {
 	sigset_t set;
@@ -11,3 +11,4 @@ int raise(int sig)
 	__restore_sigs(&set);
 	return ret;
 }
+*/

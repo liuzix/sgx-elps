@@ -19,6 +19,9 @@
 #include <vector>
 #include <list>
 
+char **real_argv;
+
+
 Queue<RequestBase*> *requestQueue = nullptr;
 
 extern "C" void __temp_libc_start_init(void);
@@ -150,7 +153,7 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
         libos_print("scheduler returned!");
         __asm__("ud2");
     }
-
+    real_argv = (char **)sp;
     libOS_shared_tls *shared_tls = getSharedTLS();
     pjiffies = shared_tls->pjiffies;
     timeStamp = ctrl_struct->timeStamp;
@@ -171,13 +174,13 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
     mmap_init(ctrl_struct->mainArgs.heapBase, ctrl_struct->mainArgs.heapLength);
     initSafeMalloc(10 * 4096);
     libos_print("Safe malloc initialization successful");
-    //test_auxv(sp, ctrl_struct->mainArgs.argc);
+    test_auxv(sp, ctrl_struct->mainArgs.argc);
 
     initSyscallTable();
     scheduler_init();
     initWatchList();
     scheduler->setIdle((new UserThread(idleThread))->se);
-    auto mainThr = new UserThread(std::bind(newThread, ctrl_struct->mainArgs.argc, ctrl_struct->mainArgs.argv));
+    auto mainThr = new UserThread(std::bind(newThread, ctrl_struct->mainArgs.argc, real_argv));
     scheduler->enqueueTask(mainThr->se);
     scheduler->schedule();
     libos_panic("Shouldn't have reached here!");
