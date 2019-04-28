@@ -5,3 +5,5 @@
 .type __set_thread_area,@function
 __set_thread_area:
 	wrfsbase %rdi
+    mov $0, %rax
+    retq

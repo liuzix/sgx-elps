@@ -16,11 +16,13 @@ int main(int argc, char const *argv[]) {
     char *hello = "Hello from client\n";
     char buffer[1024] = {0};
 
-    errno = 0;
+    //errno = 0;
+    
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         printf("\n Socket creation error \n");
         return -1;
-    }
+    };
+
     memset(&serv_addr, '0', sizeof(serv_addr));
 
     serv_addr.sin_family = AF_INET;
