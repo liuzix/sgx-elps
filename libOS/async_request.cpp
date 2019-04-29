@@ -71,7 +71,6 @@ extern "C" int __async_swap(void *addr) {
     //if (!req->waitOnDone(1))
     //    sleepWait(req);
     //uint64_t jif = *pjiffies;
-    req->done.store(false);
     req->blockOnDone();
     //jif = *pjiffies - jif;
     asm volatile("": : :"memory");
@@ -121,10 +120,9 @@ extern "C" int __async_syscall(unsigned int n, ...) {
     }
 
     requestQueue->push(req);
-    req->blockOnDone();
-//        sleepWait(req);
+//    req->blockOnDone();
 //    if (!req->waitOnDone(3000))
-//        sleepWait(req);
+    sleepWait(req);
     libos_print("return val: %ld", req->sys_ret);
     int ret = (int)req->sys_ret;
     req->fillEnclave(enclave_args);
