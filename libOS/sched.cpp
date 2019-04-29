@@ -5,35 +5,26 @@
 #include "user_thread.h"
 #include <spin_lock.h>
 
-std::atomic<steady_clock::duration> *timeStamp;
 Scheduler *scheduler;
 
 
 void scheduler_init() {
     scheduler = new Scheduler;
 }
-/*
-void Scheduler::schedNotify() {
-    SchedulerRequest *req = schedReqCache.get();
-    if (!req) {
-        req = (SchedulerRequest *)unsafeMalloc(sizeof(SchedulerRequest));
-        *schedReqCache = req;
-    }
 
-    getSharedTLS()->numTotalThread->fetch_add(1);
-
-    new (req) SchedulerRequest(SchedulerRequest::SchedulerRequestType::NewThread);
-    requestQueue->push(req);
-    req->blockOnDone();
-}
-*/
 void Scheduler::schedNotify() {
 
     getSharedTLS()->numTotalThread->fetch_add(1);
+    
+    if (getSharedTLS()->numTotalThread <= getSharedTLS()->numActiveThread)
+        return;
+    
+    libos_print("[sched] sending schedNotify");
     SchedulerRequest *req = Singleton<SchedulerRequest>::getRequest(SchedulerRequest::SchedulerRequestType::NewThread);
     requestQueue->push(req); 
     req->blockOnDone(); 
 }
+
 void Scheduler::enqueueTask(SchedEntity &se) {
     lock.lock();
     if(!se.running && !se.onQueue)

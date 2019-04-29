@@ -7,7 +7,7 @@
 #include "../libOS/futex.h"
 
 __thread int test = 0;
-#define MEM_SIZE 0x1000000
+#define MEM_SIZE 0x10000000
 #define STEP     0x10000
 
 uint32_t j = 0, k = 0, wait_main = 0, wait_forever = 0;

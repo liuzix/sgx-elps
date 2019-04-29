@@ -3,20 +3,21 @@
 
 #include <atomic>
 #if IS_LIBOS
-bool disableInterrupt();
-void enableInterrupt();
+#include "../libOS/util.h"
 #endif
 
 class SpinLockNoTimer {
     std::atomic_flag locked = ATOMIC_FLAG_INIT ;
     bool interruptFlag;
 public:
+    __attribute__((always_inline))
     void lock() {
 #if IS_LIBOS
         interruptFlag = disableInterrupt();
 #endif
         while (locked.test_and_set(std::memory_order_acquire)) { ; }
     }
+    __attribute__((always_inline))
     void unlock() {
 #if IS_LIBOS
         bool reenable = !interruptFlag;

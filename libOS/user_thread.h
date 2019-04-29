@@ -94,8 +94,8 @@ public:
 pthread *allocateTCB();
 
 static inline void doubleLockThread(UserThread *t1, UserThread *t2) {
-    libos_print("t1 = %d, t2 = %d", t1 ? t1->id : -1,
-            t2 ? t2->id : -1);
+    //libos_print("t1 = %d, t2 = %d", t1 ? t1->id : -1,
+    //        t2 ? t2->id : -1);
     if (t1 == t2) return;
     else if (!t1) t2->contextLock.lock();
     else if (!t2) t1->contextLock.lock();

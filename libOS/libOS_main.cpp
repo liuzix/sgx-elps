@@ -35,9 +35,12 @@ uint64_t *pjiffies;
 
 int idleThread() {
     for (;;) {
-        libos_print("idling!");
         getSharedTLS()->numActiveThread --;
-        __eexit(0x1000); // yield cpu
+           
+        if (getSharedTLS()->numActiveThread >= getSharedTLS()->numTotalThread) {
+            libos_print("[idle] yielding cpu");
+            __eexit(0x1000);
+        }
         scheduler->schedule();
     }
     return 0;
@@ -163,7 +166,6 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
     real_argv = (char **)sp;
     libOS_shared_tls *shared_tls = getSharedTLS();
     pjiffies = shared_tls->pjiffies;
-    timeStamp = ctrl_struct->timeStamp;
     ctrl_struct->isMain = false;
     requestQueue = ctrl_struct->requestQueue;
     initPanic(ctrl_struct->panic);
@@ -180,6 +182,8 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
 
     initUnsafeMalloc(ctrl_struct->mainArgs.unsafeHeapBase, ctrl_struct->mainArgs.unsafeHeapLength);
     writeToConsole("UnsafeMalloc intialization successful.");
+    writeToConsole("ha?");
+    libos_print("gwing %d", 1);
     libos_print("UnsafeHeap base = 0x%lx, length = 0x%lx", ctrl_struct->mainArgs.unsafeHeapBase,
                 ctrl_struct->mainArgs.unsafeHeapLength);
 

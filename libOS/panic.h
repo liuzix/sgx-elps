@@ -1,4 +1,5 @@
 #ifndef PANIC_H
+
 #define PANIC_H
 
 #include <streambuf>
@@ -19,7 +20,7 @@ void initPanic(panic_struct *);
 template <typename... Types>
 inline void libos_print(const char *format, Types... args) {
     char buf[PANIC_BUFFER_SIZE];
-    snprintf(buf, PANIC_BUFFER_SIZE, format, args...);
+    sprintf(buf, format, args...);
     writeToConsole(buf);
 }
 
