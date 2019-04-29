@@ -13,8 +13,6 @@
 using namespace boost::intrusive;
 using namespace std::chrono;
 
-extern std::atomic<steady_clock::duration> *timeStamp;
-
 class UserThread;
 
 struct SchedEntity {
@@ -32,7 +30,7 @@ struct SchedEntity {
 };
 
 typedef list<SchedEntity, member_hook<SchedEntity, list_member_hook<>,
-                                      &SchedEntity::member_hook_>>
+                                      &SchedEntity::member_hook_>, link_mode<normal_link>>
     SchedQueue;
 
 class Scheduler {

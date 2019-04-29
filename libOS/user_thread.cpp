@@ -10,7 +10,7 @@ extern "C" uint64_t libos_futex(uint32_t *addr, int op, uint32_t val,
 #define FUTEX_WAKE      1
 /* we do not have a seperate futex_impl.h, so including futex.h causes circular dependency */
 
-std::atomic_int counter;
+std::atomic_int threadCounter;
 void *tlsBase;
 size_t tlsLength;
 
@@ -42,17 +42,18 @@ extern "C" void __entry_helper(transfer_t transfer) {
 /* this is just to make the debugger happy */
 __attribute__((naked)) static void __clear_rbp(transfer_t) {
    __asm__("xor %rbp, %rbp;"
+           "sub $8, %rsp;"
            "call __entry_helper;");
 }
 
 UserThread::UserThread(function<int(void)> _entry)
     : se(this) {
 
-    this->id = counter.fetch_add(1);
+    this->id = threadCounter.fetch_add(1);
     this->entry = _entry;
 
     char *stack = (char *)libos_mmap(NULL, STACK_SIZE);
-    stack += (STACK_SIZE - 16);
+    stack += STACK_SIZE;
 
     this->fcxt = make_fcontext(stack, STACK_SIZE, __clear_rbp);
     this->preempt_stack = (uint64_t)libos_mmap(NULL, 4096);
@@ -65,7 +66,7 @@ UserThread::UserThread(function<int(void)> _entry)
 }
 
 UserThread::UserThread() : se(this) {
-    this->id = counter.fetch_add(1);
+    this->id = threadCounter.fetch_add(1);
 }
 
 
@@ -139,7 +140,7 @@ extern "C" long __set_tid_address(int *tidptr) {
 extern "C" int libos_clone(int (*fn)(void *), void *stack, void *arg, void *newtls, int *detach) {
     libos_print("libos_clone!");
     auto userThread = new UserThread;
-    userThread->fcxt = make_fcontext(stack, STACK_SIZE, __clear_rbp);
+    userThread->fcxt = make_fcontext((char *)stack, STACK_SIZE, __clear_rbp);
     userThread->preempt_stack = (uint64_t)libos_mmap(NULL, 4096);
     userThread->preempt_stack += 4096 - 16;
     

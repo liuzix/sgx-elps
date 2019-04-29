@@ -1,6 +1,7 @@
 #include <stddef.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "libos.h"
 #include "panic.h"
 
@@ -15,11 +16,28 @@ int __sprintf_chk(
     va_list va;
     int retval;
     va_start(va, format);
+    writeToConsole("prepare to vsprintf");
     retval = vsprintf(dest, format, va);
+    writeToConsole("vsprintf returned");
     va_end(va);
     return retval;
 }
 
+int __vsprintf_chk (char *s, int /*flags*/, size_t /*slen*/,
+		  const char *format, va_list args)
+{
+    return vsprintf(s, format, args);
+}
+
+char *
+__strcpy_chk (char *dest, const char *src, size_t destlen)
+{
+  size_t len = strlen (src);
+  if (len >= destlen)
+    __asm__("ud2");
+
+  return (char *)memcpy(dest, src, len + 1);
+}
 void *__dso_handle = 0;
 
 #define weak __attribute__((__weak__))
@@ -48,6 +66,21 @@ void raise(int sig) {
     libos_print("libc trying to raise signal %d", sig);
     return;
 }
+
+int __snprintf_chk (char *s, size_t /*maxlen*/, int /*flags*/, size_t /*slen*/,
+		 const char *format, ...)
+{
+  va_list arg;
+  int done;
+
+  va_start (arg, format);
+  done = vsprintf (s, format, arg);
+  va_end (arg);
+
+  return done;
+}
+
+
 
 }
 

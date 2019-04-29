@@ -18,9 +18,9 @@ class UserThread;
 class RequestBase {
 private:
     atomic_bool ack = {false};
-    atomic_bool done = {false};
     int returnVal = 0;
 public:
+    atomic_bool done = {false};
     UserThread *owner = nullptr;
     boost::intrusive::list_member_hook<> watchListHook;
     int requestType;

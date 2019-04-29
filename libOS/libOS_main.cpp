@@ -35,10 +35,12 @@ volatile uint64_t *pjiffies;
 
 int idleThread() {
     for (;;) {
-        //libos_print("idling!");
-        //getSharedTLS()->numActiveThread --;
-        //__eexit(0x1000); // yield cpu
-        scheduler->schedule();
+        getSharedTLS()->numActiveThread --;
+
+        if (getSharedTLS()->numActiveThread >= getSharedTLS()->numTotalThread) {
+            libos_print("[idle] yielding cpu");
+            __eexit(0x1000);
+        }
     }
     return 0;
 }
@@ -153,21 +155,34 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
         libos_print("scheduler returned!");
         __asm__("ud2");
     }
+    //libos_print("Arguments from Enclavee");
+    // libos_print("argument number: %lx", ctrl_struct->mainArgs.argc);
+    /*
+    for (int ip = 0; ip < ctrl_struct->mainArgs.argc; ip++) {
+        libos_print("value %d is: %s", ip, ctrl_struct->mainArgs.argv[ip]);
+    }
+    */
     real_argv = (char **)sp;
     libOS_shared_tls *shared_tls = getSharedTLS();
     pjiffies = shared_tls->pjiffies;
-    timeStamp = ctrl_struct->timeStamp;
     ctrl_struct->isMain = false;
     requestQueue = ctrl_struct->requestQueue;
     initPanic(ctrl_struct->panic);
     libos_print("We are inside LibOS!");
+    libos_print("whosss are inside LibOS!");
 
+    libos_print("aaargument number: %lx", ctrl_struct->mainArgs.argc);
+    for (int ip = 0; ip < ctrl_struct->mainArgs.argc; ip++) {
+        libos_print("vvvalue %d is: %s", ip, ctrl_struct->mainArgs.argv[ip]);
+    }
     // set TLS initialization parameters
     tlsBase = ctrl_struct->mainArgs.tlsBase;
     tlsLength = ctrl_struct->mainArgs.tlsSize;
 
     initUnsafeMalloc(ctrl_struct->mainArgs.unsafeHeapBase, ctrl_struct->mainArgs.unsafeHeapLength);
     writeToConsole("UnsafeMalloc intialization successful.");
+    writeToConsole("ha?");
+    libos_print("gwing %d", 1);
     libos_print("UnsafeHeap base = 0x%lx, length = 0x%lx", ctrl_struct->mainArgs.unsafeHeapBase,
                 ctrl_struct->mainArgs.unsafeHeapLength);
 

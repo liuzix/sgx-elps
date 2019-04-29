@@ -1,9 +1,8 @@
 #include "interrupt.h"
 #include "sched.h"
 #include "panic.h"
+#include "util.h"
 #include "thread_local.h"
-bool disableInterrupt();
-void enableInterrupt();
 void injectedFunc();
 #define SSAFRAME_SIZE 4
 extern "C" void do_interrupt(void *tcs) {
