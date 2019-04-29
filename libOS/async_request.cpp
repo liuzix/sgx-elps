@@ -15,34 +15,18 @@
 using namespace std;
 
 typedef boost::intrusive::list<RequestBase, member_hook<RequestBase, list_member_hook<>,
-                                      &RequestBase::watchListHook>>
+                                      &RequestBase::watchListHook>, link_mode<normal_link>>
     WatchList;
 
-/*
-struct ticket_is_key {
-    typedef int type;
-
-    const type &operator()(const SchedEntity &v) const { return v.ticket; }
-};
-*/
-
-/*typedef boost::intrusive::set<
-    SchedEntity,
-    member_hook<SchedEntity, set_member_hook<>, &SchedEntity::set_member_hook_>,
-    key_of_value<ticket_is_key>>
-    OrderedMap;
-*/
-//extern unordered_map<unsigned int, vector<unsigned int>>* syscall_table;
 WatchList *watchList;
 std::atomic_int32_t ticket;
 SpinLock *watchListLock;
-//OrderedMap *ticketList;
-//extern Singleton<SwapRequest> sg;
+
+extern uint64_t *pjiffies;
 
 void initWatchList() {
     watchListLock = new SpinLock;
     watchList = new WatchList;
-    //ticketList = new OrderedMap;
 }
 
 /* this is called by the scheduler */
@@ -55,6 +39,7 @@ void watchListCheck() {
                 __asm__("ud2");
             SchedEntity &se = it->owner->se;
             it->owner = nullptr;
+            it = watchList->erase(it);
             scheduler->enqueueTask(se);
         } else {
             it++;
@@ -64,13 +49,9 @@ void watchListCheck() {
 }
 
 void sleepWait(RequestBase *req) {
-    //req->ticket = ticket.fetch_add(1);
-    //scheduler->current.get()->ticket = req->ticket;
-
     bool intFlag = disableInterrupt();
 
     watchListLock->lock();
-    //ticketList->insert(*scheduler->current.get());
     req->owner = scheduler->getCurrent()->get()->thread;
     watchList->push_back(*req);
     watchListLock->unlock();
@@ -87,9 +68,14 @@ extern "C" int __async_swap(void *addr) {
     //SwapRequest *req = createUnsafeObj<SwapRequest>();
     req->addr = (unsigned long)addr;
     requestQueue->push(req);
-
-    if (!req->waitOnDone(3000))
-        sleepWait(req);
+    //if (!req->waitOnDone(1))
+    //    sleepWait(req);
+    //uint64_t jif = *pjiffies;
+    req->done.store(false);
+    req->blockOnDone();
+    //jif = *pjiffies - jif;
+    asm volatile("": : :"memory");
+    __sync_synchronize();
     int ret = (int)req->addr;
     return ret;
 }
