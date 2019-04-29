@@ -284,33 +284,15 @@ void writeBack(SyscallRequest* req, long* enclave_args, unsigned int index) {
     unsigned int syscall_n = req->fm_list.syscall_num;
 
     switch (syscall_n) {
-        case SYS_ACCEPT:
-        case SYS_GETSOCKNAME: {
-            if (index == 1) {
-                unsigned int size = *((int*)req->args[index + 1].arg);
-                memcpy((void*)enclave_args[index], (void*)req->args[index].arg, size);
-            } else
-                memcpy((void*)enclave_args[index], (void*)req->args[index].arg,
-                       req->fm_list.sizes[index]);
-            break;
-                              }
-        case SYS_RECVFROM: {
-            if (index == 4) {
-                unsigned int size = *((int*)req->args[index + 1].arg);
-                memcpy((void*)enclave_args[index], (void*)req->args[index].arg, size);
-            } else
-                memcpy((void*)enclave_args[index], (void*)req->args[index].arg,
-                       req->fm_list.sizes[index]);
-                           }
         case SYS_RECVMSG: {
                 msghdr* src = (msghdr*)req->args[index].arg;
                 msghdr* des = (msghdr*)enclave_args[index];
-                memberWriteBack(src, des, &msghdr::msg_name, src->msg_namelen);
-                memberWriteBack(src, des, &msghdr::msg_control, src->msg_controllen);
+                memberWriteBack(src, des, &msghdr::msg_name, des->msg_namelen);
+                memberWriteBack(src, des, &msghdr::msg_control, des->msg_controllen);
                 iovec* src_t = src->msg_iov;
                 iovec* des_t = des->msg_iov;
                 for (unsigned int i = 0; i < src->msg_iovlen; i++, src_t++, des_t++) {
-                    memberWriteBack(src_t, des_t, &iovec::iov_base, src_t->iov_len);
+                    memberWriteBack(src_t, des_t, &iovec::iov_base, des_t->iov_len);
                     des_t->iov_len = src_t->iov_len;
                 }
             break;

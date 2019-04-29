@@ -215,8 +215,9 @@ int main(int argc, char **argv, char **envp) {
     sgx_user_data u_data = {.load_bias = thread->getSharedTLS()->loadBias, .tcs_addr = thread->getTcs()};
     ioctl(deviceHandle(), SGX_IOC_ENCLAVE_SET_USER_DATA, &u_data);
     */
-    char const *testArgv[] ={"hello", "world", (char *)0};
-    thread->setArgs(2, (char **)testArgv);
+    //char const *testArgv[] ={"hello", "world", (char *)0};
+    thread->setArgs(argc - 1, (char **)(argv + 1));
+    //thread->setArgs(2, (char **)testArgv);
     thread->setAux(get_curr_auxv(loader));
     thread->setEnvs(envp);
     thread->setSwapper(swapperManager);

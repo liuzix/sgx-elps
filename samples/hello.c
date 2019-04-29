@@ -6,11 +6,13 @@
 //__thread int test = 0;
 
 
-int main () {
+int main (int argc, char **argv) {
     int i = 0;
     int test  = 0;
 //    int* p = NULL;
-
+    for (int ip = 0; ip < argc; ip++) {
+        printf("Hello information: %s\n", argv[ip]);
+    }
     for (; i <= 10000; i++)
         test += i;
 /*    asm volatile ("mov $0x1234, %%rax\n\t"

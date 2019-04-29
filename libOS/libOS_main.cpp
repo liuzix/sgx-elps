@@ -153,6 +153,13 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
         libos_print("scheduler returned!");
         __asm__("ud2");
     }
+    //libos_print("Arguments from Enclavee");
+    // libos_print("argument number: %lx", ctrl_struct->mainArgs.argc);
+    /*
+    for (int ip = 0; ip < ctrl_struct->mainArgs.argc; ip++) {
+        libos_print("value %d is: %s", ip, ctrl_struct->mainArgs.argv[ip]);
+    }
+    */
     real_argv = (char **)sp;
     libOS_shared_tls *shared_tls = getSharedTLS();
     pjiffies = shared_tls->pjiffies;
@@ -161,7 +168,12 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
     requestQueue = ctrl_struct->requestQueue;
     initPanic(ctrl_struct->panic);
     libos_print("We are inside LibOS!");
+    libos_print("whosss are inside LibOS!");
 
+    libos_print("aaargument number: %lx", ctrl_struct->mainArgs.argc);
+    for (int ip = 0; ip < ctrl_struct->mainArgs.argc; ip++) {
+        libos_print("vvvalue %d is: %s", ip, ctrl_struct->mainArgs.argv[ip]);
+    }
     // set TLS initialization parameters
     tlsBase = ctrl_struct->mainArgs.tlsBase;
     tlsLength = ctrl_struct->mainArgs.tlsSize;
