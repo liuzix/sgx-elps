@@ -71,7 +71,7 @@ extern "C" int __async_swap(void *addr) {
     //if (!req->waitOnDone(1))
     //    sleepWait(req);
     //uint64_t jif = *pjiffies;
-    req->done.store(false);
+    //req->done.store(false);
     req->blockOnDone();
     //jif = *pjiffies - jif;
     asm volatile("": : :"memory");
