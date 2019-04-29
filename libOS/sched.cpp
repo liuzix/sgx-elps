@@ -38,8 +38,8 @@ void Scheduler::enqueueTask(SchedEntity &se) {
     lock.lock();
     if(!se.running && !se.onQueue)
         queue.push_back(se);
-    if (!se.onQueue)
-        schedNotify();
+    //if (!se.onQueue)
+        //schedNotify();
     se.onQueue = true;
     lock.unlock();
 }
@@ -63,7 +63,6 @@ void Scheduler::schedule() {
     if (*current && ++(*current)->timeSlot != MAXIMUM_SLOT) {
         return;
     }
-
     lock.lock();
     if (*current) (*current)->timeSlot = 0;
 
@@ -78,6 +77,7 @@ void Scheduler::schedule() {
         *current = &queue.front();
         current.get()->running = true;
         queue.pop_front();
+        doubleLockThread(current.get()->thread, prev ? prev->thread : nullptr);
         lock.unlock();
         /* decide if we do need a context switch */
         if (*current != prev)
@@ -85,6 +85,7 @@ void Scheduler::schedule() {
         else
             enableInterrupt();
     } else {
+        doubleLockThread(current.get()->thread, prev ? prev->thread : nullptr);
         lock.unlock();
         /* if it has already been idling */
         //if (!*current) return;

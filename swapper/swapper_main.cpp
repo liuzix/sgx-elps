@@ -43,7 +43,7 @@ int fd_set_blocking(int fd, int blocking) {
         flags |= O_NONBLOCK;
     return fcntl(fd, F_SETFL, flags) != -1;
 }
-        
+
 void SwapperManager::runWorker(int id) {
     console->info("Swapper thread started, id = {}", id); 
 
@@ -64,7 +64,7 @@ void SwapperManager::runWorker(int id) {
     dispatcher.addHandler<SyscallRequest>(std::bind(syscallRequestHandler, this, std::placeholders::_1));
     dispatcher.addHandler<SwapRequest>(std::bind(swapRequestHandler, this, std::placeholders::_1));
     dispatcher.addHandler<SchedulerRequest>(std::bind(schedulerRequestHandler, this, std::placeholders::_1));
-    
+
 //    struct epoll_event ev, events[MAX_EVENTS];
 //    int nfds, epollfs;
 
@@ -110,7 +110,7 @@ void SwapperManager::runWorker(int id) {
             console->error("epoll_wait");
             return;
         }
-    
+
         for (int i = 0; i < nfds; ++i) {
             handleEvent(events[i]);
             // if ONESHOT flag is used, the following should be deleted

@@ -9,11 +9,11 @@
 #include <iostream>
 #include "allocator.h"
 #include "panic.h"
-
 template <typename ReqT>
 class Singleton {
 private:
     static std::unordered_map<int, ReqT*> *umap;
+    static SpinLock *mapLock;
     Singleton() {}
 public:
     //ReqT* getRequest(void *addr);
@@ -25,18 +25,20 @@ public:
             req = new (tmp) ReqT(std::forward<T>(args)...);
             return req;
         }
-        int tid = (**scheduler->getCurrent())->thread->id;
-        if (umap == nullptr)
+        if (umap == nullptr) {
+            mapLock = new SpinLock;
             umap = new std::unordered_map<int, ReqT*>();
-        if ((*umap)[tid] == nullptr) {
+        }
+        mapLock->lock();
+        if ((*umap)[(**scheduler->getCurrent())->thread->id] == nullptr) {
             ReqT *tmp = (ReqT *)unsafeMalloc(sizeof(ReqT));
             req = new (tmp) ReqT(std::forward<T>(args)...);
         }
         else
-            req = new ((*umap)[tid]) ReqT(std::forward<T>(args)...);
-
-        (*umap)[tid] = req;
-
+            req = new ((*umap)[(**scheduler->getCurrent())->thread->id]) ReqT(std::forward<T>(args)...);
+            //req = new ((ReqT *)(**scheduler->getCurrent())->thread->request_obj) ReqT(std::forward<T>(args)...);
+        (*umap)[(**scheduler->getCurrent())->thread->id] = req;
+        mapLock->unlock();
         return req;
     }
 };

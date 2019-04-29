@@ -38,4 +38,3 @@ void initPanic(panic_struct *ps) {
     panicInfo = ps;
 }
 
-

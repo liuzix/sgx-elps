@@ -8,6 +8,7 @@
 #include "atomic.h"
 #include "syscall.h"
 
+extern long __set_tid_address(int *tidptr);
 int __init_tp(void *p)
 {
 	pthread_t td = p;
@@ -16,9 +17,11 @@ int __init_tp(void *p)
 	if (r < 0) return -1;
 	if (!r) libc.can_do_threads = 1;
 	td->detach_state = DT_JOINABLE;
-	td->tid = __async_syscall(SYS_set_tid_address, &td->detach_state);
+    // we defined __set_tid_address in libOS
+	td->tid = __set_tid_address(&td->detach_state);
 	td->locale = &libc.global_locale;
 	td->robust_list.head = &td->robust_list.head;
+    
 	return 0;
 }
 
@@ -128,8 +131,7 @@ static void static_init_tls(size_t *aux)
 #ifndef SYS_mmap2
 #define SYS_mmap2 SYS_mmap
 #endif
-		mem = (void *)__async_syscall(
-			SYS_mmap2,
+		mem = (void *)__mmap(
 			0, libc.tls_size, PROT_READ|PROT_WRITE,
 			MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
 		/* -4095...-1 cast to void * will crash on dereference anyway,

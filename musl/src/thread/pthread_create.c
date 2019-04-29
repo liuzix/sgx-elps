@@ -6,7 +6,8 @@
 #include <sys/mman.h>
 #include <string.h>
 #include <stddef.h>
-
+extern int libos_clone(int (*fn)(void *), void *stack, void *arg, void *newtls, int *detach);
+extern void libos_exit_thread(int val);
 static void dummy_0()
 {
 }
@@ -119,8 +120,8 @@ _Noreturn void __pthread_exit(void *result)
 	 * it that it's no longer available. */
 	self->tid = 0;
 	UNLOCK(self->killlock);
-
-	for (;;) __async_syscall(SYS_exit, 0);
+    libos_exit_thread(0);
+	//for (;;) __async_syscall(SYS_exit, 0);
 }
 
 void __do_cleanup_push(struct __ptcb *cb)
@@ -232,18 +233,8 @@ int __pthread_create(pthread_t *restrict res, const pthread_attr_t *restrict att
 	}
 
 	if (!tsd) {
-		if (guard) {
-			map = __mmap(0, size, PROT_NONE, MAP_PRIVATE|MAP_ANON, -1, 0);
-			if (map == MAP_FAILED) goto fail;
-			if (__mprotect(map+guard, size-guard, PROT_READ|PROT_WRITE)
-			    && errno != ENOSYS) {
-				__munmap(map, size);
-				goto fail;
-			}
-		} else {
-			map = __mmap(0, size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
-			if (map == MAP_FAILED) goto fail;
-		}
+        map = __mmap(0, size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
+        if (map == MAP_FAILED) goto fail;
 		tsd = map + size - __pthread_tsd_size;
 		if (!stack) {
 			stack = tsd - libc.tls_size;
@@ -283,8 +274,8 @@ int __pthread_create(pthread_t *restrict res, const pthread_attr_t *restrict att
 	new->CANARY = self->CANARY;
 
 	a_inc(&libc.threads_minus_1);
-	ret = __clone((c11 ? start_c11 : start), stack, flags, new, &new->tid, TP_ADJ(new), &new->detach_state);
-
+	//ret = __clone((c11 ? start_c11 : start), stack, flags, new, &new->tid, TP_ADJ(new), &new->detach_state);
+    ret = libos_clone((c11 ? start_c11 : start), stack, new, new, &new->detach_state); 
 	__release_ptc();
 
 	if (do_sched) {

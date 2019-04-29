@@ -19,41 +19,45 @@ typedef boost::intrusive::list<RequestBase, member_hook<RequestBase, list_member
                                       &RequestBase::watchListHook>>
     WatchList;
 
+/*
 struct ticket_is_key {
     typedef int type;
 
     const type &operator()(const SchedEntity &v) const { return v.ticket; }
 };
+*/
 
-typedef boost::intrusive::set<
+/*typedef boost::intrusive::set<
     SchedEntity,
     member_hook<SchedEntity, set_member_hook<>, &SchedEntity::set_member_hook_>,
     key_of_value<ticket_is_key>>
     OrderedMap;
-
+*/
+//extern unordered_map<unsigned int, vector<unsigned int>>* syscall_table;
 WatchList *watchList;
 std::atomic_int32_t ticket;
 SpinLock *watchListLock;
-OrderedMap *ticketList;
+//OrderedMap *ticketList;
 //extern Singleton<SwapRequest> sg;
 
 void initWatchList() {
     watchListLock = new SpinLock;
     watchList = new WatchList;
-    ticketList = new OrderedMap;
+    //ticketList = new OrderedMap;
 }
 
 /* this is called by the scheduler */
 void watchListCheck() {
+    //volatile uint64_t jif = *pjiffies;
+    //asm("":::"memory");
+    watchListLock->lock();
     auto it = watchList->begin();
     while (it != watchList->end()) {
         if (it->waitOnDone(1)) {
-            auto ticketIt = ticketList->find(it->ticket);
-            if (ticketIt == ticketList->end()) {
+            if (!it->owner)
                 __asm__("ud2");
-            }
-            SchedEntity &se = *ticketIt;
-            ticketList->erase(ticketIt);
+            SchedEntity &se = it->owner->se;
+            it->owner = nullptr;
             it = watchList->erase(it);
             scheduler->enqueueTask(se);
         } else {
@@ -61,16 +65,20 @@ void watchListCheck() {
         }
     }
     watchListLock->unlock();
+    //jif = *pjiffies - jif;
+    //asm("":::"memory");
+    //libos_print("watchlist CPU cycles: %ld", jif);
 }
 
 void sleepWait(RequestBase *req) {
-    req->ticket = ticket.fetch_add(1);
-    scheduler->current.get()->ticket = req->ticket;
+    //req->ticket = ticket.fetch_add(1);
+    //scheduler->current.get()->ticket = req->ticket;
 
     bool intFlag = disableInterrupt();
 
     watchListLock->lock();
-    ticketList->insert(*scheduler->current.get());
+    //ticketList->insert(*scheduler->current.get());
+    req->owner = scheduler->getCurrent()->get()->thread;
     watchList->push_back(*req);
     watchListLock->unlock();
 
@@ -89,19 +97,21 @@ extern "C" int __async_swap(void *addr) {
     requestQueue->push(req);
 
     //sleepWait(req);
-    req->waitOnDone(0xffffffff);
+    //req->waitOnDone(0xffffffff);
+    req->blockOnDone();
     int ret = (int)req->addr;
     return ret;
 }
 
 extern "C" int __async_syscall(unsigned int n, ...) {
     libos_print("Async call [%u]", n);
-
     /* Interpret correspoding syscall args types */
     format_t fm_l;
     int ret_tmp = interpretSyscall(fm_l, n);
     if (!ret_tmp) {
+//        __asm__("ud2");
         libos_print("No support for system call [%u]", n);
+        __asm__("ud2");
         return -1;
     }
 
@@ -127,21 +137,23 @@ extern "C" int __async_syscall(unsigned int n, ...) {
     va_end(vl);
     /* populate arguments in request */
     if (!req->fillArgs()) {
+        libos_print("SYSCALL[%d] fillargs failed", n);
         req->~SyscallRequest();
-        unsafeFree(req);
+        //unsafeFree(req);
         return -1;
     }
 
     requestQueue->push(req);
-//    req->blockOnDone();
+    req->blockOnDone();
 //        sleepWait(req);
-    if (!req->waitOnDone(3000))
-        sleepWait(req);
+//    if (!req->waitOnDone(3000))
+//        sleepWait(req);
     libos_print("return val: %ld", req->sys_ret);
     int ret = (int)req->sys_ret;
     req->fillEnclave(enclave_args);
     req->~SyscallRequest();
-    unsafeFree(req);
+    //unsafeFree(req);
+    libos_print("Async call end");
     return ret;
 }
 

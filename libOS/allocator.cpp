@@ -197,6 +197,9 @@ ReqT* Singleton<ReqT>::getRequest(void *addr) {
 template<typename ReqT>
 std::unordered_map<int, ReqT*>* Singleton<ReqT>::umap;
 
+template<typename ReqT>
+SpinLock* Singleton<ReqT>::mapLock;
+
 template class Singleton<SwapRequest>;
 template class Singleton<DebugRequest>;
 template class Singleton<SyscallRequest>;

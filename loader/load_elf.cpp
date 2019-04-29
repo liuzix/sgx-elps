@@ -126,12 +126,12 @@ bool ELFLoader::relocate() {
 shared_ptr<EnclaveMainThread> ELFLoader::load() {
 
     Elf_Half seg_num = reader.segments.size();
+
     int i;
     vaddr tlsBase = 0;
     size_t tlsLen = 0;
     for (i = 0; i < seg_num; i++) {
         const segment *pseg = reader.segments[i];
-
         switch (pseg->get_type()) {
         case PT_DYNAMIC:
             /* Nothing */
@@ -185,7 +185,7 @@ shared_ptr<EnclaveMainThread> ELFLoader::load() {
     console->trace("ELF load: TLS base = 0x{:x}, TLS size = 0x{:x}", tlsBase, tlsLen);
     /* Set auxiliary vector */
     this->setAuxEntry((uint64_t)reader.get_entry() + this->loadBias);
-    this->setAuxPhdr(0 + this->loadBias);
+    this->setAuxPhdr((uint64_t)this->mappedFile + reader.get_segments_offset());
     this->setAuxPhent(reader.get_segment_entry_size());
     this->setAuxPhnum(reader.get_segments_num());
     return ret;

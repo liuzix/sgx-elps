@@ -23,6 +23,7 @@ static inline FutexBucket* libos_get_bucket(uint32_t *addr) {
         libos_print("[get_bucket] Create new bucket for addr: 0x%lx.", (uint64_t)addr);
         futexHash->insert(*fb);
         futexHashLock.unlock();
+        libos_print("Finished creating bucket");
     }
     else {
         libos_print("Bucket found.");
@@ -98,7 +99,7 @@ uint64_t futex_wake(uint32_t *addr, unsigned int flags, uint32_t nr_wake, uint32
     auto fbit = futexHash->find(addr);
     FutexBucket *fb;
     int ret = 0;
-
+    
     /* 1 or ALL */
     if (nr_wake != 1)
         nr_wake = INT_MAX;

@@ -1,4 +1,5 @@
 #include <control_struct.h>
+#include <iostream>
 #include <functional>
 #include <string.h>
 #include "panic.h"
@@ -9,6 +10,7 @@
 #include "thread_local.h"
 #include "user_thread.h"
 #include <request.h>
+#include "singleton.h"
 #include <syscall_format.h>
 #include "elf.h"
 #include "logging.h"
@@ -16,6 +18,9 @@
 
 #include <vector>
 #include <list>
+
+char **real_argv;
+
 
 Queue<RequestBase*> *requestQueue = nullptr;
 
@@ -25,7 +30,6 @@ extern "C" int __async_swap(void *addr);
 extern "C" int __libc_start_main(int (*main)(int,char **,char **), int argc, char **argv);
 //extern Singleton<SwapRequest> sg;
 void initWatchList();
-
 
 volatile uint64_t *pjiffies;
 
@@ -45,10 +49,12 @@ int newThread(int argc, char **argv) {
     getSharedTLS()->inInterrupt->store(false);
 
     INIT_FUTEX_QUEUE();
-    auto schedReady = createUnsafeObj<SchedulerRequest>(SchedulerRequest::SchedulerRequestType::SchedReady);
+    //auto schedReady = createUnsafeObj<SchedulerRequest>(SchedulerRequest::SchedulerRequestType::SchedReady);
+    auto schedReady = Singleton<SchedulerRequest>::getRequest(SchedulerRequest::SchedulerRequestType::SchedReady);
     requestQueue->push(schedReady);
-    int ret = main(argc, argv);
-    //int ret = __libc_start_main((int (*)(int,char **,char **))&main, argc, argv);
+    //int ret = main(argc, argv);
+    int ret = __libc_start_main((int (*)(int,char **,char **))&main, argc, argv);
+    //std::cout << "test!" << std::endl;
     __eexit(ret);
     return 0;
 }
@@ -147,7 +153,7 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
         libos_print("scheduler returned!");
         __asm__("ud2");
     }
-
+    real_argv = (char **)sp;
     libOS_shared_tls *shared_tls = getSharedTLS();
     pjiffies = shared_tls->pjiffies;
     timeStamp = ctrl_struct->timeStamp;
@@ -168,13 +174,13 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
     mmap_init(ctrl_struct->mainArgs.heapBase, ctrl_struct->mainArgs.heapLength);
     initSafeMalloc(10 * 4096);
     libos_print("Safe malloc initialization successful");
-    //test_auxv(sp, ctrl_struct->mainArgs.argc);
+    test_auxv(sp, ctrl_struct->mainArgs.argc);
 
     initSyscallTable();
     scheduler_init();
     initWatchList();
     scheduler->setIdle((new UserThread(idleThread))->se);
-    auto mainThr = new UserThread(std::bind(newThread, ctrl_struct->mainArgs.argc, ctrl_struct->mainArgs.argv));
+    auto mainThr = new UserThread(std::bind(newThread, ctrl_struct->mainArgs.argc, real_argv));
     scheduler->enqueueTask(mainThr->se);
     scheduler->schedule();
     libos_panic("Shouldn't have reached here!");
