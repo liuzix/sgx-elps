@@ -18,7 +18,7 @@ private:
     Queue<RequestBase*> queue;
     panic_struct panic; 
     std::atomic<steady_clock::duration> timeStamp;
-    int nThreads = 3;
+    int nThreads = 2;
 
     void runWorker(int id); 
 public:

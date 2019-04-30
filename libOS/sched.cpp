@@ -16,7 +16,10 @@ void Scheduler::schedNotify() {
 
     getSharedTLS()->numTotalThread->fetch_add(1);
     
-    if (getSharedTLS()->numTotalThread <= getSharedTLS()->numActiveThread)
+    //libos_print("numActiveThread: %d, numKernelThreads: %d",
+    //        getSharedTLS()->numActiveThread->load(),
+    //        getSharedTLS()->numKernelThreads);
+    if (getSharedTLS()->numKernelThreads == getSharedTLS()->numActiveThread->load())
         return;
     
     libos_print("[sched] sending schedNotify");

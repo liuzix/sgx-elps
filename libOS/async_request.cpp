@@ -69,10 +69,10 @@ extern "C" int __async_swap(void *addr) {
     req->addr = (unsigned long)addr;
     requestQueue->push(req);
     //if (!req->waitOnDone(1))
-    //    sleepWait(req);
+    sleepWait(req);
     //uint64_t jif = *pjiffies;
     //req->done.store(false);
-    req->blockOnDone();
+    //req->blockOnDone();
     //jif = *pjiffies - jif;
     asm volatile("": : :"memory");
     __sync_synchronize();

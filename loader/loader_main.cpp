@@ -19,7 +19,7 @@
 #include "signature.h"
 
 #define UNSAFE_HEAP_LEN 0x10000000
-#define SAFE_HEAP_LEN 0x100000000
+#define SAFE_HEAP_LEN 0x40000000
 
 #define AUX_CNT 38
 
@@ -189,7 +189,7 @@ int main(int argc, char **argv, char **envp) {
     console->info("Welcome to the Loader");
     console->info("Start loading binary file: {}", argv[1]);
 
-    manager = make_shared<EnclaveManager>(0x0, SAFE_HEAP_LEN * 4);
+    manager = make_shared<EnclaveManager>(0x0, SAFE_HEAP_LEN * 4ULL);
 
     ELFLoader loader(manager);
     loader.open(argv[1]);
@@ -232,9 +232,6 @@ int main(int argc, char **argv, char **envp) {
     swapperManager.launchWorkers();
     /* Set the sigsegv handler to dump the ssa */
     manager->dump_sigaction();
-    sched_param sp;
-    sp.sched_priority = sched_get_priority_max(SCHED_FIFO);
-    sched_setscheduler(0, SCHED_FIFO, &sp);
 
     /* launch the enclave threads */
     threadpool->launch();

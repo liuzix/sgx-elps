@@ -99,6 +99,15 @@ struct sgx_user_data {
 void EnclaveThread::run() {
     using namespace std::chrono;
     static high_resolution_clock::time_point starttime = high_resolution_clock::now(), endtime;
+    
+
+    sched_param sp;
+    sp.sched_priority = sched_get_priority_max(SCHED_FIFO);
+    sched_setscheduler(0, SCHED_FIFO, &sp);
+    cpu_set_t  mask;
+    CPU_ZERO(&mask);
+    CPU_SET(getSharedTLS()->threadID * 2, &mask);
+    sched_setaffinity(0, sizeof(mask), &mask);
 
     uint64_t cc1 = __rdtsc();
     //sgx_user_data u_data = {.load_bias = this->sharedTLS.loadBias, .tcs_addr = this->tcs};
