@@ -80,7 +80,7 @@ int accessWork(int tid) {
     for(size_t i = 0; i < MEM_SIZE; i += STEP)
     {
         //uint64_t jif = *pjiffies;
-        //hint((void *)((char *)addr + i));
+        hint((void *)((char *)addr + i));
         *((char *)addr + i) = 'e';
         j++;
         int tt = 5000;

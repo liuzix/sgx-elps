@@ -46,7 +46,7 @@ extern "C" void __entry_helper(transfer_t transfer) {
 /* this is just to make the debugger happy */
 __attribute__((naked)) static void __clear_rbp(transfer_t) {
    __asm__("xor %rbp, %rbp;"
-           "sub $8, %rsp;"
+           "sub $8, %rsp;"         // this is very important. Without it libOS crashes under -O1
            "call __entry_helper;");
 }
 
