@@ -14,6 +14,7 @@ std::atomic_int threadCounter;
 void *tlsBase;
 size_t tlsLength;
 
+extern volatile uint64_t *pjiffies;
 
 struct transfer_data {
     UserThread *prev;
@@ -24,6 +25,7 @@ extern "C" void __entry_helper(transfer_t transfer) {
     transfer_data *data = (transfer_data *)transfer.data;
     auto prev = data->prev;
     auto cur = data->cur;
+    libos_print("[%d] Current jiffies: %lu", cur->id, *pjiffies);
     if (prev) {
         //libos_print("saving context %lx to thread %d", transfer.fctx, data->prev->id);
         prev->fcxt = transfer.fctx;
@@ -100,7 +102,9 @@ void UserThread::jumpTo(UserThread *from) {
     setFSReg(this->fs_base);
     transfer_data t{ .prev = from, .cur = this };
     //libos_print("loading context %lx", this->fcxt);
+    libos_print("[%d] Current jiffies: %lu", id, *pjiffies);
     transfer_t ret_t = jump_fcontext(this->fcxt, (void *)&t);
+    libos_print("[%d] Current jiffies: %lu", id, *pjiffies);
     transfer_data *data = (transfer_data *)ret_t.data;
     auto prev = data->prev;
     auto cur = data->cur;

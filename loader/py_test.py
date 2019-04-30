@@ -6,7 +6,7 @@ import numpy as np
 
 jiff = list()
 aex = list()
-for i in range(0, 20):
+for i in range(0, 1):
     id = str(uuid.uuid1())
     pid = os.fork()
     if pid== 0:
@@ -23,15 +23,15 @@ for i in range(0, 20):
                 for line in f.readlines():
                     #if 'jiff' in line and (not 'CPU' in line):
                     try:
-                        if 'CPU cycles' in line:
-                            f2.write(line[line.find('cycles')+len('cycles: '):])
-                            jiff.append(int(line[line.find('cycles')+len('cycles: '):]))
+                        if 'wait jiff' in line:
+                            f2.write(line[line.find('wait jiff:')+len('wait jiff: '):])
+                            jiff.append(int(line[line.find('wait jiff:')+len('wait jiff: '):]))
                             print("[%d] "%i + line[:-1])
                             continue
-                        if 'aex' in line:
+                        if 'unsafe malloc jiff' in line:
                             print("[%d] "%i + line[:-1])
-                            line = line[line.find('aex')+len('aex: '):]
-                            line = line[:line.find(',')]
+                            line = line[line.find('unsafe malloc jiff')+len('unsafe malloc jiff: '):]
+                            #line = line[:line.find(',')]
                             aex.append(int(line))
                     except:
                         print("Execute failed. Abort.")

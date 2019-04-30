@@ -7,7 +7,7 @@
 #include "../libOS/futex.h"
 
 __thread int test = 0;
-#define MEM_SIZE 0x10000000
+#define MEM_SIZE 0x1000000
 #define STEP     0x10000
 
 extern volatile uint64_t *pjiffies;
@@ -144,7 +144,7 @@ int main(int argc, char **argv)
     }
 */
     vector<UserThread *> vSleepThreads;
-    int n = 1;
+    int n = 5;
     for (int i = 0; i < n; i++) {
         UserThread *t= new UserThread(std::bind(accessWork, i));
         vSleepThreads.push_back(t);
