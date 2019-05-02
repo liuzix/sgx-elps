@@ -15,3 +15,28 @@ target_link_libraries(testpthread OS)
 
 add_executable(hello "testhint.cpp" ${EXTRA_OBJS})
 target_link_libraries(hello OS)
+
+#add_subdirectory(libevent)
+#add_subdirectory(memcached)
+
+include(ExternalProject)
+set(SAMPLES_LDFLAGS "-static-pie -nostdlib -L../libevent/.libs -L../../libOS/buildtmp -Wl,-Bstatic,--start-group -lOS")
+set(SAMPLES_CFLAGS "-I/home/xuheng/sgx-elps/musl/include -I/home/xuheng/sgx-elps/musl/include -I/home/xuheng/sgx-elps/musl/obj/include -I/home/xuheng/sgx-elps/musl/arch/x86_64 -I/home/xuheng/sgx-elps/musl/arch/generic -nostdinc -Wno-error=parentheses -Wno-error=redundant-decls -pie -w -U_FORTIFY_SOURCE")
+
+ExternalProject_Add(elps-libevent
+    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libevent
+    CONFIGURE_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/libevent/configure --disable-openssl --disable-gcc-warnings --disable-shared CFLAGS=${SAMPLES_CFLAGS} --disable-openssl
+    BUILD_COMMAND make all
+    BUILD_IN_SOURCE TRUE
+    BUILD_ALWAYS TRUE
+    INSTALL_COMMAND "")
+add_dependencies(elps-libevent musl)
+
+ExternalProject_Add(elps-memcached
+    SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/memcached"
+    CONFIGURE_COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/memcached && ./autogen.sh COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/memcached/configure --host=x86_64-linux-gnu --disable-coverage LDFLAGS=${SAMPLES_LDFLAGS} CFLAGS=${SAMPLES_CFLGAS} CC=gcc ac_cv_c_endian=little
+    BUILD_IN_SOURCE TRUE
+    BUILD_ALWAYS TRUE
+    BUILD_COMMAND make
+    INSTALL_COMMAND "")
+add_dependencies(elps-memcached musl elps-libevent)

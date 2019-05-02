@@ -1,26 +1,41 @@
 test/test_regress-regress_http.o: test/regress_http.c util-internal.h \
  include/event2/event-config.h evconfig-private.h \
- ../../musl/include/errno.h ../../musl/include/features.h \
- ../../musl/arch/generic/bits/errno.h log-internal.h \
+ /home/xuheng/sgx-elps/musl/include/errno.h \
+ /home/xuheng/sgx-elps/musl/include/features.h \
+ /home/xuheng/sgx-elps/musl/arch/generic/bits/errno.h log-internal.h \
  include/event2/util.h include/event2/visibility.h \
- ../../musl/include/sys/time.h ../../musl/include/sys/select.h \
- ../../musl/obj/include/bits/alltypes.h ../../musl/include/stdint.h \
- ../../musl/arch/x86_64/bits/stdint.h ../../musl/include/sys/types.h \
- ../../musl/include/endian.h ../../musl/include/sys/sysmacros.h \
- ../../musl/include/stddef.h ../../musl/include/stdarg.h \
- ../../musl/include/netdb.h ../../musl/include/netinet/in.h \
- ../../musl/include/inttypes.h ../../musl/include/sys/socket.h \
- ../../musl/arch/x86_64/bits/socket.h ../../musl/include/time.h \
- ../../musl/include/stdio.h ../../musl/include/stdlib.h \
- ../../musl/include/alloca.h ../../musl/include/sys/eventfd.h \
- ../../musl/include/fcntl.h ../../musl/arch/x86_64/bits/fcntl.h \
- time-internal.h ipv6-internal.h ../../musl/include/sys/stat.h \
- ../../musl/arch/x86_64/bits/stat.h compat/sys/queue.h \
- ../../musl/include/signal.h ../../musl/arch/x86_64/bits/signal.h \
- ../../musl/include/unistd.h ../../musl/arch/x86_64/bits/posix.h \
- ../../musl/include/string.h ../../musl/include/strings.h \
- include/event2/dns.h include/event2/event.h include/event2/http.h \
- include/event2/buffer.h ../../musl/include/sys/uio.h \
+ /home/xuheng/sgx-elps/musl/include/sys/time.h \
+ /home/xuheng/sgx-elps/musl/include/sys/select.h \
+ /home/xuheng/sgx-elps/musl/obj/include/bits/alltypes.h \
+ /home/xuheng/sgx-elps/musl/include/stdint.h \
+ /home/xuheng/sgx-elps/musl/arch/x86_64/bits/stdint.h \
+ /home/xuheng/sgx-elps/musl/include/sys/types.h \
+ /home/xuheng/sgx-elps/musl/include/endian.h \
+ /home/xuheng/sgx-elps/musl/include/sys/sysmacros.h \
+ /home/xuheng/sgx-elps/musl/include/stddef.h \
+ /home/xuheng/sgx-elps/musl/include/stdarg.h \
+ /home/xuheng/sgx-elps/musl/include/netdb.h \
+ /home/xuheng/sgx-elps/musl/include/netinet/in.h \
+ /home/xuheng/sgx-elps/musl/include/inttypes.h \
+ /home/xuheng/sgx-elps/musl/include/sys/socket.h \
+ /home/xuheng/sgx-elps/musl/arch/x86_64/bits/socket.h \
+ /home/xuheng/sgx-elps/musl/include/time.h \
+ /home/xuheng/sgx-elps/musl/include/stdio.h \
+ /home/xuheng/sgx-elps/musl/include/stdlib.h \
+ /home/xuheng/sgx-elps/musl/include/alloca.h \
+ /home/xuheng/sgx-elps/musl/include/sys/eventfd.h \
+ /home/xuheng/sgx-elps/musl/include/fcntl.h \
+ /home/xuheng/sgx-elps/musl/arch/x86_64/bits/fcntl.h time-internal.h \
+ ipv6-internal.h /home/xuheng/sgx-elps/musl/include/sys/stat.h \
+ /home/xuheng/sgx-elps/musl/arch/x86_64/bits/stat.h compat/sys/queue.h \
+ /home/xuheng/sgx-elps/musl/include/signal.h \
+ /home/xuheng/sgx-elps/musl/arch/x86_64/bits/signal.h \
+ /home/xuheng/sgx-elps/musl/include/unistd.h \
+ /home/xuheng/sgx-elps/musl/arch/x86_64/bits/posix.h \
+ /home/xuheng/sgx-elps/musl/include/string.h \
+ /home/xuheng/sgx-elps/musl/include/strings.h include/event2/dns.h \
+ include/event2/event.h include/event2/http.h include/event2/buffer.h \
+ /home/xuheng/sgx-elps/musl/include/sys/uio.h \
  include/event2/bufferevent.h include/event2/bufferevent_ssl.h \
  include/event2/listener.h log-internal.h http-internal.h \
  include/event2/event_struct.h include/event2/keyvalq_struct.h \
@@ -33,11 +48,11 @@ include/event2/event-config.h:
 
 evconfig-private.h:
 
-../../musl/include/errno.h:
+/home/xuheng/sgx-elps/musl/include/errno.h:
 
-../../musl/include/features.h:
+/home/xuheng/sgx-elps/musl/include/features.h:
 
-../../musl/arch/generic/bits/errno.h:
+/home/xuheng/sgx-elps/musl/arch/generic/bits/errno.h:
 
 log-internal.h:
 
@@ -45,71 +60,71 @@ include/event2/util.h:
 
 include/event2/visibility.h:
 
-../../musl/include/sys/time.h:
+/home/xuheng/sgx-elps/musl/include/sys/time.h:
 
-../../musl/include/sys/select.h:
+/home/xuheng/sgx-elps/musl/include/sys/select.h:
 
-../../musl/obj/include/bits/alltypes.h:
+/home/xuheng/sgx-elps/musl/obj/include/bits/alltypes.h:
 
-../../musl/include/stdint.h:
+/home/xuheng/sgx-elps/musl/include/stdint.h:
 
-../../musl/arch/x86_64/bits/stdint.h:
+/home/xuheng/sgx-elps/musl/arch/x86_64/bits/stdint.h:
 
-../../musl/include/sys/types.h:
+/home/xuheng/sgx-elps/musl/include/sys/types.h:
 
-../../musl/include/endian.h:
+/home/xuheng/sgx-elps/musl/include/endian.h:
 
-../../musl/include/sys/sysmacros.h:
+/home/xuheng/sgx-elps/musl/include/sys/sysmacros.h:
 
-../../musl/include/stddef.h:
+/home/xuheng/sgx-elps/musl/include/stddef.h:
 
-../../musl/include/stdarg.h:
+/home/xuheng/sgx-elps/musl/include/stdarg.h:
 
-../../musl/include/netdb.h:
+/home/xuheng/sgx-elps/musl/include/netdb.h:
 
-../../musl/include/netinet/in.h:
+/home/xuheng/sgx-elps/musl/include/netinet/in.h:
 
-../../musl/include/inttypes.h:
+/home/xuheng/sgx-elps/musl/include/inttypes.h:
 
-../../musl/include/sys/socket.h:
+/home/xuheng/sgx-elps/musl/include/sys/socket.h:
 
-../../musl/arch/x86_64/bits/socket.h:
+/home/xuheng/sgx-elps/musl/arch/x86_64/bits/socket.h:
 
-../../musl/include/time.h:
+/home/xuheng/sgx-elps/musl/include/time.h:
 
-../../musl/include/stdio.h:
+/home/xuheng/sgx-elps/musl/include/stdio.h:
 
-../../musl/include/stdlib.h:
+/home/xuheng/sgx-elps/musl/include/stdlib.h:
 
-../../musl/include/alloca.h:
+/home/xuheng/sgx-elps/musl/include/alloca.h:
 
-../../musl/include/sys/eventfd.h:
+/home/xuheng/sgx-elps/musl/include/sys/eventfd.h:
 
-../../musl/include/fcntl.h:
+/home/xuheng/sgx-elps/musl/include/fcntl.h:
 
-../../musl/arch/x86_64/bits/fcntl.h:
+/home/xuheng/sgx-elps/musl/arch/x86_64/bits/fcntl.h:
 
 time-internal.h:
 
 ipv6-internal.h:
 
-../../musl/include/sys/stat.h:
+/home/xuheng/sgx-elps/musl/include/sys/stat.h:
 
-../../musl/arch/x86_64/bits/stat.h:
+/home/xuheng/sgx-elps/musl/arch/x86_64/bits/stat.h:
 
 compat/sys/queue.h:
 
-../../musl/include/signal.h:
+/home/xuheng/sgx-elps/musl/include/signal.h:
 
-../../musl/arch/x86_64/bits/signal.h:
+/home/xuheng/sgx-elps/musl/arch/x86_64/bits/signal.h:
 
-../../musl/include/unistd.h:
+/home/xuheng/sgx-elps/musl/include/unistd.h:
 
-../../musl/arch/x86_64/bits/posix.h:
+/home/xuheng/sgx-elps/musl/arch/x86_64/bits/posix.h:
 
-../../musl/include/string.h:
+/home/xuheng/sgx-elps/musl/include/string.h:
 
-../../musl/include/strings.h:
+/home/xuheng/sgx-elps/musl/include/strings.h:
 
 include/event2/dns.h:
 
@@ -119,7 +134,7 @@ include/event2/http.h:
 
 include/event2/buffer.h:
 
-../../musl/include/sys/uio.h:
+/home/xuheng/sgx-elps/musl/include/sys/uio.h:
 
 include/event2/bufferevent.h:
 

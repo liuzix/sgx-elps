@@ -165,7 +165,7 @@ lock_old_archive_extraction=no
 LTCC="gcc"
 
 # LTCC compiler flags.
-LTCFLAGS="-nostdinc -I../../musl/include -I../../musl/arch/x86_64 -I../../musl/obj/include -I../../musl/arch/generic -Wall -fno-strict-aliasing -pthread"
+LTCFLAGS="-I/home/xuheng/sgx-elps/musl/include -I/home/xuheng/sgx-elps/musl/include -I/home/xuheng/sgx-elps/musl/obj/include -I/home/xuheng/sgx-elps/musl/arch/x86_64 -I/home/xuheng/sgx-elps/musl/arch/generic -nostdinc -Wno-error=parentheses -Wno-error=redundant-decls -pie -w -U_FORTIFY_SOURCE -Wall -fno-strict-aliasing -pthread"
 
 # Take the output of nm and produce a listing of raw symbols and C names.
 global_symbol_pipe="sed -n -e 's/^.*[	 ]\\([ABCDGIRSTW][ABCDGIRSTW]*\\)[	 ][	 ]*\\([_A-Za-z][_A-Za-z0-9]*\\)\$/\\1 \\2 \\2/p' | sed '/ __gnu_lto/d'"
@@ -321,7 +321,7 @@ CC="gcc"
 with_gcc=yes
 
 # Compiler flag to turn off builtin functions.
-no_builtin_flag=" -fno-builtin"
+no_builtin_flag=" -fno-builtin -fno-rtti -fno-exceptions"
 
 # Additional compiler flags for building library objects.
 pic_flag=" -fPIC -DPIC"

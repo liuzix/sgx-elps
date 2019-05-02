@@ -1,13 +1,1 @@
-sample/hostcheck.o: sample/hostcheck.c sample/hostcheck.h \
- ../../musl/include/string.h ../../musl/include/features.h \
- ../../musl/obj/include/bits/alltypes.h ../../musl/include/strings.h
-
-sample/hostcheck.h:
-
-../../musl/include/string.h:
-
-../../musl/include/features.h:
-
-../../musl/obj/include/bits/alltypes.h:
-
-../../musl/include/strings.h:
+# dummy

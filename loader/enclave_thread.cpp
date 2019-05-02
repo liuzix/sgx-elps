@@ -116,6 +116,7 @@ void EnclaveThread::run() {
 
     for (;;) {
         classLogger->info("entering enclave!");
+        classLogger->info("ssa: 0x{:x}", (uint64_t)((char *)tcs + 4096 + 4096 * 4 - 184));
         __eenter(this->tcs);
         classLogger->info("exiting enclave!");
         this->controlStruct.isMain = false;
