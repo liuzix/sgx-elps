@@ -6,6 +6,8 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <sys/epoll.h>
+#include <linux/utsname.h>
+#include <sys/time.h>
 #include <signal.h>
 #include <time.h>
 #include <sys/utsname.h>
