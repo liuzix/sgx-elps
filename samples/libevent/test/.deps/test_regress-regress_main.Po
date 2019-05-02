@@ -1,0 +1,159 @@
+test/test_regress-regress_main.o: test/regress_main.c util-internal.h \
+ include/event2/event-config.h evconfig-private.h \
+ ../../musl/include/errno.h ../../musl/include/features.h \
+ ../../musl/arch/generic/bits/errno.h log-internal.h \
+ include/event2/util.h include/event2/visibility.h \
+ ../../musl/include/sys/time.h ../../musl/include/sys/select.h \
+ ../../musl/obj/include/bits/alltypes.h ../../musl/include/stdint.h \
+ ../../musl/arch/x86_64/bits/stdint.h ../../musl/include/sys/types.h \
+ ../../musl/include/endian.h ../../musl/include/sys/sysmacros.h \
+ ../../musl/include/stddef.h ../../musl/include/stdarg.h \
+ ../../musl/include/netdb.h ../../musl/include/netinet/in.h \
+ ../../musl/include/inttypes.h ../../musl/include/sys/socket.h \
+ ../../musl/arch/x86_64/bits/socket.h ../../musl/include/time.h \
+ ../../musl/include/stdio.h ../../musl/include/stdlib.h \
+ ../../musl/include/alloca.h ../../musl/include/sys/eventfd.h \
+ ../../musl/include/fcntl.h ../../musl/arch/x86_64/bits/fcntl.h \
+ time-internal.h ipv6-internal.h ../../musl/include/sys/stat.h \
+ ../../musl/arch/x86_64/bits/stat.h ../../musl/include/sys/wait.h \
+ ../../musl/include/signal.h ../../musl/arch/x86_64/bits/signal.h \
+ ../../musl/include/sys/resource.h \
+ ../../musl/arch/generic/bits/resource.h ../../musl/include/unistd.h \
+ ../../musl/arch/x86_64/bits/posix.h ../../musl/include/string.h \
+ ../../musl/include/strings.h ../../musl/include/assert.h \
+ include/event2/event.h include/event2/event_compat.h \
+ include/event2/dns.h include/event2/dns_compat.h include/event2/thread.h \
+ test/regress.h test/tinytest.h test/tinytest_macros.h \
+ test/../iocp-internal.h test/../event-internal.h \
+ test/../evconfig-private.h compat/sys/queue.h \
+ include/event2/event_struct.h include/event2/keyvalq_struct.h \
+ test/../minheap-internal.h test/../util-internal.h test/../mm-internal.h \
+ test/../evsignal-internal.h test/../defer-internal.h
+
+util-internal.h:
+
+include/event2/event-config.h:
+
+evconfig-private.h:
+
+../../musl/include/errno.h:
+
+../../musl/include/features.h:
+
+../../musl/arch/generic/bits/errno.h:
+
+log-internal.h:
+
+include/event2/util.h:
+
+include/event2/visibility.h:
+
+../../musl/include/sys/time.h:
+
+../../musl/include/sys/select.h:
+
+../../musl/obj/include/bits/alltypes.h:
+
+../../musl/include/stdint.h:
+
+../../musl/arch/x86_64/bits/stdint.h:
+
+../../musl/include/sys/types.h:
+
+../../musl/include/endian.h:
+
+../../musl/include/sys/sysmacros.h:
+
+../../musl/include/stddef.h:
+
+../../musl/include/stdarg.h:
+
+../../musl/include/netdb.h:
+
+../../musl/include/netinet/in.h:
+
+../../musl/include/inttypes.h:
+
+../../musl/include/sys/socket.h:
+
+../../musl/arch/x86_64/bits/socket.h:
+
+../../musl/include/time.h:
+
+../../musl/include/stdio.h:
+
+../../musl/include/stdlib.h:
+
+../../musl/include/alloca.h:
+
+../../musl/include/sys/eventfd.h:
+
+../../musl/include/fcntl.h:
+
+../../musl/arch/x86_64/bits/fcntl.h:
+
+time-internal.h:
+
+ipv6-internal.h:
+
+../../musl/include/sys/stat.h:
+
+../../musl/arch/x86_64/bits/stat.h:
+
+../../musl/include/sys/wait.h:
+
+../../musl/include/signal.h:
+
+../../musl/arch/x86_64/bits/signal.h:
+
+../../musl/include/sys/resource.h:
+
+../../musl/arch/generic/bits/resource.h:
+
+../../musl/include/unistd.h:
+
+../../musl/arch/x86_64/bits/posix.h:
+
+../../musl/include/string.h:
+
+../../musl/include/strings.h:
+
+../../musl/include/assert.h:
+
+include/event2/event.h:
+
+include/event2/event_compat.h:
+
+include/event2/dns.h:
+
+include/event2/dns_compat.h:
+
+include/event2/thread.h:
+
+test/regress.h:
+
+test/tinytest.h:
+
+test/tinytest_macros.h:
+
+test/../iocp-internal.h:
+
+test/../event-internal.h:
+
+test/../evconfig-private.h:
+
+compat/sys/queue.h:
+
+include/event2/event_struct.h:
+
+include/event2/keyvalq_struct.h:
+
+test/../minheap-internal.h:
+
+test/../util-internal.h:
+
+test/../mm-internal.h:
+
+test/../evsignal-internal.h:
+
+test/../defer-internal.h:

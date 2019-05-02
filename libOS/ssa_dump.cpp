@@ -6,6 +6,7 @@
 #include "panic.h"
 #include "thread_local.h"
 
+extern "C" int __eexit(int);
 ssa_gpr_t ssa_gpr_dump;
 
 #ifdef HAS_COUT
@@ -66,7 +67,6 @@ void print_ssa_gpr(void) {
     std::cout << "-------- dump ssa_gpr info end --------" << std::endl;
 #else
     libos_panic("-------- dump ssa_gpr info end--------");
-    
 #endif
 }
 
@@ -83,6 +83,7 @@ void do_backtrace(uint64_t *rbp, uint64_t rip) {
         rbp = (uint64_t *)*rbp;
     }
     libos_print("backtrace ends");
+    __eexit(-1);    
 }
 
 #define SSAFRAME_SIZE 4

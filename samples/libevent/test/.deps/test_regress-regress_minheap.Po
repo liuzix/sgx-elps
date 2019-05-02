@@ -1,0 +1,103 @@
+test/test_regress-regress_minheap.o: test/regress_minheap.c \
+ test/../minheap-internal.h include/event2/event-config.h \
+ test/../evconfig-private.h include/event2/event.h \
+ include/event2/visibility.h ../../musl/include/sys/types.h \
+ ../../musl/include/features.h ../../musl/obj/include/bits/alltypes.h \
+ ../../musl/include/endian.h ../../musl/include/stdint.h \
+ ../../musl/arch/x86_64/bits/stdint.h ../../musl/include/sys/select.h \
+ ../../musl/include/sys/sysmacros.h ../../musl/include/sys/time.h \
+ ../../musl/include/stdio.h include/event2/util.h \
+ ../../musl/include/stddef.h ../../musl/include/stdarg.h \
+ ../../musl/include/netdb.h ../../musl/include/netinet/in.h \
+ ../../musl/include/inttypes.h ../../musl/include/sys/socket.h \
+ ../../musl/arch/x86_64/bits/socket.h ../../musl/include/errno.h \
+ ../../musl/arch/generic/bits/errno.h ../../musl/include/time.h \
+ include/event2/event_struct.h include/event2/keyvalq_struct.h \
+ test/../util-internal.h test/../log-internal.h \
+ ../../musl/include/stdlib.h ../../musl/include/alloca.h \
+ ../../musl/include/sys/eventfd.h ../../musl/include/fcntl.h \
+ ../../musl/arch/x86_64/bits/fcntl.h test/../time-internal.h \
+ test/../ipv6-internal.h test/../mm-internal.h test/tinytest.h \
+ test/tinytest_macros.h test/regress.h
+
+test/../minheap-internal.h:
+
+include/event2/event-config.h:
+
+test/../evconfig-private.h:
+
+include/event2/event.h:
+
+include/event2/visibility.h:
+
+../../musl/include/sys/types.h:
+
+../../musl/include/features.h:
+
+../../musl/obj/include/bits/alltypes.h:
+
+../../musl/include/endian.h:
+
+../../musl/include/stdint.h:
+
+../../musl/arch/x86_64/bits/stdint.h:
+
+../../musl/include/sys/select.h:
+
+../../musl/include/sys/sysmacros.h:
+
+../../musl/include/sys/time.h:
+
+../../musl/include/stdio.h:
+
+include/event2/util.h:
+
+../../musl/include/stddef.h:
+
+../../musl/include/stdarg.h:
+
+../../musl/include/netdb.h:
+
+../../musl/include/netinet/in.h:
+
+../../musl/include/inttypes.h:
+
+../../musl/include/sys/socket.h:
+
+../../musl/arch/x86_64/bits/socket.h:
+
+../../musl/include/errno.h:
+
+../../musl/arch/generic/bits/errno.h:
+
+../../musl/include/time.h:
+
+include/event2/event_struct.h:
+
+include/event2/keyvalq_struct.h:
+
+test/../util-internal.h:
+
+test/../log-internal.h:
+
+../../musl/include/stdlib.h:
+
+../../musl/include/alloca.h:
+
+../../musl/include/sys/eventfd.h:
+
+../../musl/include/fcntl.h:
+
+../../musl/arch/x86_64/bits/fcntl.h:
+
+test/../time-internal.h:
+
+test/../ipv6-internal.h:
+
+test/../mm-internal.h:
+
+test/tinytest.h:
+
+test/tinytest_macros.h:
+
+test/regress.h:
