@@ -6,6 +6,9 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <sys/epoll.h>
+#include <signal.h>
+#include <time.h>
+#include <sys/utsname.h>
 #include <type_traits>
 #include <request.h>
 #include <cstring>
@@ -31,18 +34,32 @@ void initSyscallTable() {
     add_type_size(IOC_PTR, sizeof(struct winsize));
     add_type_size(SOKADDR_PTR, sizeof(struct sockaddr));
     add_type_size(MSGHDR_PTR, sizeof(struct msghdr));
+    add_type_size(SIGSET_PTR, sizeof(sigset_t));
+    add_type_size(TIMESPEC_PTR, sizeof(struct timespec));
+    add_type_size(OLD_UTSNAME_PTR, sizeof(struct old_utsname));
+    add_type_size(STAT_PTR, sizeof(struct stat));
+    add_type_size(TIMEVAL_PTR, sizeof(struct timeval));
+    add_type_size(TIMEZONE_PTR, sizeof(struct timezone));
 
     add_syscall0(SYS_GETGID);
     add_syscall1(SYS_CLOSE, NON_PTR);
     add_syscall1(SYS_EPOLL_CREATE, NON_PTR);
+    add_syscall1(SYS_EPOLL_CREATE1, NON_PTR);
     add_syscall1(SYS_EXIT, NON_PTR);
+    add_syscall1(SYS_UNAME, OLD_UTSNAME_PTR);
+    add_syscall1(SYS_DUP, NON_PTR);
+    add_syscall2(SYS_GETTIMEOFDAY, TIMEVAL_PTR, TIMEZONE_PTR);
     add_syscall2(SYS_LISTEN, NON_PTR, NON_PTR);
+    add_syscall2(SYS_CLOCK_GETTIME, NON_PTR, TIMESPEC_PTR);
+    add_syscall2(SYS_ACCESS, CHAR_PTR, NON_PTR);
+    add_syscall2(SYS_FSTAT, NON_PTR, STAT_PTR);
     add_syscall3(SYS_ACCEPT, NON_PTR, SOKADDR_PTR, INT_PTR);
     add_syscall3(SYS_BIND, NON_PTR, SOKADDR_PTR, NON_PTR);
     add_syscall3(SYS_CONNECT, NON_PTR, SOKADDR_PTR, NON_PTR);
     add_syscall3(SYS_GETSOCKNAME, NON_PTR, SOCKADDR_PTR, INT_PTR);
     add_syscall3(SYS_IOCTL, NON_PTR, NON_PTR, NON_PTR);
     add_syscall3(SYS_MPROTECT, NON_PTR, NON_PTR, NON_PTR);
+    add_syscall3(SYS_FCNTL, NON_PTR, NON_PTR, NON_PTR);
     add_syscall3(SYS_OPEN, CHAR_PTR, NON_PTR, NON_PTR);
     add_syscall3(SYS_READ, NON_PTR, CHAR_PTR, NON_PTR);
     add_syscall3(SYS_SOCKET, NON_PTR, NON_PTR, NON_PTR);
@@ -50,11 +67,14 @@ void initSyscallTable() {
     add_syscall3(SYS_WRITEV, NON_PTR, IOVEC_PTR, NON_PTR);
     add_syscall3(SYS_SENDMSG, NON_PTR, MSGHDR_PTR, NON_PTR);
     add_syscall3(SYS_RECVMSG, NON_PTR, MSGHDR_PTR, NON_PTR);
+    add_syscall4(SYS_OPENAT, NON_PTR, CHAR_PTR, NON_PTR, NON_PTR);
+    add_syscall4(SYS_ACCEPT4, NON_PTR, SOKADDR_PTR, INT_PTR, NON_PTR);
     add_syscall4(SYS_EPOLL_CTL, NON_PTR, NON_PTR, NON_PTR, EVENT_PTR);
-    add_syscall4(SYS_EPOLL_WAIT, NON_PTR, NON_PTR, NON_PTR, EVENT_PTR);
+    add_syscall4(SYS_EPOLL_WAIT, NON_PTR, EVENT_PTR, NON_PTR, NON_PTR);
     add_syscall5(SYS_SETSOCKOPT, NON_PTR, NON_PTR, NON_PTR, CHAR_PTR, NON_PTR);
     add_syscall6(SYS_SENDTO, NON_PTR, CHAR_PTR, NON_PTR, NON_PTR, SOKADDR_PTR, NON_PTR);
     add_syscall6(SYS_RECVFROM, NON_PTR, CHAR_PTR, NON_PTR, NON_PTR, SOKADDR_PTR, INT_PTR);
+    add_syscall6(SYS_EPOLL_PWAIT, NON_PTR, EVENT_PTR, NON_PTR, NON_PTR, SIGSET_PTR, NON_PTR);
 }
 
 /* not really useful*/
@@ -94,6 +114,7 @@ bool interpretSyscall(format_t& fm_l, unsigned int index) {
 static bool needWriteBack(unsigned int num, unsigned int index) {
     return (num == SYS_READ && index == 1)
         || (num == SYS_EPOLL_WAIT && index == 1)
+        || (num == SYS_EPOLL_PWAIT && index == 1)
         || (num == SYS_GETSOCKNAME && index == 1)
         || (num == SYS_GETSOCKNAME && index == 2)
         || (num == SYS_ACCEPT && index == 1)
@@ -133,6 +154,16 @@ static unsigned int getSize(const SyscallRequest* req, unsigned int i) {
             else
                 res = sizeof(int);
             break;
+        case SYS_EPOLL_PWAIT:
+            if (i == 4)
+                res = (unsigned int)req->args[i + 1].arg;
+            else {
+                if (type_table->count(req->fm_list.types[i]) != 1)
+                    return 0;
+                res = type_table->at(req->fm_list.types[i])
+                        * (int)req->args[i + 1].arg;
+            }
+            break;
         case SYS_EPOLL_WAIT:
         case SYS_WRITEV:
             if (type_table->count(req->fm_list.types[i]) != 1)
@@ -141,7 +172,7 @@ static unsigned int getSize(const SyscallRequest* req, unsigned int i) {
                     * (int)req->args[i + 1].arg;
             break;
         default:
-            if (type_table->count(req->fm_list.types[i]) == 0)
+            if (type_table->count(req->fm_list.types[i]) != 1)
                 return 0;
             res = type_table->at(req->fm_list.types[i]);
             break;
@@ -220,8 +251,9 @@ bool SyscallRequest::fillArgs() {
                 return false;
             this->fm_list.sizes[i] = arg_size;
             this->args[i].data = (char*)unsafeMalloc(arg_size);
+            if (this->args[i].arg)
+                memcpy(this->args[i].data, (void*)this->args[i].arg, arg_size);
             libos_print("alloca size[%d]\n", arg_size);
-            memcpy(this->args[i].data, (void*)this->args[i].arg, arg_size);
             deepCopy(this, i);
             this->args[i].arg = (long)this->args[i].data;
         }

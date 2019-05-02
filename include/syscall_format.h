@@ -10,15 +10,32 @@
 #define IOC_PTR 6
 #define SOKADDR_PTR 7
 #define MSGHDR_PTR 8
+#define SIGSET_PTR 9
+#define TIMESPEC_PTR 10
+#define OLD_UTSNAME_PTR 11
+#define STAT_PTR 12
+#define TIMEVAL_PTR 13
+#define TIMEZONE_PTR 14
+
+#define SYS_BRK 12
+#define SYS_RT_SIGACTION 13
+#define SYS_RT_SIGPROCMASK 14
+#define SYS_CLONE 56
+#define SYS_ARCH_PRCTL 158
+#define SYS_SET_TID_ADDRESS 218
+#define SYS_EXIT_GROUP 231
+#define SYS_SET_ROBUST_LIST 273
 
 #define SYS_READ 0
 #define SYS_WRITE 1
 #define SYS_OPEN 2
 #define SYS_CLOSE 3
+#define SYS_FSTAT 5
 #define SYS_MPROTECT 10
 #define SYS_IOCTL 16
 #define SYS_WRITEV 20
 #define SYS_ACCESS 21
+#define SYS_DUP 31
 #define SYS_SOCKET 41
 #define SYS_CONNECT 42
 #define SYS_ACCEPT 43
@@ -31,10 +48,17 @@
 #define SYS_GETSOCKNAME 51
 #define SYS_SETSOCKOPT 54
 #define SYS_EXIT 60
+#define SYS_UNAME 63
+#define SYS_FCNTL 72
+#define SYS_GETTIMEOFDAY 96
 #define SYS_GETGID 104
-#define SYS_EPOLL_CREATE 231
+#define SYS_EPOLL_CREATE 213
+#define SYS_CLOCK_GETTIME 228
 #define SYS_EPOLL_CTL 233
 #define SYS_EPOLL_WAIT 232
+#define SYS_OPENAT 257 #define SYS_EPOLL_PWAIT 281
+#define SYS_ACCEPT4 288
+#define SYS_EPOLL_CREATE1 291
 
 #define add_syscall0(n) syscall_table->emplace(n, vector<unsigned int>({}))
 #define add_syscall1(n, a) syscall_table->emplace(n, vector<unsigned int>({a}))
