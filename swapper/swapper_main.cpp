@@ -52,10 +52,7 @@ void SwapperManager::runWorker(int id) {
     sched_setscheduler(0, SCHED_FIFO, &sp);
     cpu_set_t  mask;
     CPU_ZERO(&mask);
-    CPU_SET(6, &mask);
-    CPU_SET(3, &mask);
-    CPU_SET(4, &mask);
-    CPU_SET(5, &mask);
+    CPU_SET(4 + id * 2, &mask);
     sched_setaffinity(0, sizeof(mask), &mask);
 
     RequestDispatcher dispatcher(id);

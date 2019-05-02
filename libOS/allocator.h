@@ -23,7 +23,7 @@ public:
     bool free;
     vaddr memBase;
    //This is a member hook
-    list_member_hook<link_mode<safe_link>> list_hook_;
+    list_member_hook<link_mode<normal_link>> list_hook_;
     set_member_hook<> rbtree_hook_;
 
     int checksum;
@@ -51,7 +51,7 @@ public:
 };
 
 
-typedef member_hook<MemoryArea, list_member_hook<link_mode<safe_link>>, &MemoryArea::list_hook_> MemberHookList;
+typedef member_hook<MemoryArea, list_member_hook<link_mode<normal_link>>, &MemoryArea::list_hook_> MemberHookList;
 typedef list<MemoryArea, MemberHookList> MemberList;
 
 typedef member_hook<MemoryArea, set_member_hook<>,

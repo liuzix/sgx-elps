@@ -1,0 +1,130 @@
+test/bench_cascade.o: test/bench_cascade.c include/event2/event-config.h \
+ ../../musl/include/sys/types.h ../../musl/include/features.h \
+ ../../musl/obj/include/bits/alltypes.h ../../musl/include/endian.h \
+ ../../musl/include/stdint.h ../../musl/arch/x86_64/bits/stdint.h \
+ ../../musl/include/sys/select.h ../../musl/include/sys/sysmacros.h \
+ ../../musl/include/sys/stat.h ../../musl/arch/x86_64/bits/stat.h \
+ ../../musl/include/sys/time.h ../../musl/include/sys/socket.h \
+ ../../musl/arch/x86_64/bits/socket.h ../../musl/include/sys/resource.h \
+ ../../musl/arch/generic/bits/resource.h ../../musl/include/signal.h \
+ ../../musl/arch/x86_64/bits/signal.h ../../musl/include/fcntl.h \
+ ../../musl/arch/x86_64/bits/fcntl.h ../../musl/include/stdlib.h \
+ ../../musl/include/alloca.h ../../musl/include/stdio.h \
+ ../../musl/include/string.h ../../musl/include/strings.h \
+ ../../musl/include/unistd.h ../../musl/arch/x86_64/bits/posix.h \
+ ../../musl/include/errno.h ../../musl/arch/generic/bits/errno.h \
+ ../../musl/include/getopt.h include/event.h ../../musl/include/stdarg.h \
+ include/evutil.h include/event2/util.h include/event2/visibility.h \
+ ../../musl/include/stddef.h ../../musl/include/netdb.h \
+ ../../musl/include/netinet/in.h ../../musl/include/inttypes.h \
+ ../../musl/include/time.h include/event2/event_struct.h \
+ include/event2/keyvalq_struct.h include/event2/event.h \
+ include/event2/event_compat.h include/event2/buffer.h \
+ ../../musl/include/sys/uio.h include/event2/buffer_compat.h \
+ include/event2/bufferevent.h include/event2/bufferevent_struct.h \
+ include/event2/bufferevent_compat.h include/event2/tag.h \
+ include/event2/tag_compat.h
+
+include/event2/event-config.h:
+
+../../musl/include/sys/types.h:
+
+../../musl/include/features.h:
+
+../../musl/obj/include/bits/alltypes.h:
+
+../../musl/include/endian.h:
+
+../../musl/include/stdint.h:
+
+../../musl/arch/x86_64/bits/stdint.h:
+
+../../musl/include/sys/select.h:
+
+../../musl/include/sys/sysmacros.h:
+
+../../musl/include/sys/stat.h:
+
+../../musl/arch/x86_64/bits/stat.h:
+
+../../musl/include/sys/time.h:
+
+../../musl/include/sys/socket.h:
+
+../../musl/arch/x86_64/bits/socket.h:
+
+../../musl/include/sys/resource.h:
+
+../../musl/arch/generic/bits/resource.h:
+
+../../musl/include/signal.h:
+
+../../musl/arch/x86_64/bits/signal.h:
+
+../../musl/include/fcntl.h:
+
+../../musl/arch/x86_64/bits/fcntl.h:
+
+../../musl/include/stdlib.h:
+
+../../musl/include/alloca.h:
+
+../../musl/include/stdio.h:
+
+../../musl/include/string.h:
+
+../../musl/include/strings.h:
+
+../../musl/include/unistd.h:
+
+../../musl/arch/x86_64/bits/posix.h:
+
+../../musl/include/errno.h:
+
+../../musl/arch/generic/bits/errno.h:
+
+../../musl/include/getopt.h:
+
+include/event.h:
+
+../../musl/include/stdarg.h:
+
+include/evutil.h:
+
+include/event2/util.h:
+
+include/event2/visibility.h:
+
+../../musl/include/stddef.h:
+
+../../musl/include/netdb.h:
+
+../../musl/include/netinet/in.h:
+
+../../musl/include/inttypes.h:
+
+../../musl/include/time.h:
+
+include/event2/event_struct.h:
+
+include/event2/keyvalq_struct.h:
+
+include/event2/event.h:
+
+include/event2/event_compat.h:
+
+include/event2/buffer.h:
+
+../../musl/include/sys/uio.h:
+
+include/event2/buffer_compat.h:
+
+include/event2/bufferevent.h:
+
+include/event2/bufferevent_struct.h:
+
+include/event2/bufferevent_compat.h:
+
+include/event2/tag.h:
+
+include/event2/tag_compat.h:

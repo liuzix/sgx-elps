@@ -69,10 +69,10 @@ extern "C" int __async_swap(void *addr) {
     req->addr = (unsigned long)addr;
     requestQueue->push(req);
     //if (!req->waitOnDone(1))
-    //    sleepWait(req);
+    sleepWait(req);
     //uint64_t jif = *pjiffies;
     //req->done.store(false);
-    req->blockOnDone();
+    //req->blockOnDone();
     //jif = *pjiffies - jif;
     asm volatile("": : :"memory");
     __sync_synchronize();
@@ -86,8 +86,9 @@ extern "C" int __async_syscall(unsigned int n, ...) {
     format_t fm_l;
     int ret_tmp = interpretSyscall(fm_l, n);
     if (!ret_tmp) {
-//        __asm__("ud2");
         libos_print("No support for system call [%u]", n);
+        if (13 <= n && n <= 15) return 0;  // signal related calls
+        if (n == 160 || n == 97 || n == 302) return 0; // trlimit related calls
         __asm__("ud2");
         return -1;
     }

@@ -82,6 +82,7 @@ __push_argv:
 push_vec
 mov %rsp, %rsi
 __slave_thread:
+and $0xFFFFFFFFFFFFFFF0, %rsp
 call __libOS_start
 ud2
 __eexit:

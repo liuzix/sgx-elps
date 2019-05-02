@@ -1,0 +1,108 @@
+test/test_regress-regress_et.o: test/regress_et.c test/../util-internal.h \
+ include/event2/event-config.h test/../evconfig-private.h \
+ ../../musl/include/errno.h ../../musl/include/features.h \
+ ../../musl/arch/generic/bits/errno.h test/../log-internal.h \
+ include/event2/util.h include/event2/visibility.h \
+ ../../musl/include/sys/time.h ../../musl/include/sys/select.h \
+ ../../musl/obj/include/bits/alltypes.h ../../musl/include/stdint.h \
+ ../../musl/arch/x86_64/bits/stdint.h ../../musl/include/sys/types.h \
+ ../../musl/include/endian.h ../../musl/include/sys/sysmacros.h \
+ ../../musl/include/stddef.h ../../musl/include/stdarg.h \
+ ../../musl/include/netdb.h ../../musl/include/netinet/in.h \
+ ../../musl/include/inttypes.h ../../musl/include/sys/socket.h \
+ ../../musl/arch/x86_64/bits/socket.h ../../musl/include/time.h \
+ ../../musl/include/stdio.h ../../musl/include/stdlib.h \
+ ../../musl/include/alloca.h ../../musl/include/sys/eventfd.h \
+ ../../musl/include/fcntl.h ../../musl/arch/x86_64/bits/fcntl.h \
+ test/../time-internal.h test/../ipv6-internal.h \
+ ../../musl/include/sys/stat.h ../../musl/arch/x86_64/bits/stat.h \
+ ../../musl/include/string.h ../../musl/include/strings.h \
+ ../../musl/include/unistd.h ../../musl/arch/x86_64/bits/posix.h \
+ include/event2/event.h test/regress.h test/tinytest.h \
+ test/tinytest_macros.h
+
+test/../util-internal.h:
+
+include/event2/event-config.h:
+
+test/../evconfig-private.h:
+
+../../musl/include/errno.h:
+
+../../musl/include/features.h:
+
+../../musl/arch/generic/bits/errno.h:
+
+test/../log-internal.h:
+
+include/event2/util.h:
+
+include/event2/visibility.h:
+
+../../musl/include/sys/time.h:
+
+../../musl/include/sys/select.h:
+
+../../musl/obj/include/bits/alltypes.h:
+
+../../musl/include/stdint.h:
+
+../../musl/arch/x86_64/bits/stdint.h:
+
+../../musl/include/sys/types.h:
+
+../../musl/include/endian.h:
+
+../../musl/include/sys/sysmacros.h:
+
+../../musl/include/stddef.h:
+
+../../musl/include/stdarg.h:
+
+../../musl/include/netdb.h:
+
+../../musl/include/netinet/in.h:
+
+../../musl/include/inttypes.h:
+
+../../musl/include/sys/socket.h:
+
+../../musl/arch/x86_64/bits/socket.h:
+
+../../musl/include/time.h:
+
+../../musl/include/stdio.h:
+
+../../musl/include/stdlib.h:
+
+../../musl/include/alloca.h:
+
+../../musl/include/sys/eventfd.h:
+
+../../musl/include/fcntl.h:
+
+../../musl/arch/x86_64/bits/fcntl.h:
+
+test/../time-internal.h:
+
+test/../ipv6-internal.h:
+
+../../musl/include/sys/stat.h:
+
+../../musl/arch/x86_64/bits/stat.h:
+
+../../musl/include/string.h:
+
+../../musl/include/strings.h:
+
+../../musl/include/unistd.h:
+
+../../musl/arch/x86_64/bits/posix.h:
+
+include/event2/event.h:
+
+test/regress.h:
+
+test/tinytest.h:
+
+test/tinytest_macros.h:

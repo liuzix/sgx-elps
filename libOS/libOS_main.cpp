@@ -35,11 +35,13 @@ uint64_t *pjiffies;
 
 int idleThread() {
     for (;;) {
-        getSharedTLS()->numActiveThread --;
+        //getSharedTLS()->numActiveThread --;
            
-        if (getSharedTLS()->numActiveThread >= getSharedTLS()->numTotalThread) {
-            libos_print("[idle] yielding cpu");
-            __eexit(0x1000);
+        if (getSharedTLS()->numActiveThread->load() >
+            getSharedTLS()->numTotalThread->load()) {
+            __asm__ volatile("pause"); 
+            //libos_print("[idle] yielding cpu");
+            //__eexit(0x1000);
         }
         scheduler->schedule();
     }

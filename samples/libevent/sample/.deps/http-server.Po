@@ -1,0 +1,118 @@
+sample/http-server.o: sample/http-server.c sample/../util-internal.h \
+ include/event2/event-config.h sample/../evconfig-private.h \
+ ../../musl/include/errno.h ../../musl/include/features.h \
+ ../../musl/arch/generic/bits/errno.h sample/../log-internal.h \
+ include/event2/util.h include/event2/visibility.h \
+ ../../musl/include/sys/time.h ../../musl/include/sys/select.h \
+ ../../musl/obj/include/bits/alltypes.h ../../musl/include/stdint.h \
+ ../../musl/arch/x86_64/bits/stdint.h ../../musl/include/sys/types.h \
+ ../../musl/include/endian.h ../../musl/include/sys/sysmacros.h \
+ ../../musl/include/stddef.h ../../musl/include/stdarg.h \
+ ../../musl/include/netdb.h ../../musl/include/netinet/in.h \
+ ../../musl/include/inttypes.h ../../musl/include/sys/socket.h \
+ ../../musl/arch/x86_64/bits/socket.h ../../musl/include/time.h \
+ ../../musl/include/stdio.h ../../musl/include/stdlib.h \
+ ../../musl/include/alloca.h ../../musl/include/sys/eventfd.h \
+ ../../musl/include/fcntl.h ../../musl/arch/x86_64/bits/fcntl.h \
+ sample/../time-internal.h sample/../ipv6-internal.h \
+ ../../musl/include/string.h ../../musl/include/strings.h \
+ ../../musl/include/sys/stat.h ../../musl/arch/x86_64/bits/stat.h \
+ ../../musl/include/signal.h ../../musl/arch/x86_64/bits/signal.h \
+ ../../musl/include/unistd.h ../../musl/arch/x86_64/bits/posix.h \
+ ../../musl/include/dirent.h include/event2/event.h include/event2/http.h \
+ include/event2/buffer.h ../../musl/include/sys/uio.h \
+ include/event2/keyvalq_struct.h
+
+sample/../util-internal.h:
+
+include/event2/event-config.h:
+
+sample/../evconfig-private.h:
+
+../../musl/include/errno.h:
+
+../../musl/include/features.h:
+
+../../musl/arch/generic/bits/errno.h:
+
+sample/../log-internal.h:
+
+include/event2/util.h:
+
+include/event2/visibility.h:
+
+../../musl/include/sys/time.h:
+
+../../musl/include/sys/select.h:
+
+../../musl/obj/include/bits/alltypes.h:
+
+../../musl/include/stdint.h:
+
+../../musl/arch/x86_64/bits/stdint.h:
+
+../../musl/include/sys/types.h:
+
+../../musl/include/endian.h:
+
+../../musl/include/sys/sysmacros.h:
+
+../../musl/include/stddef.h:
+
+../../musl/include/stdarg.h:
+
+../../musl/include/netdb.h:
+
+../../musl/include/netinet/in.h:
+
+../../musl/include/inttypes.h:
+
+../../musl/include/sys/socket.h:
+
+../../musl/arch/x86_64/bits/socket.h:
+
+../../musl/include/time.h:
+
+../../musl/include/stdio.h:
+
+../../musl/include/stdlib.h:
+
+../../musl/include/alloca.h:
+
+../../musl/include/sys/eventfd.h:
+
+../../musl/include/fcntl.h:
+
+../../musl/arch/x86_64/bits/fcntl.h:
+
+sample/../time-internal.h:
+
+sample/../ipv6-internal.h:
+
+../../musl/include/string.h:
+
+../../musl/include/strings.h:
+
+../../musl/include/sys/stat.h:
+
+../../musl/arch/x86_64/bits/stat.h:
+
+../../musl/include/signal.h:
+
+../../musl/arch/x86_64/bits/signal.h:
+
+../../musl/include/unistd.h:
+
+../../musl/arch/x86_64/bits/posix.h:
+
+../../musl/include/dirent.h:
+
+include/event2/event.h:
+
+include/event2/http.h:
+
+include/event2/buffer.h:
+
+../../musl/include/sys/uio.h:
+
+include/event2/keyvalq_struct.h:

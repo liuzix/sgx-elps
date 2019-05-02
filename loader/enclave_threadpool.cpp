@@ -1,4 +1,5 @@
 #include "enclave_threadpool.h"
+#include <iostream>
 #include <functional>
 #include <logging.h>
 #include <thread>
@@ -33,8 +34,9 @@ void EnclaveThreadPool::idleBlock() {
 
 void EnclaveThreadPool::newThreadNotify() {
     unique_lock<std::mutex> lk(m);
-    console->info("numActiveThread = {}, numTotalThread = {}", numActiveThread,
-                  numTotalThread);
+    //console->info("numActiveThread = {}, numTotalThread = {}", numActiveThread,
+    //              numTotalThread);
+    
     pendingWakeUp = true;
     if (numActiveThread < (int)threads.size()) {
         console->info("cv broadcast");
@@ -71,6 +73,9 @@ void EnclaveThreadPool::addWorkerThread(shared_ptr<EnclaveThread> thread) {
 }
 
 void EnclaveThreadPool::launch() {
+    for (auto &t: thread_map)
+        t.second->getSharedTLS()->numKernelThreads = thread_map.size(); 
+
     if (!mainThread) {
         console->error("mainThread is unset!");
         exit(-1);

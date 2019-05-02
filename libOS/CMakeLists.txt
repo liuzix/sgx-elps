@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 ENABLE_LANGUAGE(ASM-ATT)
-SET(CMAKE_CXX_FLAGS "-g -O0 -Wall -fpie -Werror -std=c++17 -fno-omit-frame-pointer -fno-stack-protector -fno-use-cxa-atexit -Wno-frame-address -U_FORTIFY_SOURCE")
+SET(CMAKE_CXX_FLAGS "-g -Og -Wall -fpie -Werror -std=c++17 -fno-omit-frame-pointer -fno-stack-protector -fno-use-cxa-atexit -Wno-frame-address -U_FORTIFY_SOURCE")
 SET(Boost_USE_STATIC_LIBS ON)
 project(libOS)
 
@@ -14,7 +14,21 @@ add_library(OSCore STATIC ${SOURCES})
 target_compile_definitions(OSCore PUBLIC IS_LIBOS)
 target_compile_definitions(OSCore PUBLIC BOOST_NO_EXCEPTIONS)
 
-find_library(LIB_MUSL libc.a PATHS "../musl/lib" NO_DEFAULT_PATH)
+#find_library(LIB_MUSL libc.a PATHS "../musl/lib" NO_DEFAULT_PATH)
+include(ExternalProject)
+ExternalProject_Add(musl
+    CONFIGURE_COMMAND ./configure --disable-shared --enable-debug CFLAGS=-fno-omit-frame-pointer
+    WORKING_DIRECTORY "../musl"
+    PREFIX "../musl"
+    TMP_DIR "../musl/build"
+    BUILD_COMMAND make
+    SOURCE_DIR "../musl"
+    BUILD_ALWAYS TRUE
+    BUILD_IN_SOURCE TRUE
+    INSTALL_COMMAND ""
+)
+    
+
 execute_process(COMMAND ${CMAKE_C_COMPILER} -print-libgcc-file-name OUTPUT_VARIABLE GCC_LIB)
 get_filename_component(GCC_DIR "${GCC_LIB}" DIRECTORY)
 find_library(GCC_LIBSTDCPP libstdc++.a PATHS "${GCC_DIR}" NO_DEFAULT_PATH)
@@ -26,13 +40,13 @@ file(MAKE_DIRECTORY ${PROJECT_SOURCE_DIR}/buildtmp)
 # We need to pack all standard libraries needed
 add_custom_target(OS_COMBINE
     COMMAND ar -x $<TARGET_FILE:OSCore>
-    COMMAND ar -x ${LIB_MUSL}
+    COMMAND ar -x ../../musl/lib/libc.a
     COMMAND ar -x /usr/lib/x86_64-linux-gnu/libboost_context.a
     COMMAND ar -x ../libstdc++.a
     COMMAND ar -x ${GCC_LIBGCC_EH}
     COMMAND ar -qcs ${OS_LIB} *.o *.lo
     WORKING_DIRECTORY ./buildtmp
-    DEPENDS OSCore
+    DEPENDS OSCore musl
 )
 
 add_library(OS STATIC IMPORTED GLOBAL)

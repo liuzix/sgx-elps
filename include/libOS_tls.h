@@ -28,6 +28,7 @@ struct libOS_shared_tls {
     int buffer_index = 0;
     char buffer[PRINT_BUFFER_SIZE];
     std::atomic_int *numActiveThread;
+    int numKernelThreads = 0;
 }  __attribute__ ((packed));
 
 struct enclave_tls {

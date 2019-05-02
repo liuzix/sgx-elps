@@ -1,4 +1,5 @@
 #include "user_thread.h"
+
 #include "panic.h"
 #include "thread_local.h"
 #include "mmap.h"
@@ -13,7 +14,9 @@ extern "C" uint64_t libos_futex(uint32_t *addr, int op, uint32_t val,
 std::atomic_int threadCounter;
 void *tlsBase;
 size_t tlsLength;
+extern uint64_t *pjiffies;
 
+uint64_t cw_jiffies; 
 
 struct transfer_data {
     UserThread *prev;
@@ -21,11 +24,12 @@ struct transfer_data {
 };
 
 extern "C" void __entry_helper(transfer_t transfer) {
+    //libos_print("jump_fcontext took %d cycles", *pjiffies - cw_jiffies);
     transfer_data *data = (transfer_data *)transfer.data;
     auto prev = data->prev;
     auto cur = data->cur;
     if (prev) {
-        libos_print("saving context %lx to thread %d", transfer.fctx, data->prev->id);
+        //libos_print("saving context %lx to thread %d", transfer.fctx, data->prev->id);
         prev->fcxt = transfer.fctx;
     }
     getSharedTLS()->preempt_injection_stack = cur->preempt_stack;
@@ -42,7 +46,7 @@ extern "C" void __entry_helper(transfer_t transfer) {
 /* this is just to make the debugger happy */
 __attribute__((naked)) static void __clear_rbp(transfer_t) {
    __asm__("xor %rbp, %rbp;"
-           "sub $8, %rsp;"
+           "sub $8, %rsp;"         // this is very important. Without it libOS crashes under -O1
            "call __entry_helper;");
 }
 
@@ -96,17 +100,19 @@ static inline uint64_t getFSReg() {
 }
 
 void UserThread::jumpTo(UserThread *from) {
-    libos_print("switching to thread %d, from thread %d", this->id, from ? from->id: -1); 
+    //libos_print("switching to thread %d, from thread %d", this->id, from ? from->id: -1); 
     if (from) from->fs_base = getFSReg();
     setFSReg(this->fs_base);
     transfer_data t{ .prev = from, .cur = this };
-    libos_print("loading context %lx", this->fcxt);
+    //libos_print("loading context %lx", this->fcxt);
+    //cw_jiffies = *pjiffies;
     transfer_t ret_t = jump_fcontext(this->fcxt, (void *)&t);
+    //libos_print("jump_fcontext took %d cycles", *pjiffies - cw_jiffies);
     transfer_data *data = (transfer_data *)ret_t.data;
     auto prev = data->prev;
     auto cur = data->cur;
     if (prev) {
-        libos_print("saving context %lx to thread %d", ret_t.fctx, data->prev->id);
+       // libos_print("saving context %lx to thread %d", ret_t.fctx, data->prev->id);
         prev->fcxt = ret_t.fctx;
         prev->contextLock.unlock();
     }
