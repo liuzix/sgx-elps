@@ -9,6 +9,7 @@
 #include <linux/utsname.h>
 #include <sys/time.h>
 #include <signal.h>
+#include <unistd.h>
 #include <time.h>
 #include <sys/utsname.h>
 #include <type_traits>
@@ -32,6 +33,7 @@ void initSyscallTable() {
     add_type_size(CHAR_PTR, 256);
     add_type_size(EVENT_PTR, sizeof(struct epoll_event));
     add_type_size(INT_PTR, sizeof(int));
+    add_type_size(ADDR_PTR, sizeof(void *));
     add_type_size(IOVEC_PTR, sizeof(struct iovec));
     add_type_size(IOC_PTR, sizeof(struct winsize));
     add_type_size(SOKADDR_PTR, sizeof(struct sockaddr));
@@ -44,7 +46,11 @@ void initSyscallTable() {
     add_type_size(TIMEZONE_PTR, sizeof(struct timezone));
 
     add_syscall0(SYS_GETGID);
+    add_syscall0(SYS_GETUID);
+    add_syscall0(SYS_GETEUID);
+    add_syscall0(SYS_GETEGID);
     add_syscall1(SYS_CLOSE, NON_PTR);
+    add_syscall1(SYS_BRK, ADDR_PTR);
     add_syscall1(SYS_EPOLL_CREATE, NON_PTR);
     add_syscall1(SYS_EPOLL_CREATE1, NON_PTR);
     add_syscall1(SYS_EXIT, NON_PTR);

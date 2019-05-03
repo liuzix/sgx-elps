@@ -27,7 +27,6 @@ ExternalProject_Add(musl
     BUILD_IN_SOURCE TRUE
     INSTALL_COMMAND ""
 )
-    
 
 execute_process(COMMAND ${CMAKE_C_COMPILER} -print-libgcc-file-name OUTPUT_VARIABLE GCC_LIB)
 get_filename_component(GCC_DIR "${GCC_LIB}" DIRECTORY)

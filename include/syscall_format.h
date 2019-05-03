@@ -16,8 +16,8 @@
 #define STAT_PTR 12
 #define TIMEVAL_PTR 13
 #define TIMEZONE_PTR 14
+#define ADDR_PTR 15
 
-#define SYS_BRK 12
 #define SYS_RT_SIGACTION 13
 #define SYS_RT_SIGPROCMASK 14
 #define SYS_CLONE 56
@@ -25,6 +25,8 @@
 #define SYS_SET_TID_ADDRESS 218
 #define SYS_EXIT_GROUP 231
 #define SYS_SET_ROBUST_LIST 273
+#define SYS_BRK 12
+#define SYS_GETEGID 108
 
 #define SYS_READ 0
 #define SYS_WRITE 1
@@ -60,6 +62,8 @@
 #define SYS_EPOLL_PWAIT 281
 #define SYS_ACCEPT4 288
 #define SYS_EPOLL_CREATE1 291
+#define SYS_GETUID 102
+#define SYS_GETEUID 107
 
 #define add_syscall0(n) syscall_table->emplace(n, vector<unsigned int>({}))
 #define add_syscall1(n, a) syscall_table->emplace(n, vector<unsigned int>({a}))

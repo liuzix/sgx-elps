@@ -89,6 +89,7 @@ extern "C" int __async_syscall(unsigned int n, ...) {
         libos_print("No support for system call [%u]", n);
         if (13 <= n && n <= 15) return 0;  // signal related calls
         if (n == 160 || n == 97 || n == 302) return 0; // trlimit related calls
+        if (n == 12) return -1; /* We do not support brk() */
         __asm__("ud2");
         return -1;
     }
