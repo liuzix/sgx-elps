@@ -1,5 +1,6 @@
 #include "mmap.h"
 #include "panic.h"
+#include "allocator.h"
 #include <new>
 
 PageManager *pageManager = nullptr;
@@ -50,13 +51,15 @@ void libos_munmap(void *base, size_t len) {
 }
 
 
+extern "C" bool chunkCheckSum(void) {
+    if (safeAllocator)
+        return safeAllocator->checkSumAll();
+    return true;
+}
+
 extern "C" void *mmap(void *addr, size_t length, int, int,
                   int fd, off_t) {
 
-    if (fd >= 0) {
-        libos_print("mmapping fd is not supported");
-        __asm__("ud2");
-    }
     return libos_mmap(addr, length);
 }
 

@@ -6,7 +6,9 @@
 
 #define EXPAND_FACTOR 10
 extern "C" void *malloc(size_t len) {
-   void *ret = safeAllocator->malloc(len); 
+   bool check = safeAllocator->checkSumAll();
+   if (!check) __asm__("ud2");
+   void *ret = safeAllocator->malloc(len);
    libos_print("malloc: len = %d, first try 0x%lx", len, ret);
    if (ret) return ret; 
    

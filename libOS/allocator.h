@@ -27,7 +27,7 @@ public:
     set_member_hook<> rbtree_hook_;
 
     int checksum;
-    uint64_t canary = 0xbeefbeef;
+    uint64_t magic = 0xdeadbeef;
     void setChecksum()
     {
         checksum = 0;
@@ -79,6 +79,8 @@ public:
     void checkWholeTree();
 
     void expandHeap(void *base, size_t len);
+
+    bool checkSumAll();
 };
 
 //#ifdef IS_LIBOS
