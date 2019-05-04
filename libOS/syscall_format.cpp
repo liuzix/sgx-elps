@@ -44,6 +44,7 @@ void initSyscallTable() {
     add_type_size(STAT_PTR, sizeof(struct stat));
     add_type_size(TIMEVAL_PTR, sizeof(struct timeval));
     add_type_size(TIMEZONE_PTR, sizeof(struct timezone));
+    add_type_size(FD_PAIR_PTR, sizeof(int[2]));
 
     add_syscall0(SYS_GETGID);
     add_syscall0(SYS_GETUID);
@@ -52,15 +53,18 @@ void initSyscallTable() {
     add_syscall1(SYS_CLOSE, NON_PTR);
     add_syscall1(SYS_BRK, ADDR_PTR);
     add_syscall1(SYS_EPOLL_CREATE, NON_PTR);
+    add_syscall1(SYS_DUP, NON_PTR);
     add_syscall1(SYS_EPOLL_CREATE1, NON_PTR);
     add_syscall1(SYS_EXIT, NON_PTR);
     add_syscall1(SYS_UNAME, OLD_UTSNAME_PTR);
     add_syscall1(SYS_DUP, NON_PTR);
+    add_syscall1(SYS_PIPE, FD_PAIR_PTR);
     add_syscall2(SYS_GETTIMEOFDAY, TIMEVAL_PTR, TIMEZONE_PTR);
     add_syscall2(SYS_LISTEN, NON_PTR, NON_PTR);
     add_syscall2(SYS_CLOCK_GETTIME, NON_PTR, TIMESPEC_PTR);
     add_syscall2(SYS_ACCESS, CHAR_PTR, NON_PTR);
     add_syscall2(SYS_FSTAT, NON_PTR, STAT_PTR);
+    add_syscall2(SYS_PIPE2, FD_PAIR_PTR, NON_PTR);
     add_syscall3(SYS_ACCEPT, NON_PTR, SOKADDR_PTR, INT_PTR);
     add_syscall3(SYS_BIND, NON_PTR, SOKADDR_PTR, NON_PTR);
     add_syscall3(SYS_CONNECT, NON_PTR, SOKADDR_PTR, NON_PTR);
@@ -129,7 +133,9 @@ static bool needWriteBack(unsigned int num, unsigned int index) {
         || (num == SYS_ACCEPT && index == 2)
         || (num == SYS_RECVFROM && index == 4)
         || (num == SYS_RECVFROM && index == 5)
-        || (num == SYS_RECVMSG && index == 1);
+        || (num == SYS_RECVMSG && index == 1)
+        || (num == SYS_PIPE)
+        || (num == SYS_PIPE2 && index == 0);
 }
 
 /* some syscalls have pointer args instead of size_t indicating the arg size

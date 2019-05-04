@@ -832,6 +832,7 @@ void memcached_thread_init(int nthreads, void *arg) {
 
     for (i = 0; i < nthreads; i++) {
         int fds[2];
+        printf("%s: before: fds[0]: %d, fds[1]: %d\n", __func__, fds[0], fds[1]);
         if (pipe(fds)) {
             perror("Can't create notify pipe");
             exit(1);
@@ -839,6 +840,7 @@ void memcached_thread_init(int nthreads, void *arg) {
 
         threads[i].notify_receive_fd = fds[0];
         threads[i].notify_send_fd = fds[1];
+        printf("%s: after: fds[0]: %d, fds[1]: %d\n", __func__, fds[0], fds[1]);
 #ifdef EXTSTORE
         threads[i].storage = arg;
 #endif

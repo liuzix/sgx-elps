@@ -3,5 +3,5 @@
 
 int dup(int fd)
 {
-	return syscall(SYS_dup, fd);
+	return __async_syscall(SYS_dup, fd);
 }

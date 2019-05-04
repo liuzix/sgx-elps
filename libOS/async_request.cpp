@@ -97,7 +97,7 @@ extern "C" int __async_syscall(unsigned int n, ...) {
     /* Create SyscallReq */
 
     //SyscallRequest *req = createUnsafeObj<SyscallRequest>();
-    
+
     SyscallRequest *req = Singleton<SyscallRequest>::getRequest();
     if (req == nullptr)
         return -1;
@@ -132,6 +132,8 @@ extern "C" int __async_syscall(unsigned int n, ...) {
     req->~SyscallRequest();
     //unsafeFree(req);
     libos_print("Async call end");
+    if (ret == -1 && n!= 16)
+        __asm__("ud2");
     return ret;
 }
 

@@ -21,7 +21,7 @@ target_link_libraries(hello OS)
 
 include(ExternalProject)
 set(SAMPLES_LDFLAGS "-g -static-pie -nostdlib -L../libevent/.libs -L../../libOS/buildtmp -Wl,-Bstatic,--start-group -lOS")
-set(SAMPLES_CFLAGS "-g -I/home/xuheng/sgx-elps/musl/include -I/home/xuheng/sgx-elps/musl/include -I/home/xuheng/sgx-elps/musl/obj/include -I/home/xuheng/sgx-elps/musl/arch/x86_64 -I/home/xuheng/sgx-elps/musl/arch/generic -nostdinc -Wno-error=parentheses -Wno-error=redundant-decls -pie -w -U_FORTIFY_SOURCE")
+set(SAMPLES_CFLAGS "-g -I../../musl/include -I../../musl/include -I../../musl/obj/include -I../../musl/arch/x86_64 -I../../musl/arch/generic -nostdinc -Wno-error=parentheses -Wno-error=redundant-decls -pie -w -U_FORTIFY_SOURCE")
 
 ExternalProject_Add(elps-libevent
     SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libevent
@@ -34,7 +34,7 @@ add_dependencies(elps-libevent musl OS)
 
 ExternalProject_Add(elps-memcached
     SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/memcached"
-    CONFIGURE_COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/memcached && ./autogen.sh COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/memcached/configure --host=x86_64-linux-gnu --disable-coverage LDFLAGS=${SAMPLES_LDFLAGS} CFLAGS=${SAMPLES_CFLGAS} CC=gcc ac_cv_c_endian=little
+    CONFIGURE_COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}/memcached && ./autogen.sh COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/memcached/configure --host=x86_64-linux-gnu --disable-coverage LDFLAGS=${SAMPLES_LDFLAGS} "CFLAGS=-U_FORTIFY_SOURCE -pie -g" CC=gcc ac_cv_c_endian=little
     BUILD_IN_SOURCE TRUE
     BUILD_ALWAYS TRUE
     BUILD_COMMAND make clean && make

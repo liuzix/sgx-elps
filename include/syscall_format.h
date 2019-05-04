@@ -17,6 +17,7 @@
 #define TIMEVAL_PTR 13
 #define TIMEZONE_PTR 14
 #define ADDR_PTR 15
+#define FD_PAIR_PTR 16
 
 #define SYS_RT_SIGACTION 13
 #define SYS_RT_SIGPROCMASK 14
@@ -27,6 +28,8 @@
 #define SYS_SET_ROBUST_LIST 273
 #define SYS_BRK 12
 #define SYS_GETEGID 108
+#define SYS_PIPE2 293
+#define SYS_PIPE 22
 
 #define SYS_READ 0
 #define SYS_WRITE 1
@@ -37,7 +40,7 @@
 #define SYS_IOCTL 16
 #define SYS_WRITEV 20
 #define SYS_ACCESS 21
-#define SYS_DUP 31
+#define SYS_DUP 32
 #define SYS_SOCKET 41
 #define SYS_CONNECT 42
 #define SYS_ACCEPT 43
