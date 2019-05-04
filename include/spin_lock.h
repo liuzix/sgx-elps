@@ -15,7 +15,9 @@ public:
 #if IS_LIBOS
         interruptFlag = disableInterrupt();
 #endif
-        while (locked.test_and_set(std::memory_order_acquire)) { ; }
+        while (locked.test_and_set(std::memory_order_acquire)) {
+            __asm__ __volatile__("pause;");
+        }
     }
     __attribute__((always_inline))
     void unlock() {
