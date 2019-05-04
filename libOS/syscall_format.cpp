@@ -8,6 +8,7 @@
 #include <sys/epoll.h>
 #include <linux/utsname.h>
 #include <sys/time.h>
+#include <sys/resource.h>
 #include <signal.h>
 #include <unistd.h>
 #include <time.h>
@@ -45,6 +46,7 @@ void initSyscallTable() {
     add_type_size(TIMEVAL_PTR, sizeof(struct timeval));
     add_type_size(TIMEZONE_PTR, sizeof(struct timezone));
     add_type_size(FD_PAIR_PTR, sizeof(int[2]));
+    add_type_size(RUSAGE_PTR, sizeof(struct rusage));
 
     add_syscall0(SYS_GETGID);
     add_syscall0(SYS_GETUID);
@@ -60,6 +62,7 @@ void initSyscallTable() {
     add_syscall1(SYS_UNAME, OLD_UTSNAME_PTR);
     add_syscall1(SYS_DUP, NON_PTR);
     add_syscall1(SYS_PIPE, FD_PAIR_PTR);
+    add_syscall2(SYS_GETRUSAGE, NON_PTR, RUSAGE_PTR);
     add_syscall2(SYS_GETTIMEOFDAY, TIMEVAL_PTR, TIMEZONE_PTR);
     add_syscall2(SYS_LISTEN, NON_PTR, NON_PTR);
     add_syscall2(SYS_CLOCK_GETTIME, NON_PTR, TIMESPEC_PTR);
