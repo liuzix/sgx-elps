@@ -110,7 +110,7 @@ void test_auxv(uint64_t sp, int argc) {
     print_auxv(AT_HWCAP2, "%s: 0x%lx", uint64_t);
     print_auxv(AT_EXECFN, "%s: %s", char *);
     print_auxv(AT_PLATFORM, "%s: %s", char *);
-
+    print_auxv(AT_SYSINFO_EHDR, "%s: 0x%lx", uint64_t);
 #undef print_auxv
 }
 

@@ -9,18 +9,31 @@ void mmap_init(uint64_t heapBase, uint64_t heapSize) {
 }
 
 void *libos_mmap(void *base, size_t len) {
+    void *ret;
+
     len += 4095;
     if (!pageManager) {
         libos_panic("mmap uninitialized!");
         return (void *)-1;
     }
 
-    if (!base)
-        return pageManager->allocPages(len / 4096);
+    pageManager->lock.lock();
+    if (!base) {
+        ret = pageManager->allocPages(len / 4096);
+        pageManager->lock.unlock();
+        return ret;
+    }
 
     bool successful = pageManager->explicitPage(base, len);
-    if (successful) return base;
-    else return pageManager->allocPages(len / 4096);
+    if (successful) {
+        pageManager->lock.unlock();
+        return base;
+    }
+    else {
+        ret = pageManager->allocPages(len / 4096);
+        pageManager->lock.unlock();
+        return ret;
+    }
 }
 
 void libos_munmap(void *base, size_t len) {
@@ -30,7 +43,10 @@ void libos_munmap(void *base, size_t len) {
     }
 
     len = (len + 4095) & (~4095);
+
+    pageManager->lock.lock();
     pageManager->freePages(base, len / 4096);
+    pageManager->lock.unlock();
 }
 
 

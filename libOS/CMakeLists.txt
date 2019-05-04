@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 ENABLE_LANGUAGE(ASM-ATT)
-SET(CMAKE_CXX_FLAGS "-g -O0 -Wall -fpie -Werror -std=c++17 -fno-omit-frame-pointer -fno-stack-protector -fno-use-cxa-atexit -Wno-frame-address -U_FORTIFY_SOURCE")
+SET(CMAKE_CXX_FLAGS "-g -O0 -Wall -fpie -Werror -Wno-invalid-offsetof -std=c++17 -fno-omit-frame-pointer -fno-stack-protector -fno-use-cxa-atexit -Wno-frame-address -U_FORTIFY_SOURCE")
 SET(Boost_USE_STATIC_LIBS ON)
 project(libOS)
 

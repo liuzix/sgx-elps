@@ -103,7 +103,7 @@ void UserThread::jumpTo(UserThread *from) {
     //libos_print("switching to thread %d, from thread %d", this->id, from ? from->id: -1); 
     if (from) from->fs_base = getFSReg();
     setFSReg(this->fs_base);
-    transfer_data t{ .prev = from, .cur = this };
+    volatile transfer_data t{ .prev = from, .cur = this };
     //libos_print("loading context %lx", this->fcxt);
     //cw_jiffies = *pjiffies;
     transfer_t ret_t = jump_fcontext(this->fcxt, (void *)&t);

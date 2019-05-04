@@ -10,6 +10,7 @@
 #include <sys/epoll.h>
 #include <atomic>
 #include <sched.h>
+#include "sleep.h"
 
 #define MAX_EVENTS 10
 
@@ -22,6 +23,7 @@ SwapperManager swapperManager;
 extern uint64_t __jiffies;
 
 void schedulerRequestHandler(SwapperManager *manager, SchedulerRequest *req);
+
 
 /** 
  * Set a file descriptor to blocking or non-blocking mode.
@@ -60,7 +62,7 @@ void SwapperManager::runWorker(int id) {
     dispatcher.addHandler<SyscallRequest>(std::bind(syscallRequestHandler, this, std::placeholders::_1));
     dispatcher.addHandler<SwapRequest>(std::bind(swapRequestHandler, this, std::placeholders::_1));
     dispatcher.addHandler<SchedulerRequest>(std::bind(schedulerRequestHandler, this, std::placeholders::_1));
-
+    dispatcher.addHandler<SleepRequest>(sleepRequestHandler);
 //    struct epoll_event ev, events[MAX_EVENTS];
 //    int nfds, epollfs;
 
@@ -71,7 +73,7 @@ void SwapperManager::runWorker(int id) {
     }
     */
     while (true) {
-        this->timeStamp.store(steady_clock::now().time_since_epoch());
+        checkSleep(this);
         //uint64_t jiffies;
         //jiffies = __jiffies;
         RequestBase *request = 0x0;

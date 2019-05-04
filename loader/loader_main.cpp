@@ -131,11 +131,15 @@ size_t *get_curr_auxv(ELFLoader &loader) {
                 break;
             case AT_EXECFD:
                 auxv[i] = (size_t)loader.getAuxFd();
+                break;
+            case AT_SYSINFO_EHDR:
+                goto done;
             default:
                 auxv[i] = getauxval(j);
         }
         auxv[i - 1] = j;
     }
+done:
     auxv[i] = 0;
     auxv[i - 1] = 0;
 

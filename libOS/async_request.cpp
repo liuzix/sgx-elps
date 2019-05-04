@@ -62,6 +62,11 @@ void sleepWait(RequestBase *req) {
     scheduler->schedule();
 }
 
+extern "C" void __async_sleep(unsigned long ns) {
+    auto req = Singleton<SleepRequest>::getRequest(ns); 
+    requestQueue->push(req);
+    sleepWait(req);
+}
 
 extern "C" int __async_swap(void *addr) {
     SwapRequest *req = Singleton<SwapRequest>::getRequest();

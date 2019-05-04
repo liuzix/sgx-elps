@@ -1,10 +1,13 @@
 #ifndef MMAP_H
 #define MMAP_H
 
+#include <spin_lock.h>
 #include <stddef.h>
 #include <stdint.h>
 
 class PageManager {
+  public:
+    SpinLock lock;
   private:
     uint64_t availableBase;
     size_t availableLength;
@@ -13,7 +16,7 @@ class PageManager {
 
     bool getBit(size_t index);
     void setBit(size_t index, bool t);
-
+    
   public:
     PageManager(uint64_t base, size_t length);
 

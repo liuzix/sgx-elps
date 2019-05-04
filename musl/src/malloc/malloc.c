@@ -358,12 +358,14 @@ void *calloc(size_t m, size_t n)
 	n *= m;
 	void *p = malloc(n);
 	if (!p) return p;
+    /*
 	if (!__malloc_replaced) {
 		if (IS_MMAPPED(MEM_TO_CHUNK(p)))
 			return p;
 		if (n >= PAGE_SIZE)
 			n = mal0_clear(p, PAGE_SIZE, n);
 	}
+    */
 	return memset(p, 0, n);
 }
 

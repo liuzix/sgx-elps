@@ -73,6 +73,15 @@ public:
     }
 };
 
+class SleepRequest: public RequestBase {
+public:
+    constexpr static int typeTag = 4;
+    unsigned long ns;
+    SleepRequest(unsigned long _ns) {
+        ns = _ns;
+    }
+};
+
 class SyscallRequest: public RequestBase {
 public:
     constexpr static int typeTag = 1;

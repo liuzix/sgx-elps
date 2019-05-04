@@ -27,6 +27,7 @@ public:
     set_member_hook<> rbtree_hook_;
 
     int checksum;
+    uint64_t canary = 0xbeefbeef;
     void setChecksum()
     {
         checksum = 0;
@@ -38,8 +39,11 @@ public:
         int actualChecksum = 0;
         for (size_t i = 0; i < offsetof(MemoryArea, checksum); i++)
             actualChecksum += ((char *)this)[i];
-        assert(this->checksum == actualChecksum);
+        if (this->checksum != actualChecksum) {
+            __asm__("ud2");
+        }
     }
+
 };
 
 template<class T>
@@ -72,6 +76,7 @@ public:
     void *malloc(size_t len);
     void free(vaddr baseAddr);
     size_t getLen(void *ptr);
+    void checkWholeTree();
 
     void expandHeap(void *base, size_t len);
 };

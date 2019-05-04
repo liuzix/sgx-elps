@@ -18,6 +18,10 @@
 Allocator *unsafeAllocator;
 Allocator *safeAllocator;
 
+extern "C" void malloc_check() {
+    safeAllocator->checkWholeTree();
+}
+
 void initSafeMalloc(size_t len) {
     size_t allocatorSize = sizeof(Allocator);
     void *base = libos_mmap(nullptr, len);
@@ -85,6 +89,11 @@ void Allocator::dump() {
 void *Allocator::malloc(size_t len) {
     if (len == 0)
         return (void *)0;
+#ifdef ALLOCATOR_DEBUG
+    rbtreeLock.lock();
+    this->checkWholeTree();
+    rbtreeLock.unlock();
+#endif
     listLock.lock();
     for (int i = 0; i < CHUNK_LIST_SIZE; i++) {
         if (len >= pow(2, i + 2))
@@ -139,7 +148,11 @@ void Allocator::free(vaddr baseAddr) {
     listLock.lock();
     rbtreeLock.lock();
 #ifdef ALLOCATOR_DEBUG
+    this->checkWholeTree();
+    if (ma->canary != 0xbeefbeef) __asm__("ud2");
     ma->checkIntegrity();
+    // add poison
+    memset((void *)baseAddr, 0xCC, ma->len);
 #endif
     root.insert_equal(*ma);
     MemberRbtree::iterator mit = root.iterator_to(*ma),
@@ -153,6 +166,7 @@ void Allocator::free(vaddr baseAddr) {
             root.erase(mitNext);
         }
     }
+    this->checkWholeTree();
     if (mit != root.begin()) {
         assert(mitPrev->free);
         if ((uint64_t)&(*mitPrev) + MA_SIZE + (*mitPrev).len == (uint64_t)&(*mit)) {
@@ -168,6 +182,7 @@ void Allocator::free(vaddr baseAddr) {
     }
     chunkList[sizeToBucket((*mit).len)].push_back(*mit);
     ma->free = true;
+    this->checkWholeTree();
     rbtreeLock.unlock();
     listLock.unlock();
     return;
@@ -179,20 +194,14 @@ size_t Allocator::getLen(void *ptr) {
     return ma->len;
 }
 
-/*
-template <typename ReqT>
-ReqT* Singleton<ReqT>::getRequest(void *addr) {
-    if (umap[(**scheduler->getCurrent())->thread->id] == NULL) {
-        ReqT *tmp = (ReqT *)unsafeMalloc(sizeof(ReqT));
-        req = new (tmp) ReqT((unsigned long)addr);
+/* Warning: this function will hurt performance */
+void Allocator::checkWholeTree() {
+    for (auto &ma: this->root) {
+        if (ma.canary != 0xbeefbeef) {
+            __asm__("ud2");
+        }
     }
-    else
-        req = new ((ReqT *)(**scheduler->getCurrent())->thread->request_obj) ReqT((unsigned long)addr);
-    umap[(**scheduler->getCurrent())->thread->id] = req;
-    return req;
 }
-
-*/
 
 template<typename ReqT>
 std::unordered_map<int, ReqT*>* Singleton<ReqT>::umap;
@@ -204,3 +213,4 @@ template class Singleton<SwapRequest>;
 template class Singleton<DebugRequest>;
 template class Singleton<SyscallRequest>;
 template class Singleton<SchedulerRequest>;
+template class Singleton<SleepRequest>;
