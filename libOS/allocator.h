@@ -28,6 +28,7 @@ public:
 
     int checksum;
     uint64_t magic = 0xdeadbeef;
+    uint64_t canary = 0xbeefbeef;
     void setChecksum()
     {
         checksum = 0;
@@ -80,7 +81,7 @@ public:
 
     void expandHeap(void *base, size_t len);
 
-    bool checkSumAll();
+    bool checkSumAll(void);
 };
 
 //#ifdef IS_LIBOS

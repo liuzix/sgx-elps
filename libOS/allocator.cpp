@@ -200,6 +200,9 @@ void Allocator::checkWholeTree() {
         if (ma.canary != 0xbeefbeef) {
             __asm__("ud2");
         }
+    }
+}
+
 bool Allocator::checkSumAll() {
     bool ret = true;
     for (int i = 0; i < CHUNK_LIST_SIZE; i++) {
@@ -211,15 +214,6 @@ bool Allocator::checkSumAll() {
             }
     }
     return ret;
-}
-
-/*
-template <typename ReqT>
-ReqT* Singleton<ReqT>::getRequest(void *addr) {
-    if (umap[(**scheduler->getCurrent())->thread->id] == NULL) {
-        ReqT *tmp = (ReqT *)unsafeMalloc(sizeof(ReqT));
-        req = new (tmp) ReqT((unsigned long)addr);
-    }
 }
 
 template<typename ReqT>
