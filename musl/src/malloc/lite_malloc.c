@@ -1,3 +1,5 @@
+#if 0
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <limits.h>
@@ -57,3 +59,4 @@ static void *__simple_calloc(size_t m, size_t n)
 }
 
 weak_alias(__simple_calloc, calloc);
+#endif

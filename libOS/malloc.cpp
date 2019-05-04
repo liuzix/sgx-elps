@@ -36,3 +36,11 @@ extern "C" void *realloc(void *ptr, size_t newSize) {
     memcpy(newChunk, ptr, safeAllocator->getLen(ptr)); 
     return newChunk;
 }
+
+extern "C" void *calloc(size_t m, size_t n) {
+    void *ret = malloc(m * n);
+    if (!ret) return ret;
+
+    memset(ret, 0, m * n);
+    return ret;
+}
