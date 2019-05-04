@@ -1,5 +1,6 @@
 #include "mmap.h"
 #include "panic.h"
+#include "allocator.h"
 #include <new>
 
 PageManager *pageManager = nullptr;
@@ -49,6 +50,12 @@ void libos_munmap(void *base, size_t len) {
     pageManager->lock.unlock();
 }
 
+
+extern "C" bool chunkCheckSum(void) {
+    if (safeAllocator)
+        return safeAllocator->checkSumAll();
+    return true;
+}
 
 extern "C" void *mmap(void *addr, size_t length, int, int,
                   int fd, off_t) {

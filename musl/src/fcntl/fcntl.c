@@ -41,8 +41,8 @@ int fcntl(int fd, int cmd, ...)
 	case F_GETLK:
 	case F_GETOWN_EX:
 	case F_SETOWN_EX:
-		return syscall(SYS_fcntl, fd, cmd, (void *)arg);
+		return __async_syscall(SYS_fcntl, fd, cmd, (void *)arg);
 	default:
-		return syscall(SYS_fcntl, fd, cmd, arg);
+		return __async_syscall(SYS_fcntl, fd, cmd, arg);
 	}
 }

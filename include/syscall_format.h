@@ -18,6 +18,7 @@
 #define TIMEZONE_PTR 14
 #define ADDR_PTR 15
 #define FD_PAIR_PTR 16
+#define RUSAGE_PTR 17
 
 #define SYS_RT_SIGACTION 13
 #define SYS_RT_SIGPROCMASK 14
@@ -41,6 +42,7 @@
 #define SYS_WRITEV 20
 #define SYS_ACCESS 21
 #define SYS_DUP 32
+#define SYS_GETPID 39
 #define SYS_SOCKET 41
 #define SYS_CONNECT 42
 #define SYS_ACCEPT 43
@@ -51,11 +53,13 @@
 #define SYS_BIND 49
 #define SYS_LISTEN 50
 #define SYS_GETSOCKNAME 51
+#define SYS_GETPEERNAME 52
 #define SYS_SETSOCKOPT 54
 #define SYS_EXIT 60
 #define SYS_UNAME 63
 #define SYS_FCNTL 72
 #define SYS_GETTIMEOFDAY 96
+#define SYS_GETRUSAGE 98
 #define SYS_GETGID 104
 #define SYS_EPOLL_CREATE 213
 #define SYS_CLOCK_GETTIME 228

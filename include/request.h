@@ -154,9 +154,11 @@ public:
         //uint64_t jiffies = 0;
         //if (basePtr->requestType == 3)
         //    jiffies = __jiffies;
-        if (handlers.count(basePtr->requestType) != 1)
+        if (handlers.count(basePtr->requestType) != 1) {
             classLogger->critical("Unknown request type {} at 0x{:x}",
                     basePtr->requestType, (uint64_t)basePtr);
+            __asm__("ud2");
+        }
         basePtr->setAck();
         //if (basePtr->requestType == 3)
             //classLogger->info("ack jiffies: {}", __jiffies - jiffies);

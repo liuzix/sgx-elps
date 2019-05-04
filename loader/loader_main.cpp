@@ -20,7 +20,6 @@
 
 #define UNSAFE_HEAP_LEN 0x10000000
 #define SAFE_HEAP_LEN 0x40000000
-
 #define AUX_CNT 38
 
 using namespace std;

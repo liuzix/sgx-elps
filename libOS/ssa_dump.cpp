@@ -5,6 +5,7 @@
 #include <cstring>
 #include "panic.h"
 #include "thread_local.h"
+#include "allocator.h"
 
 extern "C" int __eexit(int);
 ssa_gpr_t ssa_gpr_dump;
@@ -66,7 +67,7 @@ void print_ssa_gpr(void) {
     std::cout << "exit_info.valid: " << ssa_gpr_dump.exit_info.valid << std::endl;
     std::cout << "-------- dump ssa_gpr info end --------" << std::endl;
 #else
-    libos_panic("-------- dump ssa_gpr info end--------");
+    libos_panic("-------- dump ssa_gpr info end --------");
 #endif
 }
 
@@ -83,7 +84,9 @@ void do_backtrace(uint64_t *rbp, uint64_t rip) {
         rbp = (uint64_t *)*rbp;
     }
     libos_print("backtrace ends");
-    __eexit(-1);    
+    libos_panic("--------check sum of all chunks... --------");
+    safeAllocator->checkSumAll();
+    __eexit(-1);
 }
 
 #define SSAFRAME_SIZE 4

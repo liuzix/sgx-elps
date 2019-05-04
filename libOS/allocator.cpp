@@ -246,6 +246,19 @@ void Allocator::checkWholeTree() {
     }
 }
 
+bool Allocator::checkSumAll() {
+    bool ret = true;
+    for (int i = 0; i < CHUNK_LIST_SIZE; i++) {
+        MemberList::iterator mit(chunkList[i].begin());
+        for (; mit != chunkList[i].end(); mit++)
+            if (mit->magic != 0xdeadbeef) {
+                libos_print("chunck list[%d] corrupted.", i);
+                ret = false;
+            }
+    }
+    return ret;
+}
+
 template<typename ReqT>
 std::unordered_map<int, ReqT*>* Singleton<ReqT>::umap;
 

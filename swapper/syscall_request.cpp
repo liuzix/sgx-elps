@@ -22,6 +22,11 @@ void syscallRequestHandler(SwapperManager *manager, SyscallRequest *req) {
                                           req->args[3].arg,
                                           req->args[4].arg,
                                           req->args[5].arg);
+    if (req->sys_ret == -1) {
+        syscallConsole->info("syscall failed, reading errno");
+        req->sys_ret = -errno;
+    }
+
     syscallConsole->info("finish syscall({})", req->fm_list.syscall_num);
     req->setDone();
     manager->wakeUpThread();
