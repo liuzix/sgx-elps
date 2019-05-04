@@ -41,6 +41,7 @@
 #define SYS_WRITEV 20
 #define SYS_ACCESS 21
 #define SYS_DUP 32
+#define SYS_GETPID 39
 #define SYS_SOCKET 41
 #define SYS_CONNECT 42
 #define SYS_ACCEPT 43

@@ -50,6 +50,7 @@ void initSyscallTable() {
     add_syscall0(SYS_GETUID);
     add_syscall0(SYS_GETEUID);
     add_syscall0(SYS_GETEGID);
+    add_syscall0(SYS_GETPID);
     add_syscall1(SYS_CLOSE, NON_PTR);
     add_syscall1(SYS_BRK, ADDR_PTR);
     add_syscall1(SYS_EPOLL_CREATE, NON_PTR);
