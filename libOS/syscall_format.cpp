@@ -69,6 +69,7 @@ void initSyscallTable() {
     add_syscall3(SYS_BIND, NON_PTR, SOKADDR_PTR, NON_PTR);
     add_syscall3(SYS_CONNECT, NON_PTR, SOKADDR_PTR, NON_PTR);
     add_syscall3(SYS_GETSOCKNAME, NON_PTR, SOCKADDR_PTR, INT_PTR);
+    add_syscall3(SYS_GETPEERNAME, NON_PTR, SOCKADDR_PTR, INT_PTR);
     add_syscall3(SYS_IOCTL, NON_PTR, NON_PTR, NON_PTR);
     add_syscall3(SYS_MPROTECT, NON_PTR, NON_PTR, NON_PTR);
     add_syscall3(SYS_FCNTL, NON_PTR, NON_PTR, NON_PTR);
@@ -135,7 +136,9 @@ static bool needWriteBack(unsigned int num, unsigned int index) {
         || (num == SYS_RECVFROM && index == 5)
         || (num == SYS_RECVMSG && index == 1)
         || (num == SYS_PIPE)
-        || (num == SYS_PIPE2 && index == 0);
+        || (num == SYS_PIPE2 && index == 0)
+        || (num == SYS_GETPEERNAME && index == 1)
+        || (num == SYS_GETPEERNAME && index == 2);
 }
 
 /* some syscalls have pointer args instead of size_t indicating the arg size

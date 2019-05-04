@@ -51,6 +51,7 @@
 #define SYS_BIND 49
 #define SYS_LISTEN 50
 #define SYS_GETSOCKNAME 51
+#define SYS_GETPEERNAME 52
 #define SYS_SETSOCKOPT 54
 #define SYS_EXIT 60
 #define SYS_UNAME 63
