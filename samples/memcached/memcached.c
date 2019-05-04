@@ -74,6 +74,8 @@
 #endif
 #endif
 
+
+void malloc_check();
 /*
  * forward declarations
  */
@@ -7966,9 +7968,9 @@ int main (int argc, char **argv) {
         fprintf(stderr, "warning: -k invalid, mlockall() not supported on this platform.  proceeding without.\n");
 #endif
     }
-
     /* initialize main thread libevent instance */
 #if defined(LIBEVENT_VERSION_NUMBER) && LIBEVENT_VERSION_NUMBER >= 0x02000101
+    printf("using newer libevent api\n");
     /* If libevent version is larger/equal to 2.0.2-alpha, use newer version */
     struct event_config *ev_config;
     ev_config = event_config_new();
@@ -7976,15 +7978,21 @@ int main (int argc, char **argv) {
     main_base = event_base_new_with_config(ev_config);
     event_config_free(ev_config);
 #else
+    printf("using older libevent api\n");
     /* Otherwise, use older API */
     main_base = event_init();
 #endif
-
+    malloc_check();
     /* initialize other stuff */
+    printf("logger init\n");
     logger_init();
+    printf("stats init\n");
     stats_init();
+    printf("assoc init\n");
     assoc_init(settings.hashpower_init);
+    printf("conn init\n");
     conn_init();
+    printf("slab init\n");
     slabs_init(settings.maxbytes, settings.factor, preallocate,
             use_slab_sizes ? slab_sizes : NULL);
 #ifdef EXTSTORE
@@ -8023,6 +8031,7 @@ int main (int argc, char **argv) {
         exit(EX_OSERR);
     }
     /* start up worker threads if MT mode */
+    printf("starting thread init\n");
 #ifdef EXTSTORE
     slabs_set_storage(storage);
     memcached_thread_init(settings.num_threads, storage);
@@ -8078,6 +8087,7 @@ int main (int argc, char **argv) {
         }
     }
 
+    printf("start creating sockets\n");
     /* create the listening socket, bind it, and init */
     if (settings.socketpath == NULL) {
         const char *portnumber_filename = getenv("MEMCACHED_PORT_FILENAME");
@@ -8100,6 +8110,7 @@ int main (int argc, char **argv) {
         }
 
         errno = 0;
+        printf("trying to listen on TCP port %d\n", settings.port);
         if (settings.port && server_sockets(settings.port, tcp_transport,
                                            portnumber_file)) {
             vperror("failed to listen on TCP port %d", settings.port);
@@ -8115,6 +8126,7 @@ int main (int argc, char **argv) {
 
         /* create the UDP listening socket and bind it */
         errno = 0;
+        printf("trying to listen on UDP port %d\n", settings.udpport);
         if (settings.udpport && server_sockets(settings.udpport, udp_transport,
                                               portnumber_file)) {
             vperror("failed to listen on UDP port %d", settings.udpport);

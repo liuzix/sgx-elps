@@ -78,6 +78,7 @@ public:
     constexpr static int typeTag = 4;
     unsigned long ns;
     SleepRequest(unsigned long _ns) {
+        this->requestType = typeTag;
         ns = _ns;
     }
 };
@@ -154,14 +155,15 @@ public:
         //if (basePtr->requestType == 3)
         //    jiffies = __jiffies;
         if (handlers.count(basePtr->requestType) != 1)
-            classLogger->critical("Unknown request {}", basePtr->requestType);
+            classLogger->critical("Unknown request type {} at 0x{:x}",
+                    basePtr->requestType, (uint64_t)basePtr);
         basePtr->setAck();
         //if (basePtr->requestType == 3)
             //classLogger->info("ack jiffies: {}", __jiffies - jiffies);
         handlers[basePtr->requestType](basePtr);
         //if (basePtr->requestType == 3)
          //   jiffies = __jiffies;
-        basePtr->setDone();
+        //basePtr->setDone();
         //if (basePtr->requestType == 3)
             //classLogger->info("done jiffies: {}", __jiffies - jiffies);
     }

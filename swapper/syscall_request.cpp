@@ -8,6 +8,7 @@ void syscallRequestHandler(SwapperManager *manager, SyscallRequest *req) {
 
 
     syscallConsole->info("-----SYSCALL({})-----", req->fm_list.syscall_num);
+    syscallConsole->info("syscall request at 0x{:x}", (uint64_t)req);
     for (int i = 0; i < 6; i++) {
         syscallConsole->info("arg[{}] arg_content[{:x}]", i+1, req->args[i].arg);
         if (req->fm_list.sizes[i])

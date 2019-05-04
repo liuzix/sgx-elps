@@ -6,9 +6,9 @@
 using namespace std;
 
 static std::multimap<unsigned long, RequestBase *> sleepMap;
-static struct timespec timeSpec;
 
 void checkSleep(SwapperManager *manager) {
+    struct timespec timeSpec;
     clock_gettime(CLOCK_MONOTONIC, &timeSpec);
     unsigned long ns = timeSpec.tv_sec * 1000000000 + timeSpec.tv_nsec;
     
@@ -21,6 +21,8 @@ void checkSleep(SwapperManager *manager) {
 }
 
 void sleepRequestHandler(SleepRequest *req) {
+    struct timespec timeSpec;
+    clock_gettime(CLOCK_MONOTONIC, &timeSpec);
     unsigned long target = req->ns + 
         timeSpec.tv_sec * 1000000000 + timeSpec.tv_nsec;
     sleepMap.insert(std::make_pair(target, req));

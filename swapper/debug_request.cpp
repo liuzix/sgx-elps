@@ -5,4 +5,5 @@ std::shared_ptr<spdlog::logger> debugConsole = spdlog::stdout_color_mt("enclave"
 
 void debugRequestHandler(DebugRequest *req) {
     debugConsole->info("{}", req->printBuf);      
+    req->setDone();
 }

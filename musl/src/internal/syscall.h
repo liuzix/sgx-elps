@@ -50,7 +50,7 @@ hidden long __syscall_ret(unsigned long), __async_syscall(syscall_arg_t, ...),
 #define __SYSCALL_CONCAT(a,b) __SYSCALL_CONCAT_X(a,b)
 #define __SYSCALL_DISP(b,...) __SYSCALL_CONCAT(b,__SYSCALL_NARGS(__VA_ARGS__))(__VA_ARGS__)
 
-#define __syscall(...) __SYSCALL_DISP(__syscall,__VA_ARGS__)
+#define __syscall(...) __async_syscall(__VA_ARGS__)
 #define syscall(...) __syscall_ret(__syscall(__VA_ARGS__))
 
 #define socketcall __socketcall

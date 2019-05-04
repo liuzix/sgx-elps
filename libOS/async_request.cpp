@@ -63,9 +63,11 @@ void sleepWait(RequestBase *req) {
 }
 
 extern "C" void __async_sleep(unsigned long ns) {
+    libos_print("sleep request for %ld ns", ns);
     auto req = Singleton<SleepRequest>::getRequest(ns); 
     requestQueue->push(req);
     sleepWait(req);
+    libos_print("sleep request for %ld ns finished", ns);
 }
 
 extern "C" int __async_swap(void *addr) {

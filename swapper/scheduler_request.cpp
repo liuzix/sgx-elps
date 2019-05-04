@@ -13,5 +13,6 @@ void schedulerRequestHandler(SwapperManager *manager, SchedulerRequest *req) {
         console->info("SchedReady!");
         manager->schedReady();
     }
+    req->setDone();
 
 }
