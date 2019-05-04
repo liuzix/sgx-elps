@@ -87,7 +87,7 @@ extern "C" int __async_swap(void *addr) {
     return ret;
 }
 
-extern "C" int __async_syscall(unsigned int n, ...) {
+extern "C" unsigned long __async_syscall(unsigned int n, ...) {
     libos_print("Async call [%u]", n);
     /* Interpret correspoding syscall args types */
     format_t fm_l;
@@ -134,12 +134,12 @@ extern "C" int __async_syscall(unsigned int n, ...) {
 //    if (!req->waitOnDone(3000))
     sleepWait(req);
     libos_print("return val: %ld", req->sys_ret);
-    int ret = (int)req->sys_ret;
+    unsigned long ret = (unsigned long)req->sys_ret;
     req->fillEnclave(enclave_args);
     req->~SyscallRequest();
     //unsafeFree(req);
     libos_print("Async call end");
-    if (ret == -1 && n!= 16)
+    if (ret == (unsigned long)-1 && n!= 16)
         __asm__("ud2");
     return ret;
 }
