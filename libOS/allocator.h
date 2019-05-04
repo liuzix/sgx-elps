@@ -74,6 +74,7 @@ public:
     size_t len;
     Allocator(size_t len, vaddr heapBase);
     void *malloc(size_t len);
+    void *memAlign(size_t alignment, size_t size);
     void free(vaddr baseAddr);
     size_t getLen(void *ptr);
     void checkWholeTree();

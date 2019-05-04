@@ -129,6 +129,8 @@ void *Allocator::malloc(size_t len) {
             return (void *)retAddr;
         }
     }
+
+
 #ifdef ALLOCATOR_DEBUG
 #ifdef IS_LIBOS
     libos_print("cannot find chunck of size %d", len);
@@ -137,8 +139,49 @@ void *Allocator::malloc(size_t len) {
     this->dump();
 #endif
 #endif
-    listLock.unlock();
     return nullptr;
+}
+
+void *Allocator::memAlign(size_t alignment, size_t size) {
+    if (size == 0)
+        return (void *)0;
+#ifdef ALLOCATOR_DEBUG
+    rbtreeLock.lock();
+    this->checkWholeTree();
+    rbtreeLock.unlock();
+#endif
+    size_t len = size + MIN_PRESERVE_SIZE + alignment;
+    void *oldAddr = malloc(len);
+    void *newAddr = oldAddr;
+    size_t oldLen, newTmp;
+    MemoryArea *maOld = (MemoryArea *)((size_t)oldAddr - MA_SIZE);
+    maOld->free = true;
+    newTmp = (size_t)newAddr;
+    newTmp += MIN_PRESERVE_SIZE;
+    while (1) {
+        if ((unsigned long)newTmp % (unsigned long)alignment != 0)
+            newTmp++;
+        else
+            break;
+    }
+    newAddr = (void *)newTmp;
+    MemoryArea *ma = (MemoryArea *) new ((void *)((size_t)newAddr - MA_SIZE))
+        MemoryArea(len + (size_t)oldAddr - (size_t)newAddr, (size_t)newAddr - MA_SIZE);
+    oldLen = (size_t)newAddr - MA_SIZE - (size_t)oldAddr;
+    maOld->len = oldLen;
+    listLock.lock();
+    rbtreeLock.lock();
+    root.insert_equal(*maOld);
+    rbtreeLock.unlock();
+    if (oldLen == 1)
+        chunkList[0].push_back(*maOld);
+    else
+        chunkList[sizeToBucket(oldLen)].push_back(*maOld);
+    listLock.unlock();
+#ifdef ALLOCATOR_DEBUG
+    ma->setChecksum();
+#endif
+    return newAddr;
 }
 
 void Allocator::free(vaddr baseAddr) {
