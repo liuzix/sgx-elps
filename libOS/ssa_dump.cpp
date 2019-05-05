@@ -9,7 +9,7 @@
 
 extern "C" int __eexit(int);
 ssa_gpr_t ssa_gpr_dump;
-
+void dumpWatchList();
 #ifdef HAS_COUT
 #define __print_ssa_gpr(reg, suffix) \
         std::cout << "reg: " << std::hex << ssa_gpr_dump.reg << suffix
@@ -86,15 +86,19 @@ void do_backtrace(uint64_t *rbp, uint64_t rip) {
     libos_print("backtrace ends");
     libos_panic("--------check sum of all chunks... --------");
     safeAllocator->checkSumAll();
-    __eexit(-1);
 }
 
+SpinLock dumpLock;
 #define SSAFRAME_SIZE 4
 extern "C" void dump_ssa(uint64_t ptcs) {
+    dumpLock.lock();
     tcs_t *tcs = (tcs_t *)ptcs;
     ssa_gpr_t *ssa_gpr = (ssa_gpr_t *)((char *)tcs + 4096 + 4096 * SSAFRAME_SIZE - GPRSGX_SIZE);
     libos_panic("Ready to dump.");
+    dumpWatchList();
     dump_ssa_gpr(ssa_gpr);
     do_backtrace((uint64_t *)ssa_gpr->bp, ssa_gpr->ip);
+    dumpLock.unlock();
+    __eexit(-1);
     __asm__("ud2");
 }

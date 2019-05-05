@@ -1,4 +1,5 @@
 #include <time.h>
+#include <stdio.h>
 #include <errno.h>
 #include <stdint.h>
 #include "syscall.h"
@@ -49,6 +50,7 @@ int __clock_gettime(clockid_t clk, struct timespec *ts)
 		}
 		r = -EINVAL;
 	}
+
 	return __syscall_ret(r);
 }
 

@@ -63,23 +63,31 @@ void EnclaveManager::__sigaction(int n, siginfo_t *siginfo, void *ucontext) {
 
     console->error("rip: 0x{:x}, __aex_handler: 0x{:x}", (uint64_t)rip, (uint64_t)&__aex_handler);
     /* Signal outside the enclave */
-    if (rip != (uint64_t)__aex_handler) {
+    if (n != SIGTSTP && rip != (uint64_t)__aex_handler) {
         console->error("Receive signal {} outside the enclave.", n);
         console->flush();
         exit(-1);
     }
-
+    
     uint64_t rbx = context->uc_mcontext.gregs[REG_RBX];
-    console->info("rbx in signal handler = 0x{:x}", rbx);
-
+    if (n == SIGTSTP) {
+        for (auto thr: manager->getThreadpool()->thread_map) {
+           set_flag(thr.first, 1); 
+           uint64_t debugStack = (uint64_t)malloc(4096) + 4096 - 16;
+           thr.second->getSharedTLS()->enclave_stack = debugStack;
+        }
+    } else {
+        console->info("rbx in signal handler = 0x{:x}", rbx);
+        set_flag(rbx, 1);
+        uint64_t debugStack = (uint64_t)malloc(4096) + 4096 - 16;
+        manager->getThreadpool()->thread_map[rbx]->getSharedTLS()->enclave_stack = debugStack;
+    }
     /* Per-thread flag */
-    set_flag(rbx, 1);
-
-    uint64_t debugStack = (uint64_t)malloc(4096) + 4096 - 16;
-    manager->getThreadpool()->thread_map[rbx]->getSharedTLS()->enclave_stack = debugStack;
 
     if (n == SIGSEGV)
         console->error("Segmentation Fault!");
+    else if (n == SIGTSTP)
+        console->error("SIGTSTP received!");
     else if (n == SIGFPE)
         console->error("Floating point error!");
     else if (n == SIGINT) {
@@ -107,6 +115,7 @@ void EnclaveManager::dump_sigaction() {
     sigaction(7, &sa, NULL);
     sigaction(SIGILL, &sa, NULL);
     sigaction(SIGFPE, &sa, NULL);
+    sigaction(SIGTSTP, &sa, NULL);
 }
 
 size_t *get_curr_auxv(ELFLoader &loader) {
@@ -209,9 +218,9 @@ int main(int argc, char **argv, char **envp) {
     threadpool->addMainThread(thread);
 
     
-    //for (int i = 0; i < 1; i++) {
-        //threadpool->addWorkerThread(loader.makeWorkerThread());
-    //}
+    for (int i = 0; i < 1; i++) {
+       //threadpool->addWorkerThread(loader.makeWorkerThread());
+    }
 
     manager->prepareLaunch();
     /*

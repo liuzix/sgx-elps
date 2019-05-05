@@ -13,11 +13,14 @@ public:
     __attribute__((always_inline))
     void lock() {
 #if IS_LIBOS
-        interruptFlag = disableInterrupt();
+        bool localInterruptFlag = disableInterrupt();
 #endif
         while (locked.test_and_set(std::memory_order_acquire)) {
             __asm__ __volatile__("pause;");
         }
+#if IS_LIBOS
+        interruptFlag = localInterruptFlag;
+#endif
     }
     __attribute__((always_inline))
     void unlock() {

@@ -615,7 +615,8 @@ conn *conn_new(const int sfd, enum conn_states init_state,
     if (transport == tcp_transport && init_state == conn_new_cmd) {
         if (getpeername(sfd, (struct sockaddr *) &c->request_addr,
                         &c->request_addr_size)) {
-            perror("getpeername");
+            fprintf(stderr, "request_addr: %p\n", (void *)&c->request_addr);
+            perror("getpeername failed:");
             memset(&c->request_addr, 0, sizeof(c->request_addr));
         }
     }

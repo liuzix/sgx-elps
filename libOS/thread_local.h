@@ -13,11 +13,15 @@ private:
     SpinLockNoTimer lock;
     unordered_map<uint64_t, T> map;
 public:
+    __attribute__ ((noinline))
     T &operator *() {
+        bool interruptFlag = disableInterrupt();
         uint64_t cpuID = getSharedTLS()->threadID;
         lock.lock();
         T &ret = map[cpuID];
         lock.unlock();
+        if (!interruptFlag)
+            enableInterrupt();
         return ret;
     }
 

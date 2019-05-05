@@ -316,7 +316,7 @@ evutil_gettime_monotonic_(struct evutil_monotonic_timer *base,
 		return -1;
 	tp->tv_sec = ts.tv_sec;
 	tp->tv_usec = ts.tv_nsec / 1000;
-
+    
 	return 0;
 }
 #endif

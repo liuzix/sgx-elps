@@ -38,11 +38,11 @@ int idleThread() {
         //getSharedTLS()->numActiveThread --;
         //getSharedTLS()->inInterrupt->store(1); 
         //libos_print("entering pause loop");
+        //libos_print("[idle] idle");
         /*
         if (getSharedTLS()->numActiveThread->load() >
             getSharedTLS()->numTotalThread->load()) {
             __asm__ volatile("pause"); 
-            //libos_print("[idle] idle");
             //__eexit(0x1000);
         }
         */

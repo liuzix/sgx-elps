@@ -142,6 +142,7 @@ static bool needWriteBack(unsigned int num, unsigned int index) {
         || (num == SYS_PIPE)
         || (num == SYS_PIPE2 && index == 0)
         || (num == SYS_GETPEERNAME && index == 1)
+        || (num == SYS_CLOCK_GETTIME && index == 1)
         || (num == SYS_GETPEERNAME && index == 2);
 }
 
@@ -170,6 +171,7 @@ static unsigned int getSize(const SyscallRequest* req, unsigned int i) {
             break;
         case SYS_ACCEPT:
         case SYS_GETSOCKNAME:
+        case SYS_GETPEERNAME:
             if (i == 1)
                 res = (unsigned int)*((int*)req->args[i + 1].arg);
             else

@@ -59,7 +59,8 @@ struct pthread {
 class UserThread : public boost::intrusive::list_base_hook<> {
 public:
     /* on context switch we lock the context lock of both threads */
-    SpinLock contextLock;
+    //SpinLock contextLock;
+    atomic_bool contextGood;
 
     /* this is actually the stack pointer of the saved context */
     fcontext_t fcxt;
@@ -97,6 +98,7 @@ public:
 
 pthread *allocateTCB();
 
+/*
 static inline void doubleLockThread(UserThread *t1, UserThread *t2) {
     //libos_print("t1 = %d, t2 = %d", t1 ? t1->id : -1,
     //        t2 ? t2->id : -1);
@@ -111,3 +113,4 @@ static inline void doubleLockThread(UserThread *t1, UserThread *t2) {
         t2->contextLock.lock();
     }
 }
+*/

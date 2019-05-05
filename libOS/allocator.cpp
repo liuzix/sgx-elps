@@ -12,7 +12,7 @@
 #include <iterator>
 #define MA_SIZE sizeof(MemoryArea)
 #define MIN_PRESERVE_SIZE 2 * MA_SIZE
-#define ALLOCATOR_DEBUG
+//#define ALLOCATOR_DEBUG
 
 #ifdef IS_LIBOS
 Allocator *unsafeAllocator;

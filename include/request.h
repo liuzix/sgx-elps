@@ -46,7 +46,11 @@ public:
     }
 
     void setDone() {
+        __sync_synchronize(); 
+        asm volatile("": : :"memory");
         done.store(true);
+        asm volatile("": : :"memory");
+        __sync_synchronize(); 
     }
 
     RequestBase() {}

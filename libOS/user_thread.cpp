@@ -34,11 +34,11 @@ extern "C" void __entry_helper(transfer_t transfer) {
     }
     getSharedTLS()->preempt_injection_stack = cur->preempt_stack;
     if (prev) {
-        prev->contextLock.unlock();
+        prev->contextGood.store(true);
+        //prev->contextLock.unlock();
     }
 
-    cur->contextLock.unlock();
-    getSharedTLS()->preempt_injection_stack = cur->preempt_stack;
+    //cur->contextLock.unlock();
     enableInterrupt();
     int val = cur->entry();
     cur->terminate(val);
@@ -61,6 +61,7 @@ UserThread::UserThread(function<int(void)> _entry)
     stack += STACK_SIZE;
 
     this->fcxt = make_fcontext(stack, STACK_SIZE, __clear_rbp);
+    this->contextGood.store(true);
     this->preempt_stack = (uint64_t)libos_mmap(NULL, 4096);
     this->preempt_stack += 4096 - 16;
     //scheduler->enqueueTask(this->se); 
@@ -104,24 +105,30 @@ static inline uint64_t getFSReg() {
 }
 
 void UserThread::jumpTo(UserThread *from) {
-    libos_print("switching to thread %d, from thread %d", this->id, from ? from->id: -1); 
+    //libos_print("switching to thread %d, from thread %d", this->id, from ? from->id: -1); 
+    while (!this->contextGood.exchange(false))
+        __asm__ volatile ("pause");
+
     if (from) from->fs_base = getFSReg();
     setFSReg(this->fs_base);
     volatile transfer_data t{ .prev = from, .cur = this };
     //libos_print("loading context %lx", this->fcxt);
     //cw_jiffies = *pjiffies;
-    transfer_t ret_t = jump_fcontext(this->fcxt, (void *)&t);
+    auto context = this->fcxt;
+    this->fcxt = 0x0;
+    transfer_t ret_t = jump_fcontext(context, (void *)&t);
     //libos_print("jump_fcontext took %d cycles", *pjiffies - cw_jiffies);
     transfer_data *data = (transfer_data *)ret_t.data;
     auto prev = data->prev;
-    auto cur = data->cur;
+    //auto cur = data->cur;
+    getSharedTLS()->preempt_injection_stack = data->cur->preempt_stack;
     if (prev) {
        // libos_print("saving context %lx to thread %d", ret_t.fctx, data->prev->id);
         prev->fcxt = ret_t.fctx;
-        prev->contextLock.unlock();
+        prev->contextGood.store(true);
+        //prev->contextLock.unlock();
     }
-    cur->contextLock.unlock();
-    getSharedTLS()->preempt_injection_stack = data->cur->preempt_stack;
+    //cur->contextLock.unlock();
     enableInterrupt();
 }
 
@@ -152,6 +159,7 @@ extern "C" int libos_clone(int (*fn)(void *), void *stack, void *arg, void *newt
     libos_print("libos_clone!");
     auto userThread = new UserThread;
     userThread->fcxt = make_fcontext((char *)stack, STACK_SIZE, __clear_rbp);
+    userThread->contextGood.store(true);
     userThread->preempt_stack = (uint64_t)libos_mmap(NULL, 4096);
     userThread->preempt_stack += 4096 - 16;
     

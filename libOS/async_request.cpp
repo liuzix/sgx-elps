@@ -24,14 +24,27 @@ SpinLock *watchListLock;
 
 extern uint64_t *pjiffies;
 
+static atomic_int pendingCount;
+
 void initWatchList() {
     watchListLock = new SpinLock;
     watchList = new WatchList;
 }
 
+void dumpWatchList() {
+    libos_print("dumping watchList");
+    for (auto &req: *watchList) {
+        libos_print("Pending request type %d", req.requestType);
+        if (req.requestType == SyscallRequest::typeTag) {
+            auto sysReq = (SyscallRequest *)&req;
+            libos_print("Pending syscall: %d", sysReq->fm_list.syscall_num);
+        }
+    }
+}
 /* this is called by the scheduler */
 void watchListCheck() {
     watchListLock->lock();
+    //libos_print("check watchlist, pending syscall %d", pendingCount.load());
     auto it = watchList->begin();
     while (it != watchList->end()) {
         if (it->waitOnDone(1)) {
@@ -40,34 +53,43 @@ void watchListCheck() {
             SchedEntity &se = it->owner->se;
             it->owner = nullptr;
             it = watchList->erase(it);
+            __sync_synchronize();
+            //libos_print("watchList: wake up %d", se.thread->id);
             scheduler->enqueueTask(se);
         } else {
+            //libos_print("watchList: %d is not ready", it->owner->id);
             it++;
         }
     }
     watchListLock->unlock();
+    //libos_print("end checking watchlist");
 }
+
 
 void sleepWait(RequestBase *req) {
     bool intFlag = disableInterrupt();
 
     watchListLock->lock();
+    //libos_print("sleepWait push");
     req->owner = scheduler->getCurrent()->get()->thread;
     watchList->push_back(*req);
-    watchListLock->unlock();
-
+    //libos_print("sleepWait end push");
     scheduler->dequeueTask(*scheduler->current.get());
-
+    watchListLock->unlock();
     if (!intFlag) enableInterrupt();
+    //libos_print("sleepWait: yield");
     scheduler->schedule();
 }
 
 extern "C" void __async_sleep(unsigned long ns) {
-    libos_print("sleep request for %ld ns", ns);
+    //unsigned long count = ns;
+    //libos_print("sleep request for %ld ns, pending syscalls %d", ns, pendingCount.load());
     auto req = Singleton<SleepRequest>::getRequest(ns); 
     requestQueue->push(req);
     sleepWait(req);
-    libos_print("sleep request for %ld ns finished", ns);
+    //req->blockOnDone();
+    //while (count--);
+    //libos_print("sleep request for %ld ns finished", ns);
 }
 
 extern "C" int __async_swap(void *addr) {
@@ -88,7 +110,8 @@ extern "C" int __async_swap(void *addr) {
 }
 
 extern "C" unsigned long __async_syscall(unsigned int n, ...) {
-    libos_print("Async call [%u]", n);
+    //libos_print("[%d] Async call [%u]", scheduler->getCurrent()->get()->thread->id,
+    //        n);
     /* Interpret correspoding syscall args types */
     format_t fm_l;
     int ret_tmp = interpretSyscall(fm_l, n);
@@ -123,24 +146,26 @@ extern "C" unsigned long __async_syscall(unsigned int n, ...) {
     va_end(vl);
     /* populate arguments in request */
     if (!req->fillArgs()) {
-        libos_print("SYSCALL[%d] fillargs failed", n);
+        //libos_print("SYSCALL[%d] fillargs failed", n);
         req->~SyscallRequest();
         //unsafeFree(req);
         return -1;
     }
-
+    pendingCount++;
     requestQueue->push(req);
+    //libos_print("[%d] pushed request",
+    //        scheduler->getCurrent()->get()->thread->id);
 //    req->blockOnDone();
 //    if (!req->waitOnDone(3000))
     sleepWait(req);
-    libos_print("return val: %ld", req->sys_ret);
+    //libos_print("return val: %ld", req->sys_ret);
     unsigned long ret = (unsigned long)req->sys_ret;
     req->fillEnclave(enclave_args);
     req->~SyscallRequest();
     //unsafeFree(req);
-    libos_print("Async call end");
-    if (ret == (unsigned long)-1 && n!= 16)
-        __asm__("ud2");
+    //libos_print("Async call end, %d pending", --pendingCount);
+    //if (ret == (unsigned long)-1 && n!= 16)
+    //    __asm__("ud2");
     return ret;
 }
 
