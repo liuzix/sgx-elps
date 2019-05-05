@@ -21,7 +21,7 @@ extern "C" void do_interrupt(void *tcs) {
         __interrupt_exit();
         __asm__("ud2");
     }
-    writeTLSField(preempt_rip, ssa_gpr->ip); 
+    writeTLSField(preempt_rip, ssa_gpr->ip);
     writeTLSField(stack, ssa_gpr->sp);
     ssa_gpr->ip = (uint64_t)&injectedFunc;
     ssa_gpr->sp = (uint64_t)getSharedTLS()->preempt_injection_stack;

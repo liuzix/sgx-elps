@@ -89,7 +89,7 @@ public:
     UserThread(int tid);
 
     intrusive::list_member_hook<> member_hook_;
-    
+
     // ==============================
     void jumpTo(UserThread *from);
     void *request_obj;

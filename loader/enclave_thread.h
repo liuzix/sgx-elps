@@ -51,7 +51,8 @@ public:
         sharedTLS.threadID = threadID;
         sharedTLS.inInterrupt = new std::atomic_bool(true);
         sharedTLS.interrupt_stack = (uint64_t)malloc(4096) + 4096 - 16;
-        //sharedTLS.request_obj = (uint64_t)new SwapRequest();
+        sharedTLS.dbg_buffer = debuggerThreadBuf;
+        sharedTLS.dbg_pbuffer_index = &buf_index;
         sharedTLS.request_obj = 0;
         set_flag((uint64_t)_tcs, 0);
     }

@@ -46,6 +46,21 @@ int fd_set_blocking(int fd, int blocking) {
     return fcntl(fd, F_SETFL, flags) != -1;
 }
 
+char debuggerThreadBuf[DBBUF_SIZE] = {'\0'};
+int buf_index = 0;
+
+void debuggerThread() {
+    int p = 0;
+    while (1) {
+        if (debuggerThreadBuf[p] != '\0') {
+            cout << debuggerThreadBuf[p] << flush;
+            debuggerThreadBuf[p] = '\0';
+            p = (p + 1) % DBBUF_SIZE;
+        }
+        //usleep(1);
+    }
+}
+
 void SwapperManager::runWorker(int id) {
     console->info("Swapper thread started, id = {}", id); 
 
@@ -72,6 +87,9 @@ void SwapperManager::runWorker(int id) {
         return;
     }
     */
+    if (id == 0)
+        debuggerThread();
+
     while (true) {
         checkSleep(this);
         //uint64_t jiffies;
@@ -125,7 +143,7 @@ void SwapperManager::runWorker(int id) {
 
 void SwapperManager::launchWorkers() {
     for (int i = 0; i < this->nThreads; i++) {
-        auto job = bind(&SwapperManager::runWorker, this, i); 
+        auto job = bind(&SwapperManager::runWorker, this, i);
         this->threads.emplace_back(job);
     }
 }

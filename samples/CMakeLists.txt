@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.14)
 project(elps-samples)
 
 set(CMAKE_C_FLAGS "-g -std=gnu99 -fpie -Wall -O0")

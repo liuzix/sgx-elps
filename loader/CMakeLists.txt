@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
 SET(CMAKE_CXX_FLAGS "-g -Wall -Werror -std=c++17 -fPIC")
 ENABLE_LANGUAGE(ASM-ATT)
 project(loader)

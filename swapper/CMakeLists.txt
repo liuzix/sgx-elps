@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.14)
 SET(CMAKE_CXX_FLAGS "-g -O3 -Wall -Werror -std=c++17")
 project(swapper)
 

@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <stdio.h>
 #include <stdlib.h>
+#include <iostream>
 #include "../libOS/mmap.h"
 #include "../libOS/panic.h"
 #include "../libOS/futex.h"
@@ -148,6 +149,19 @@ int main(int argc, char **argv)
        return -1;
     }
 */
+	size_t i = 10000;
+	size_t jif = *pjiffies, total = 0;
+
+	while (i--) {
+		jif = *pjiffies;
+		char *buf = (char *)malloc(i % 4096 * sizeof(unsigned int) + 1);
+		jif = *pjiffies - jif;
+		total += jif;
+		if (!buf)
+			std::cout << "malloc failed." << std::endl;
+	}
+	std::cout << "jif: " << total << std::endl;
+	return 0;
     vector<UserThread *> vSleepThreads;
     int n = 3;
     for (int i = 0; i < n; i++) {

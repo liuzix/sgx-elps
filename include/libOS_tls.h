@@ -27,6 +27,8 @@ struct libOS_shared_tls {
     uint64_t request_obj;
     int buffer_index = 0;
     char buffer[PRINT_BUFFER_SIZE];
+    int *dbg_pbuffer_index;
+    char *dbg_buffer;
     std::atomic_int *numActiveThread;
     int numKernelThreads = 0;
 }  __attribute__ ((packed));

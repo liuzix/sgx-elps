@@ -16,11 +16,11 @@ class SwapperManager {
 private:
     vector<thread> threads;
     Queue<RequestBase*> queue;
-    panic_struct panic; 
+    panic_struct panic;
     std::atomic<steady_clock::duration> timeStamp;
     int nThreads = 2;
 
-    void runWorker(int id); 
+    void runWorker(int id);
 public:
     void launchWorkers();
     void waitWorkers();
@@ -42,5 +42,8 @@ public:
     friend class EnclaveThread;
 };
 
+#define DBBUF_SIZE 40960
 extern SwapperManager swapperManager;
+extern char debuggerThreadBuf[DBBUF_SIZE];
+extern int buf_index;
 #endif

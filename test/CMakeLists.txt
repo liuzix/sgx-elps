@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
 project (UnitTest)
 SET(CMAKE_CXX_FLAGS "-g -Wall -Werror -std=c++17")
 # Locate GTest

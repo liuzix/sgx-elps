@@ -73,7 +73,6 @@ public:
     unsigned long addr;
     SwapRequest() {
         this->requestType = typeTag;
-	//this->addr = a;
     }
 };
 

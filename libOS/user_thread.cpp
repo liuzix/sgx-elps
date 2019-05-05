@@ -16,7 +16,7 @@ void *tlsBase;
 size_t tlsLength;
 extern uint64_t *pjiffies;
 
-uint64_t cw_jiffies; 
+uint64_t cw_jiffies;
 
 struct transfer_data {
     UserThread *prev;
@@ -64,13 +64,13 @@ UserThread::UserThread(function<int(void)> _entry)
     this->contextGood.store(true);
     this->preempt_stack = (uint64_t)libos_mmap(NULL, 4096);
     this->preempt_stack += 4096 - 16;
-    //scheduler->enqueueTask(this->se); 
+    //scheduler->enqueueTask(this->se);
     request_obj = unsafeMalloc(sizeof(SwapRequest));
-    
+
     // this is just to make libOS runnable before libc initializes pthread 
     this->fs_base = (uint64_t)allocateTCB();
     //pt_local->tid = 0xbeefbeef;
-    
+
     this->xsaveRegion = libos_mmap(NULL, 4096);
 }
 
