@@ -36,13 +36,18 @@ uint64_t *pjiffies;
 int idleThread() {
     for (;;) {
         //getSharedTLS()->numActiveThread --;
-           
+        //getSharedTLS()->inInterrupt->store(1); 
+        //libos_print("entering pause loop");
+        /*
         if (getSharedTLS()->numActiveThread->load() >
             getSharedTLS()->numTotalThread->load()) {
             __asm__ volatile("pause"); 
-            //libos_print("[idle] yielding cpu");
+            //libos_print("[idle] idle");
             //__eexit(0x1000);
         }
+        */
+        //getSharedTLS()->inInterrupt->store(0); 
+        //libos_print("exiting pause loop");
         scheduler->schedule();
     }
     return 0;
@@ -152,7 +157,8 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
     if (ctrl_struct->magic != CONTROL_STRUCT_MAGIC)
         return -1;
     if (!ctrl_struct->isMain) {
-        getSharedTLS()->inInterrupt->store(false);
+        scheduler->setIdle(idleThread);
+        //getSharedTLS()->inInterrupt->store(false);
         libos_print("thread entering enclave. calling scheduler");
         scheduler->schedule();
         libos_print("scheduler returned!");
@@ -197,7 +203,7 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
     initSyscallTable();
     scheduler_init();
     initWatchList();
-    scheduler->setIdle((new UserThread(idleThread))->se);
+    scheduler->setIdle(idleThread);
     auto mainThr = new UserThread(std::bind(newThread, ctrl_struct->mainArgs.argc, real_argv));
     scheduler->enqueueTask(mainThr->se);
     scheduler->schedule();

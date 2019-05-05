@@ -139,6 +139,7 @@ void *Allocator::malloc(size_t len) {
     this->dump();
 #endif
 #endif
+    listLock.unlock();
     return nullptr;
 }
 

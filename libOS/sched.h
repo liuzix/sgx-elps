@@ -45,7 +45,7 @@ class Scheduler {
     void schedule();
     void enqueueTask(SchedEntity &se);
     void dequeueTask(SchedEntity &se);
-    void setIdle(SchedEntity &se);
+    void setIdle(function<int()>);
     size_t queueSize() { return queue.size(); };
     PerCPU<SchedEntity *>* getCurrent() { return &this->current; }
 };

@@ -71,6 +71,10 @@ public:
     /* the stack where the injected preemption function is run */
     uint64_t preempt_stack;
 
+    /* this is a pointer to a region where the floating point
+     * context will be saved on preemptions */
+    void *xsaveRegion;
+
     function<int(void)> entry;
     SchedEntity se;
 

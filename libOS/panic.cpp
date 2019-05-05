@@ -1,5 +1,6 @@
 #include "panic.h"
 #include <string.h>
+#include <cstdlib>
 #include <new>
 #include <streambuf>
 #include <request.h>
@@ -21,8 +22,10 @@ void strcpy2(char dest[], const char source[])
 }
 
 void writeToConsole(const char *msg) {
+
     panicInfo->lock.lock();
-    strcpy(panicInfo->panicBuf, msg);
+    sprintf(panicInfo->panicBuf, "[%ld]%s", getSharedTLS()->threadID, msg);
+    //strcpy(panicInfo->panicBuf, msg);
     auto req = new (panicInfo->requestBuf) DebugRequest;
     req->printBuf = panicInfo->panicBuf;
     requestQueue->push(req); 

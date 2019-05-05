@@ -208,7 +208,7 @@ void memberCopy(obj* src, obj* des, member tar, length len, int fac = 1) {
     using mem_t = typename remove_reference<tar_t>::type;
 
     int size = (src->*len) * fac;
-    libos_print("deepcopy alloca size[%d]", size);
+    //libos_print("deepcopy alloca size[%d]", size);
     des->*tar = (mem_t)unsafeMalloc(size);
     memcpy(des->*tar, src->*tar, size);
 }
@@ -274,7 +274,7 @@ bool SyscallRequest::fillArgs() {
             this->args[i].data = (char*)unsafeMalloc(arg_size);
             if (this->args[i].arg)
                 memcpy(this->args[i].data, (void*)this->args[i].arg, arg_size);
-            libos_print("alloca size[%d]\n", arg_size);
+            //libos_print("alloca size[%d]\n", arg_size);
             deepCopy(this, i);
             this->args[i].arg = (long)this->args[i].data;
         }

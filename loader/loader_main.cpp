@@ -208,10 +208,10 @@ int main(int argc, char **argv, char **envp) {
     vaddr heap = manager->makeHeap(SAFE_HEAP_LEN);
     threadpool->addMainThread(thread);
 
-    /*
-    for (int i = 0; i < 1; i++) {
-        threadpool->addWorkerThread(loader.makeWorkerThread());
-    }*/
+    
+    //for (int i = 0; i < 1; i++) {
+        //threadpool->addWorkerThread(loader.makeWorkerThread());
+    //}
 
     manager->prepareLaunch();
     /*

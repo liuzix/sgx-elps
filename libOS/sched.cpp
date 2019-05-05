@@ -79,10 +79,12 @@ void Scheduler::schedule() {
         else
             enableInterrupt();
     } else {
-        doubleLockThread(current.get()->thread, prev ? prev->thread : nullptr);
+        doubleLockThread(*current ? current.get()->thread : nullptr,
+                prev ? prev->thread : nullptr);
         lock.unlock();
         /* if it has already been idling */
         //if (!*current) return;
+        //libos_print("sched: running idle");
         *current = idle.get();
         if (*current != prev)
             (*idle)->thread->jumpTo(prev ? prev->thread : nullptr);
@@ -92,8 +94,10 @@ void Scheduler::schedule() {
 
 }
 
-void Scheduler::setIdle(SchedEntity &se) {
-     scheduler->dequeueTask(se);
-     *idle = &se;
+void Scheduler::setIdle(function<int()> fn) {
+    if (*idle) return;
+    auto idleThr = new UserThread(fn);
+    idleThr->se.onQueue = false;
+    *idle = &idleThr->se;
 }
 

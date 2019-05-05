@@ -26,7 +26,7 @@ set(SAMPLES_CFLAGS "-g -I../../musl/include -I../../musl/include -I../../musl/ob
 ExternalProject_Add(elps-libevent
     SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libevent
     CONFIGURE_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/libevent/configure --disable-openssl --disable-gcc-warnings --disable-shared CFLAGS=${SAMPLES_CFLAGS} CC=gcc --disable-libevent-regress --disable-samples
-    BUILD_COMMAND make clean && make all
+    BUILD_COMMAND make all
     BUILD_IN_SOURCE TRUE
     BUILD_ALWAYS TRUE
     INSTALL_COMMAND "")

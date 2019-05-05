@@ -38,6 +38,7 @@ extern "C" void __entry_helper(transfer_t transfer) {
     }
 
     cur->contextLock.unlock();
+    getSharedTLS()->preempt_injection_stack = cur->preempt_stack;
     enableInterrupt();
     int val = cur->entry();
     cur->terminate(val);
@@ -68,10 +69,13 @@ UserThread::UserThread(function<int(void)> _entry)
     // this is just to make libOS runnable before libc initializes pthread 
     this->fs_base = (uint64_t)allocateTCB();
     //pt_local->tid = 0xbeefbeef;
+    
+    this->xsaveRegion = libos_mmap(NULL, 4096);
 }
 
 UserThread::UserThread() : se(this) {
     this->id = threadCounter.fetch_add(1);
+    this->xsaveRegion = libos_mmap(NULL, 4096);
 }
 
 
@@ -100,7 +104,7 @@ static inline uint64_t getFSReg() {
 }
 
 void UserThread::jumpTo(UserThread *from) {
-    //libos_print("switching to thread %d, from thread %d", this->id, from ? from->id: -1); 
+    libos_print("switching to thread %d, from thread %d", this->id, from ? from->id: -1); 
     if (from) from->fs_base = getFSReg();
     setFSReg(this->fs_base);
     volatile transfer_data t{ .prev = from, .cur = this };
