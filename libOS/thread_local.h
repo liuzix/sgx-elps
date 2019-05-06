@@ -7,19 +7,23 @@
 #include "util.h"
 using namespace std;
 
+#define MAX_NUM_CPU 8
+
 template <typename T>
 class PerCPU {
 private:
-    SpinLockNoTimer lock;
-    unordered_map<uint64_t, T> map;
+    T map[MAX_NUM_CPU];
 public:
-    __attribute__ ((noinline))
+    PerCPU() {
+        for (int i = 0; i < MAX_NUM_CPU; i++)
+            map[i] = nullptr;
+    }
+
+    __attribute__ ((always_inline))
     T &operator *() {
         bool interruptFlag = disableInterrupt();
         uint64_t cpuID = getSharedTLS()->threadID;
-        lock.lock();
         T &ret = map[cpuID];
-        lock.unlock();
         if (!interruptFlag)
             enableInterrupt();
         return ret;
