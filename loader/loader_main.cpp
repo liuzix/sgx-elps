@@ -19,7 +19,7 @@
 #include "signature.h"
 
 #define UNSAFE_HEAP_LEN 0x10000000
-#define SAFE_HEAP_LEN 0x80000000
+#define SAFE_HEAP_LEN (256 * 1024 * 1024)
 #define AUX_CNT 38
 
 using namespace std;
@@ -218,8 +218,8 @@ int main(int argc, char **argv, char **envp) {
     threadpool->addMainThread(thread);
 
     
-    for (int i = 0; i < 1; i++) {
-       //threadpool->addWorkerThread(loader.makeWorkerThread());
+    for (int i = 0; i < 3; i++) {
+       threadpool->addWorkerThread(loader.makeWorkerThread());
     }
 
     manager->prepareLaunch();

@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 project(elps-samples)
 
 set(CMAKE_C_FLAGS "-g -std=gnu99 -fpie -Wall -O0")
+set(CMAKE_CXX_FLAGS "-g -std=c++17 -fpie -Wall -O0")
 set(CMAKE_EXE_LINKER_FLAGS "-g -nostdlib -static-pie -O0")
 SET(EXTRA_OBJS ../musl/lib/crti.o ../musl/lib/crtn.o)
 set_source_files_properties(${EXTRA_OBJS} PROPERTIES EXTERNAL_OBJECT true GENERATED true)
@@ -15,6 +16,9 @@ target_link_libraries(testpthread OS)
 
 add_executable(hello "testhint.cpp" ${EXTRA_OBJS})
 target_link_libraries(hello OS)
+
+add_executable(testslub "testslub.cpp" ${EXTRA_OBJS})
+target_link_libraries(testslub OS)
 
 #add_subdirectory(libevent)
 #add_subdirectory(memcached)

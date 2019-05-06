@@ -87,8 +87,8 @@ void SwapperManager::runWorker(int id) {
         return;
     }
     */
-    if (id == 0)
-        debuggerThread();
+    //if (id == 0)
+    //    debuggerThread();
 
     while (true) {
         checkSleep(this);

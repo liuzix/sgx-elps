@@ -23,7 +23,6 @@ void strcpy2(char dest[], const char source[])
 }
 
 void writeToConsole(const char *msg) {
-/*
     panicInfo->lock.lock();
     sprintf(panicInfo->panicBuf, "[%ld]%s", getSharedTLS()->threadID, msg);
     auto req = new (panicInfo->requestBuf) DebugRequest;
@@ -31,7 +30,7 @@ void writeToConsole(const char *msg) {
     requestQueue->push(req);
     req->waitOnDone(1000000000);
     panicInfo->lock.unlock();
-*/
+/*
     char tbuf[512] = {'\0'};
     int res;
     char *debuggerThreadBuf;
@@ -49,7 +48,7 @@ void writeToConsole(const char *msg) {
         buf_index = 0;
     *(getSharedTLS()->dbg_pbuffer_index) = buf_index;
     panicInfo->lock.unlock();
-
+*/
 }
 
 extern "C" void libos_panic(const char *msg) {
