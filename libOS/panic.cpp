@@ -40,8 +40,10 @@ void writeToConsole(const char *msg) {
     debuggerThreadBuf = getSharedTLS()->dbg_buffer;
     buf_index = *(getSharedTLS()->dbg_pbuffer_index);
     res = snprintf(tbuf, 512, "[%ld]%s\n", getSharedTLS()->threadID, msg);
-    if (res >= DBBUF_SIZE - buf_index)
+    if (res >= DBBUF_SIZE - buf_index) {
+        while (!debuggerThreadBuf) ;
         buf_index = 0;
+    }
     memcpy(debuggerThreadBuf + buf_index, tbuf, res);
     buf_index += res;
     if (buf_index >= DBBUF_SIZE)

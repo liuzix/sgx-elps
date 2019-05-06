@@ -57,7 +57,7 @@ void debuggerThread() {
             debuggerThreadBuf[p] = '\0';
             p = (p + 1) % DBBUF_SIZE;
         }
-        //usleep(1);
+        usleep(1);
     }
 }
 
