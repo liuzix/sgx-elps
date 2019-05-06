@@ -17,7 +17,8 @@
 #include <request.h>
 #include <cstring>
 #include "panic.h"
-#include "allocator.h"
+//#include "allocator.h"
+#include "slub.h"
 
 using namespace std;
 
@@ -211,7 +212,7 @@ void memberCopy(obj* src, obj* des, member tar, length len, int fac = 1) {
 
     int size = (src->*len) * fac;
     //libos_print("deepcopy alloca size[%d]", size);
-    des->*tar = (mem_t)unsafeMalloc(size);
+    des->*tar = (mem_t)unsafe_slub_malloc(size);
     memcpy(des->*tar, src->*tar, size);
 }
 
@@ -273,7 +274,7 @@ bool SyscallRequest::fillArgs() {
             if (arg_size < 0)
                 return false;
             this->fm_list.sizes[i] = arg_size;
-            this->args[i].data = (char*)unsafeMalloc(arg_size);
+            this->args[i].data = (char*)unsafe_slub_malloc(arg_size);
             if (this->args[i].arg)
                 memcpy(this->args[i].data, (void*)this->args[i].arg, arg_size);
             //libos_print("alloca size[%d]\n", arg_size);
@@ -288,7 +289,7 @@ bool SyscallRequest::fillArgs() {
 /* deep clean helper*/
 template<typename obj, typename member>
 void memberClean(obj* src, member tar) {
-    unsafeFree(src->*tar);
+    unsafe_slub_free(src->*tar);
 }
 
 /* free args that are copied inside 

@@ -461,18 +461,19 @@ static void conn_init(void) {
     /* We're unlikely to see an FD much higher than maxconns. */
     int next_fd = dup(1);
     int headroom = 10;      /* account for extra unexpected open FDs */
-    struct rlimit rl;
+    //struct rlimit rl;
 
     max_fds = settings.maxconns + headroom + next_fd;
 
     /* But if possible, get the actual highest FD we can possibly ever see. */
+    /*
     if (getrlimit(RLIMIT_NOFILE, &rl) == 0) {
         max_fds = rl.rlim_max;
     } else {
         fprintf(stderr, "Failed to query maximum file descriptor; "
                         "falling back to maxconns\n");
     }
-
+    */
     close(next_fd);
 
     if ((conns = calloc(max_fds, sizeof(conn *))) == NULL) {
@@ -7896,18 +7897,18 @@ int main (int argc, char **argv) {
          * the soft limit ends up 0, because then no core files will be
          * created at all.
          */
-
+/*
         if ((getrlimit(RLIMIT_CORE, &rlim) != 0) || rlim.rlim_cur == 0) {
             fprintf(stderr, "failed to ensure corefile creation\n");
             exit(EX_OSERR);
         }
+*/
     }
-
     /*
      * If needed, increase rlimits to allow as many connections
      * as needed.
      */
-
+/*
     if (getrlimit(RLIMIT_NOFILE, &rlim) != 0) {
         fprintf(stderr, "failed to getrlimit number of files\n");
         exit(EX_OSERR);
@@ -7919,7 +7920,7 @@ int main (int argc, char **argv) {
             exit(EX_OSERR);
         }
     }
-
+*/
     /* lose root privileges if we have them */
     if (getuid() == 0 || geteuid() == 0) {
         if (username == 0 || *username == '\0') {

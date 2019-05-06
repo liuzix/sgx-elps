@@ -107,7 +107,7 @@ public:
         for (int i = 0; i < 6; i++)
             if (args[i].data != nullptr) {
                 deepClean(i);
-                unsafeFree(args[i].data);
+                unsafe_slub_free(args[i].data);
             }
     }
     void deepClean(int i);

@@ -6,12 +6,14 @@
 
 #define EXPAND_FACTOR 10
 extern "C" void *malloc(size_t len) {
+   if (len > 0x10000000) __asm__("ud2");
+   libos_print("malloc: len = %ld", len);
    void *ret = safeAllocator->malloc(len);
-   libos_print("malloc: len = %d, first try 0x%lx", len, ret);
+   libos_print("malloc: len = %ld, first try 0x%lx", len, ret);
    if (ret) return ret; 
 
-   size_t expandBy = ((len + 4095) & (~4095)) * 10;
-   libos_print("malloc: expand heap by 0x%lx", expandBy);
+   size_t expandBy = ((len + 4095UL) & (~4095UL)) * 2UL;
+   libos_print("malloc: expand heap by %ld", expandBy);
    void *newPages = libos_mmap(nullptr, expandBy);
    if (newPages == (void *)-1) {
        libos_print("malloc failed! len = %d", len);

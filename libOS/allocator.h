@@ -120,5 +120,7 @@ template <class T, class U>
 bool operator!=(const UnsafeAllocator<T>&, const UnsafeAllocator<U>&) { return false; }
 
 
-
+void init_unsafe_slub_buckets();
+void *unsafe_slub_malloc(size_t len);
+void unsafe_slub_free(void *ptr);
 #endif

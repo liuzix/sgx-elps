@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <functional>
 #include "allocator.h"
+#include "panic.h"
 #include "mmap.h"
 #include "util.h"
 #include "thread_local.h"
@@ -29,6 +30,7 @@ public:
         size = objectSize;
         mapperFunc = mapper;
         unmapperFunc = unmapper;
+        libos_print("Creating SLUB size = %d", objectSize);
     } 
 
     __attribute__((always_inline)) 
@@ -65,3 +67,7 @@ static inline SlubCache *createUnsafeSlub(size_t objectSize) {
 static inline SlubCache *createSafeSlub(size_t objectSize) {
     return new SlubCache(objectSize, &mmapWrapper, &libos_munmap);
 }
+
+void init_unsafe_slub_buckets();
+void *unsafe_slub_malloc(size_t len);
+void unsafe_slub_free(void *ptr);

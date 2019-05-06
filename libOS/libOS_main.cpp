@@ -15,6 +15,7 @@
 #include "elf.h"
 #include "logging.h"
 #include "futex.h"
+#include "slub.h"
 
 #include <vector>
 #include <list>
@@ -200,6 +201,7 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
     libos_print("Safe malloc initialization successful");
     test_auxv(sp, ctrl_struct->mainArgs.argc);
 
+    init_unsafe_slub_buckets();
     initSyscallTable();
     scheduler_init();
     initWatchList();

@@ -219,7 +219,7 @@ int main(int argc, char **argv, char **envp) {
 
     
     for (int i = 0; i < 3; i++) {
-       threadpool->addWorkerThread(loader.makeWorkerThread());
+       //threadpool->addWorkerThread(loader.makeWorkerThread());
     }
 
     manager->prepareLaunch();

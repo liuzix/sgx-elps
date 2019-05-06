@@ -229,3 +229,26 @@ void slub_free(void *obj) {
 
     header->parent->slub_cache->lock.unlock();
 }
+
+#define NUM_SLUB_BUCKETS 10
+SlubCache *unsafeSlubBuckets[NUM_SLUB_BUCKETS];
+
+void init_unsafe_slub_buckets() {
+    for (int i = 0; i < NUM_SLUB_BUCKETS; i++) {
+        unsafeSlubBuckets[i] = createUnsafeSlub(8 << (i + 1));
+    }
+}
+
+void *unsafe_slub_malloc(size_t len) {
+    if (len <= 8) return unsafeSlubBuckets[0]->allocate();
+
+    int index = 64 - __builtin_clzl(len - 1) - 3;
+
+    if (index >= NUM_SLUB_BUCKETS) return unsafeMalloc(len);
+    //libos_print("unsafe_slub_malloc: len = %d, bucket = %d", len, index);
+    return unsafeSlubBuckets[index]->allocate();
+}
+
+void unsafe_slub_free(void *ptr) {
+    slub_free(ptr);
+}
