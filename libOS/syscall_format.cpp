@@ -48,6 +48,7 @@ void initSyscallTable() {
     add_type_size(TIMEZONE_PTR, sizeof(struct timezone));
     add_type_size(FD_PAIR_PTR, sizeof(int[2]));
     add_type_size(RUSAGE_PTR, sizeof(struct rusage));
+    add_type_size(RLIMIT_PTR, sizeof(struct rlimit));
 
     add_syscall0(SYS_GETGID);
     add_syscall0(SYS_GETUID);
@@ -70,6 +71,8 @@ void initSyscallTable() {
     add_syscall2(SYS_ACCESS, CHAR_PTR, NON_PTR);
     add_syscall2(SYS_FSTAT, NON_PTR, STAT_PTR);
     add_syscall2(SYS_PIPE2, FD_PAIR_PTR, NON_PTR);
+    add_syscall2(SYS_GETRLIMIT, NON_PTR, RLIMIT_PTR);
+    add_syscall2(SYS_SETRLIMIT, NON_PTR, RLIMIT_PTR);
     add_syscall3(SYS_ACCEPT, NON_PTR, SOKADDR_PTR, INT_PTR);
     add_syscall3(SYS_BIND, NON_PTR, SOKADDR_PTR, NON_PTR);
     add_syscall3(SYS_CONNECT, NON_PTR, SOKADDR_PTR, NON_PTR);
@@ -95,10 +98,17 @@ void initSyscallTable() {
     add_syscall6(SYS_EPOLL_PWAIT, NON_PTR, EVENT_PTR, NON_PTR, NON_PTR, SIGSET_PTR, NON_PTR);
 }
 
-/* not really useful*/
-static bool isIOsyscall(unsigned int num) {
-    return num == SYS_READ || num == SYS_WRITE || num == SYS_CLOSE || num == SYS_IOCTL;
+
+static void setEPOLL(unsigned int num, format_t& fm) {
+    fm.epoll_ty = 0;
+    if (num == SYS_EPOLL_CREATE || num == SYS_EPOLL_CREATE1)
+        fm.epoll_ty = 1;
+    else if (num == SYS_EPOLL_CTL)
+        fm.epoll_ty = 2;
+    else if (num == SYS_EPOLL_WAIT || num == SYS_EPOLL_PWAIT)
+        fm.epoll_ty = 3;
 }
+
 
 /* populate format struct */
 bool interpretSyscall(format_t& fm_l, unsigned int index) {
@@ -111,10 +121,7 @@ bool interpretSyscall(format_t& fm_l, unsigned int index) {
         return false;
     }
 
-    if (isIOsyscall(index))
-        fm.isIO = false;
-    else
-        fm.isIO = true;
+    setEPOLL(index, fm);
     fm.syscall_num = index;
     fm.args_num = it->second.size();
     for (unsigned int i = 0; i < fm.args_num; i++) {
@@ -144,7 +151,8 @@ static bool needWriteBack(unsigned int num, unsigned int index) {
         || (num == SYS_PIPE2 && index == 0)
         || (num == SYS_GETPEERNAME && index == 1)
         || (num == SYS_CLOCK_GETTIME && index == 1)
-        || (num == SYS_GETPEERNAME && index == 2);
+        || (num == SYS_GETPEERNAME && index == 2)
+        || (num == SYS_GETRLIMIT && index == 1);
 }
 
 /* some syscalls have pointer args instead of size_t indicating the arg size

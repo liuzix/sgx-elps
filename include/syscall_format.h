@@ -19,6 +19,7 @@
 #define ADDR_PTR 15
 #define FD_PAIR_PTR 16
 #define RUSAGE_PTR 17
+#define RLIMIT_PTR 18
 
 #define SYS_RT_SIGACTION 13
 #define SYS_RT_SIGPROCMASK 14
@@ -59,8 +60,10 @@
 #define SYS_UNAME 63
 #define SYS_FCNTL 72
 #define SYS_GETTIMEOFDAY 96
+#define SYS_GETRLIMIT 97
 #define SYS_GETRUSAGE 98
 #define SYS_GETGID 104
+#define SYS_SETRLIMIT 160
 #define SYS_EPOLL_CREATE 213
 #define SYS_CLOCK_GETTIME 228
 #define SYS_EPOLL_CTL 233
@@ -86,7 +89,7 @@
 
 struct format_t {
     unsigned int syscall_num;
-    bool isIO;
+    int epoll_ty;
     unsigned int args_num;
     unsigned int types[6];
     unsigned int sizes[6];
