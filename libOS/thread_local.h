@@ -4,6 +4,7 @@
 #include <spin_lock.h>
 #include <unordered_map>
 #include <libOS_tls.h>
+#include <type_traits>
 #include "util.h"
 using namespace std;
 
@@ -15,9 +16,12 @@ private:
     T map[MAX_NUM_CPU];
 public:
     PerCPU() {
-        for (int i = 0; i < MAX_NUM_CPU; i++)
-            map[i] = nullptr;
+        for (int i = 0; i < MAX_NUM_CPU; i++) {
+            if (is_pointer<T>::value)
+                map[i] = nullptr;
+        }
     }
+    PerCPU(int a) {}
 
     __attribute__ ((always_inline))
     T &operator *() {
@@ -27,6 +31,18 @@ public:
         if (!interruptFlag)
             enableInterrupt();
         return ret;
+    }
+
+    T &operator[] (int cpu) {
+        return map[cpu];
+    }
+
+    int get_cpu() {
+        bool interruptFlag = disableInterrupt();
+        uint64_t cpuID = getSharedTLS()->threadID;
+        if (!interruptFlag)
+            enableInterrupt();
+        return (int)cpuID;
     }
 
     T &get() {

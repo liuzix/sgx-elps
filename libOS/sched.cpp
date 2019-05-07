@@ -12,67 +12,82 @@ void scheduler_init() {
     scheduler = new Scheduler;
 }
 
+int get_cpu() {
+    bool interruptFlag = disableInterrupt();
+    uint64_t cpuID = getSharedTLS()->threadID;
+    if (!interruptFlag)
+        enableInterrupt();
+    return (int)cpuID;
+}
+
 void Scheduler::schedNotify() {
 
     getSharedTLS()->numTotalThread->fetch_add(1);
-    
+
     //libos_print("numActiveThread: %d, numKernelThreads: %d",
     //        getSharedTLS()->numActiveThread->load(),
     //        getSharedTLS()->numKernelThreads);
     if (getSharedTLS()->numKernelThreads == getSharedTLS()->numActiveThread->load())
         return;
-    
+
     libos_print("[sched] sending schedNotify");
     SchedulerRequest *req = Singleton<SchedulerRequest>::getRequest(SchedulerRequest::SchedulerRequestType::NewThread);
-    requestQueue->push(req); 
-    req->blockOnDone(); 
+    requestQueue->push(req);
+    req->blockOnDone();
 }
 
 void Scheduler::enqueueTask(SchedEntity &se) {
-    lock.lock();
-    if(!se.running && !se.onQueue)
-        queue.push_back(se);
+    int cpu = get_cpu();
+    eachQueue[cpu].qLock.lock();
+    if(!se.running && !se.onQueue) {
+        (*eachQueue).push_back(se);
+        se.queue = &(*eachQueue);
+    }
     if (!se.onQueue)
         schedNotify();
     se.onQueue = true;
-    lock.unlock();
+    eachQueue[cpu].qLock.unlock();
 }
 
 void Scheduler::dequeueTask(SchedEntity &se) {
-    lock.lock();
+    auto qLock = &(se.queue->qLock);
+    qLock->lock();
     if (se.onQueue && !se.running) {
-        queue.erase(queue.iterator_to(se));
+        (se.queue)->erase((se.queue)->iterator_to(se));
+        se.queue = nullptr;
     }
 
     if (se.onQueue)
         getSharedTLS()->numTotalThread->fetch_sub(1);
     se.onQueue = false;
-    lock.unlock();
+    qLock->unlock();
 }
 
 void Scheduler::schedule() {
     disableInterrupt();
     watchListCheck();
 
+//    libos_print("=====[%d]=======LEN:[%d]===", i, eachQueue[i]);
     if (*current && ++(*current)->timeSlot != MAXIMUM_SLOT) {
         return;
     }
-    lock.lock();
+    int cpu = get_cpu();
+    eachQueue[cpu].qLock.lock();
     if (*current) (*current)->timeSlot = 0;
 
     if (*current && (*current)->onQueue) {
-        queue.push_back(**current);
+        (*eachQueue).push_back(**current);
     }
 
     SchedEntity *prev = *current;
     if (prev)
         prev->running = false;
-    if (!queue.empty()) {
-        *current = &queue.front();
+    if (!(*eachQueue).empty()) {
+        *current = &(*eachQueue).front();
         current.get()->running = true;
-        queue.pop_front();
+        (*eachQueue).pop_front();
         //doubleLockThread(current.get()->thread, prev ? prev->thread : nullptr);
-        lock.unlock();
+        eachQueue[cpu].qLock.unlock();
         /* decide if we do need a context switch */
         if (*current != prev)
             (*current)->thread->jumpTo(prev ? prev->thread : nullptr);
@@ -81,7 +96,7 @@ void Scheduler::schedule() {
     } else {
         //doubleLockThread(*current ? current.get()->thread : nullptr,
         //        prev ? prev->thread : nullptr);
-        lock.unlock();
+        eachQueue[cpu].qLock.unlock();
         /* if it has already been idling */
         //if (!*current) return;
         //libos_print("sched: running idle");

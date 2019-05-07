@@ -15,9 +15,12 @@ using namespace std::chrono;
 
 class UserThread;
 
+class SchedQueue;
+
 struct SchedEntity {
     int32_t ticket;
     UserThread *thread;
+    SchedQueue *queue;
     list_member_hook<> member_hook_;
     set_member_hook<> set_member_hook_;
     bool onQueue;
@@ -26,18 +29,24 @@ struct SchedEntity {
     SchedEntity(UserThread *_t) {
         thread = _t;
         timeSlot = 0;
+        queue = nullptr;
     }
 };
 
-typedef list<SchedEntity, member_hook<SchedEntity, list_member_hook<>,
+class SchedQueue : public
+list<SchedEntity, member_hook<SchedEntity, list_member_hook<>,
                                       &SchedEntity::member_hook_>, link_mode<normal_link>>
-    SchedQueue;
+{
+  public:
+    SpinLockNoTimer qLock;
+};
 
 class Scheduler {
   private:
-    SpinLockNoTimer lock;
+//    SpinLockNoTimer lock;
     PerCPU<SchedEntity *> idle;
     SchedQueue queue;
+    PerCPU<SchedQueue> eachQueue = PerCPU<SchedQueue>(1);
     void schedNotify();
   public:
     PerCPU<SchedEntity *> current;
