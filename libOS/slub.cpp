@@ -4,10 +4,12 @@
 #include "panic.h"
 #include "slub.h"
 #include "spin_lock.h"
+#include "bitmap.h"
 
 //#define SLUB_DEBUG
 
-#define OBJECTS_PER_SLAB 64
+#define SLAB_SIZE (16UL * 1024UL)  // 16K per slab
+#define OBJECTS_PER_SLAB 64UL
 #define OBJECT_CANARY 0xdeadbeef
 
 #define SLUB_FATAL(...) do {  \
@@ -27,19 +29,32 @@
 
 struct slub_per_cpu;
 
+constexpr size_t max_bitmap_size(size_t object_size) {
+    return (SLAB_SIZE / object_size) >> 3;
+}
+
+constexpr size_t first_off(size_t slab_header_size, size_t object_size) {
+    return ((slab_header_size - 1) / object_size + 1) * object_size;
+}
+
+constexpr int objects_per_slab(size_t slab_header_size, size_t object_size) {
+    return (SLAB_SIZE - first_off(slab_header_size, object_size)) / object_size;
+}
+
+
 struct slab {
     /* first cache line */
-    slab *next;
-    slab *prev;
-    void *mem; 
-    int32_t free_nr;
+    slab *next = nullptr;
+    slab *prev = nullptr;
+    void *mem = nullptr; 
+    int32_t free_nr = OBJECTS_PER_SLAB;
     /* this is the size without object_header */
-    int32_t size_each;
-    slub_per_cpu *slub_cache;
+    int32_t size_each = 0;
+    slub_per_cpu *slub_cache = nullptr;
     char padding[24];
-
+    
     /* second cache line */
-    uint64_t bitmap[OBJECTS_PER_SLAB >> 6];
+    Bitmap<OBJECTS_PER_SLAB> bitmap;
 } __attribute__((packed));
 
 struct slub_per_cpu {
@@ -105,16 +120,13 @@ static slab *new_slab(MapperFuncT mapper, size_t object_size) {
     size_t object_size_header = object_size + sizeof(object_header);
 
     size_t alloc_size = ((OBJECTS_PER_SLAB * object_size_header - 1) & ~4095UL) + 4096UL;
-    auto ret = (slab *)mapper(alloc_size);
+    auto ret = new (mapper(alloc_size)) slab;
     SLUB_ASSERT(ret);
-    memset(ret, 0, sizeof(slab));
     
     ret->mem  = (void *)((((uint64_t)ret + sizeof(slab) - 1UL) / object_size_header)
         * object_size_header
         + object_size_header); 
     
-    //ret->mem = (char *)ret + slab_header_len;
-
     ret->free_nr = OBJECTS_PER_SLAB;
     ret->size_each = object_size;
     return ret;
@@ -123,43 +135,30 @@ static slab *new_slab(MapperFuncT mapper, size_t object_size) {
 LIBOS_INLINE void *slab_allocate_object(slab *slb) {
     SLUB_ASSERT(slb->free_nr > 0);      
 
-    for (int i = 0; i < OBJECTS_PER_SLAB >> 6; i++) {
-        int j = __builtin_ctzl(~*(slb->bitmap + i));
-        if (j == 64) continue;
+    ssize_t slot = slb->bitmap.scan_and_set();
 
-        void *ret = (char *)slb->mem
-                  + (slb->size_each + sizeof(object_header)) * ((i << 6) + j)
-                  + sizeof(object_header);
-        *(slb->bitmap + i) |= (1UL << (uint64_t)j);
-        
-        object_header *header =
-            (object_header *)((char *)ret - sizeof(object_header));
-        header->parent = slb;
+    SLUB_ASSERT(slot >= 0); 
+    char *ret = (char *)slb->mem +
+        slot * (slb->size_each + sizeof(object_header)) + sizeof(object_header);
+    object_header *header =
+        (object_header *)((char *)ret - sizeof(object_header));
+    header->parent = slb;
 #ifdef SLUB_DEBUG
-        header->canary = OBJECT_CANARY;
+    header->canary = OBJECT_CANARY;
 #endif
-        slb->free_nr -- ;
-        return ret;
-    }
-
-    SLUB_ASSERT(false);
-    __builtin_unreachable();
+    slb->free_nr -- ;
+    return ret;
 }
 
 LIBOS_INLINE void slab_free_object(slab *slb, object_header *header) {
-    SLUB_ASSERT(slb->free_nr < OBJECTS_PER_SLAB); 
+    SLUB_ASSERT((size_t)slb->free_nr < OBJECTS_PER_SLAB); 
     
     int slot = ((uint64_t)header - (uint64_t)slb->mem)
         / (slb->size_each + sizeof(object_header));
     SLUB_ASSERT(slot >= 0);
-    SLUB_ASSERT(slot < OBJECTS_PER_SLAB);
+    SLUB_ASSERT((size_t)slot < OBJECTS_PER_SLAB);
 
-    int i = slot / 64;
-    int j = slot % 64;
-   
-    SLUB_ASSERT((*(slb->bitmap + i) & (1UL << (uint64_t)j)) != 0);
-    *(slb->bitmap + i) &= ~(1UL << (uint64_t)j);
-
+    slb->bitmap.unset(slot);
     slb->free_nr ++;
 }
 
@@ -210,7 +209,7 @@ out:
 void slub_free(void *obj) {
     object_header *header =
         (object_header *)((char *)obj - sizeof(object_header));
-#ifdef SLUG_DEBUG
+#ifdef SLUB_DEBUG
     SLUB_ASSERT(header->canary == OBJECT_CANARY);
 #endif
     

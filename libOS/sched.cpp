@@ -19,6 +19,7 @@ void Scheduler::schedNotify() {
     //libos_print("numActiveThread: %d, numKernelThreads: %d",
     //        getSharedTLS()->numActiveThread->load(),
     //        getSharedTLS()->numKernelThreads);
+    /*
     if (getSharedTLS()->numKernelThreads == getSharedTLS()->numActiveThread->load())
         return;
     
@@ -26,6 +27,7 @@ void Scheduler::schedNotify() {
     SchedulerRequest *req = Singleton<SchedulerRequest>::getRequest(SchedulerRequest::SchedulerRequestType::NewThread);
     requestQueue->push(req); 
     req->blockOnDone(); 
+    */
 }
 
 void Scheduler::enqueueTask(SchedEntity &se) {

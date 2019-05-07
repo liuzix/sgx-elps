@@ -12,6 +12,7 @@ find_package(Boost REQUIRED COMPONENTS context)
 
 add_library(OSCore STATIC ${SOURCES})
 target_compile_definitions(OSCore PUBLIC IS_LIBOS)
+target_compile_definitions(OSCore PUBLIC LIBOS_DEBUG)
 target_compile_definitions(OSCore PUBLIC BOOST_NO_EXCEPTIONS)
 
 #find_library(LIB_MUSL libc.a PATHS "../musl/lib" NO_DEFAULT_PATH)
