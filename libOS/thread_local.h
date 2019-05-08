@@ -37,14 +37,6 @@ public:
         return map[cpu];
     }
 
-    int get_cpu() {
-        bool interruptFlag = disableInterrupt();
-        uint64_t cpuID = getSharedTLS()->threadID;
-        if (!interruptFlag)
-            enableInterrupt();
-        return (int)cpuID;
-    }
-
     T &get() {
         return **this;
     }

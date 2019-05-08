@@ -40,11 +40,11 @@ void Scheduler::enqueueTask(SchedEntity &se) {
     int cpu = get_cpu();
     eachQueue[cpu].qLock.lock();
     if(!se.running && !se.onQueue) {
-        (*eachQueue).push_back(se);
-        se.queue = &(*eachQueue);
+        eachQueue[cpu].push_back(se);
     }
     if (!se.onQueue)
         schedNotify();
+    se.queue = &eachQueue[cpu];
     se.onQueue = true;
     eachQueue[cpu].qLock.unlock();
 }
@@ -54,11 +54,11 @@ void Scheduler::dequeueTask(SchedEntity &se) {
     qLock->lock();
     if (se.onQueue && !se.running) {
         (se.queue)->erase((se.queue)->iterator_to(se));
-        se.queue = nullptr;
     }
 
     if (se.onQueue)
         getSharedTLS()->numTotalThread->fetch_sub(1);
+    se.queue = nullptr;
     se.onQueue = false;
     qLock->unlock();
 }
@@ -67,27 +67,44 @@ void Scheduler::schedule() {
     disableInterrupt();
     watchListCheck();
 
-//    libos_print("=====[%d]=======LEN:[%d]===", i, eachQueue[i]);
+//    int len;
+//    if ((len = (*eachQueue).size()) != 0)
+//    for (int i = 0; i < 2; i++)
+//        libos_print("=====[%d]=======LEN:[%d]===", i, eachQueue[i].size());
     if (*current && ++(*current)->timeSlot != MAXIMUM_SLOT) {
         return;
     }
-    int cpu = get_cpu();
-    eachQueue[cpu].qLock.lock();
     if (*current) (*current)->timeSlot = 0;
+    SchedQueue *queue = nullptr;
+    bool prev_lock = 0;
 
     if (*current && (*current)->onQueue) {
-        (*eachQueue).push_back(**current);
+        (*current)->seLock.lock();
+        queue = (*current)->queue;
+        queue->qLock.lock();
+        prev_lock = 1;
+        //libos_print("===[%x]===", queue);
+        queue->push_back(**current);
     }
 
     SchedEntity *prev = *current;
     if (prev)
         prev->running = false;
+
+    if (prev_lock) {
+        queue->qLock.unlock();
+        (*current)->seLock.unlock();
+    }
+
+    (*eachQueue).qLock.lock();
+
     if (!(*eachQueue).empty()) {
         *current = &(*eachQueue).front();
         current.get()->running = true;
         (*eachQueue).pop_front();
         //doubleLockThread(current.get()->thread, prev ? prev->thread : nullptr);
-        eachQueue[cpu].qLock.unlock();
+        (*eachQueue).qLock.unlock();
+
         /* decide if we do need a context switch */
         if (*current != prev)
             (*current)->thread->jumpTo(prev ? prev->thread : nullptr);
@@ -96,7 +113,9 @@ void Scheduler::schedule() {
     } else {
         //doubleLockThread(*current ? current.get()->thread : nullptr,
         //        prev ? prev->thread : nullptr);
-        eachQueue[cpu].qLock.unlock();
+        (*eachQueue).qLock.unlock();
+
+        /* decide if we do need a context switch */
         /* if it has already been idling */
         //if (!*current) return;
         //libos_print("sched: running idle");

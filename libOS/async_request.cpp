@@ -45,6 +45,7 @@ void dumpWatchList() {
 void watchListCheck() {
     watchListLock->lock();
     //libos_print("check watchlist, pending syscall %d", pendingCount.load());
+    //libos_print("=================watchlist LEN[%d]\n", watchList->size());
     auto it = watchList->begin();
     while (it != watchList->end()) {
         if (it->waitOnDone(1)) {

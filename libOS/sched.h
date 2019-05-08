@@ -21,6 +21,7 @@ struct SchedEntity {
     int32_t ticket;
     UserThread *thread;
     SchedQueue *queue;
+    SpinLockNoTimer seLock;
     list_member_hook<> member_hook_;
     set_member_hook<> set_member_hook_;
     bool onQueue;
