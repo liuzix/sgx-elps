@@ -1,13 +1,14 @@
 cmake_minimum_required(VERSION 3.14)
 ENABLE_LANGUAGE(ASM-ATT)
-SET(CMAKE_CXX_FLAGS "-g -O2 -Wall -fpie -Werror -mxsave -mxsaveopt -Wno-invalid-offsetof -std=c++17 -fno-omit-frame-pointer -fno-stack-protector -fno-use-cxa-atexit -Wno-frame-address -U_FORTIFY_SOURCE")
+SET(CMAKE_CXX_FLAGS "-g -O0 -Wall -fpie -Werror -mxsave -mxsaveopt -Wno-invalid-offsetof -std=c++17 -fno-omit-frame-pointer -fno-stack-protector -fno-use-cxa-atexit -Wno-frame-address -U_FORTIFY_SOURCE")
 SET(Boost_USE_STATIC_LIBS ON)
 project(libOS)
 
+include_directories(../)
 include_directories(../include)
 include_directories(../deps)
 
-file(GLOB SOURCES "*.cpp" "*.S" "*.s")
+file(GLOB SOURCES "*.cpp" "*.S" "*.s" "mm/*.cpp")
 find_package(Boost REQUIRED COMPONENTS context)
 
 add_library(OSCore STATIC ${SOURCES})

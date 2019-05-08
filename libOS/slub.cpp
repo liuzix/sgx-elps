@@ -167,30 +167,18 @@ void *slub_allocate_per_cpu(slub_per_cpu *slub_per_cpu) {
     slub_per_cpu->lock.lock();
     
     if (slub_per_cpu->partial_list) {
-#ifdef SLUB_DEBUG
-        libos_print("goto partial list");
-#endif
         slab *partial = slub_per_cpu->partial_list;
         ret = slab_allocate_object(partial);
 
         if (partial->free_nr == 0) {
-#ifdef SLUB_DEBUG
-            libos_print("moving slab %p to full list", partial);
-#endif
             list_del(&slub_per_cpu->partial_list, partial);
             list_add_head(&slub_per_cpu->full_list, partial);
         }
         goto out;
     } else if (slub_per_cpu->empty_list) {
-#ifdef SLUB_DEBUG
-        libos_print("goto empty list");
-#endif
         slab *empty = slub_per_cpu->empty_list;
         ret = slab_allocate_object(empty);
 
-#ifdef SLUB_DEBUG
-            libos_print("moving slab %p to partial list", empty);
-#endif
         list_del(&slub_per_cpu->empty_list, empty);
         list_add_head(&slub_per_cpu->partial_list, empty);
         goto out;
