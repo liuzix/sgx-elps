@@ -7,7 +7,9 @@
 #define writeTLSField(field, value) writeQWordToGS(offsetof(enclave_tls, field), value)
 
 #define LIBOS_INLINE __attribute__((always_inline)) static inline
-//#define LIBOS_INLINE static inline
+
+#define LIBOS_UNUSED __attribute__((unused))
+
 LIBOS_INLINE
 uint64_t readQWordFromGS(size_t offset) {
     uint64_t ret;
@@ -44,3 +46,18 @@ libOS_shared_tls *getSharedTLS();
 bool disableInterrupt();
 void enableInterrupt();
 */
+
+#define LIBOS_FATAL(...) do {  \
+    libos_print(__VA_ARGS__); \
+    __asm__ volatile ("ud2"); \
+} while (0)
+
+#ifdef LIBOS_DEBUG
+#define LIBOS_ASSERT(x) do {   \
+    if (x) break;             \
+    LIBOS_FATAL("LibOS fatal: %s, line %d", \
+            __FILE__, __LINE__); \
+} while (0)
+#else
+#define LIBOS_ASSERT(x) do {} while (0)
+#endif

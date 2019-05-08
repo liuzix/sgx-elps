@@ -36,19 +36,20 @@ uint64_t *pjiffies;
 
 int idleThread() {
     for (;;) {
-        //getSharedTLS()->numActiveThread --;
+        /*
+        getSharedTLS()->numActiveThread --;
         //getSharedTLS()->inInterrupt->store(1); 
         //libos_print("entering pause loop");
         //libos_print("[idle] idle");
-        /*
-        if (getSharedTLS()->numActiveThread->load() >
+        while (getSharedTLS()->numActiveThread->load() >=
             getSharedTLS()->numTotalThread->load()) {
             __asm__ volatile("pause"); 
             //__eexit(0x1000);
         }
-        */
+        getSharedTLS()->numActiveThread ++;
         //getSharedTLS()->inInterrupt->store(0); 
         //libos_print("exiting pause loop");
+        */
         scheduler->schedule();
     }
     return 0;
@@ -192,7 +193,7 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
     initUnsafeMalloc(ctrl_struct->mainArgs.unsafeHeapBase, ctrl_struct->mainArgs.unsafeHeapLength);
     writeToConsole("UnsafeMalloc intialization successful.");
     writeToConsole("ha?");
-    libos_print("gwing %d", 1);
+    libos_print("gwing %d, %d", 1, 2);
     libos_print("UnsafeHeap base = 0x%lx, length = 0x%lx", ctrl_struct->mainArgs.unsafeHeapBase,
                 ctrl_struct->mainArgs.unsafeHeapLength);
 

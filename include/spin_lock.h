@@ -34,18 +34,21 @@ public:
     }
 };
 
-/*
-class SpinLock {
-    std::atomic_flag locked = ATOMIC_FLAG_INIT ;
+using SpinLock = SpinLockNoTimer;
+
+template <typename LockT>
+class LockGuard {
+private:
+    LockT *lock;
 public:
-    void lock() {
-        while (locked.test_and_set(std::memory_order_acquire)) { ; }
+    LockGuard(LockT &l) {
+        lock = &l;
+        l.lock();
     }
-    void unlock() {
-        locked.clear(std::memory_order_release);
+
+    ~LockGuard() {
+        lock->unlock();
     }
 };
 
-*/
-using SpinLock = SpinLockNoTimer;
 #endif

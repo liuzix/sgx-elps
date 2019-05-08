@@ -4,14 +4,16 @@ SET(CMAKE_CXX_FLAGS "-g -O0 -Wall -fpie -Werror -mxsave -mxsaveopt -Wno-invalid-
 SET(Boost_USE_STATIC_LIBS ON)
 project(libOS)
 
+include_directories(../)
 include_directories(../include)
 include_directories(../deps)
 
-file(GLOB SOURCES "*.cpp" "*.S" "*.s")
+file(GLOB SOURCES "*.cpp" "*.S" "*.s" "mm/*.cpp")
 find_package(Boost REQUIRED COMPONENTS context)
 
 add_library(OSCore STATIC ${SOURCES})
 target_compile_definitions(OSCore PUBLIC IS_LIBOS)
+target_compile_definitions(OSCore PUBLIC LIBOS_DEBUG)
 target_compile_definitions(OSCore PUBLIC BOOST_NO_EXCEPTIONS)
 
 #find_library(LIB_MUSL libc.a PATHS "../musl/lib" NO_DEFAULT_PATH)

@@ -6,7 +6,7 @@ set(CMAKE_CXX_FLAGS "-g -std=c++17 -fpie -Wall -O0")
 set(CMAKE_EXE_LINKER_FLAGS "-g -nostdlib -static-pie -O0")
 SET(EXTRA_OBJS ../musl/lib/crti.o ../musl/lib/crtn.o)
 set_source_files_properties(${EXTRA_OBJS} PROPERTIES EXTERNAL_OBJECT true GENERATED true)
-include_directories(../include ../deps)
+include_directories(../ ../include ../deps)
 
 add_executable(client "client.c" ${EXTRA_OBJS})
 target_link_libraries(client OS)
