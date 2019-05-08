@@ -12,10 +12,6 @@ extern "C" void sig_exit()  __attribute__ ((visibility ("hidden")));
 extern "C" ssa_gpr_t ssa_gpr_dump  __attribute__ ((visibility ("hidden")));
 extern "C" void dump_ssa(uint64_t ptcs) __attribute__ ((visibility("hidden")));
 
-#ifndef PAGE_SIZE
-#define PAGE_SIZE 0x1000
-#endif
-
 
 extern std::map<uint64_t, std::atomic<char>> sig_flag_map;
 

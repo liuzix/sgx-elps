@@ -6,6 +6,8 @@
 
 struct libOS_control_struct;
 #define PRINT_BUFFER_SIZE (1 << 17)
+#define SAFE_HEAP_LEN (256 * 1024 * 1024)
+#define PAGE_SIZE 0x1000
 
 struct libOS_shared_tls {
     uint64_t next_exit;           // set by the loader
