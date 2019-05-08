@@ -20,6 +20,8 @@ target_link_libraries(hello OS)
 add_executable(testslub "testslub.cpp" ${EXTRA_OBJS})
 target_link_libraries(testslub OS)
 
+add_executable(xtest "xtext.cpp" ${EXTRA_OBJS})
+target_link_libraries(xtest OS)
 #add_subdirectory(libevent)
 #add_subdirectory(memcached)
 

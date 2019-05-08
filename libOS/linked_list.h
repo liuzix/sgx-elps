@@ -3,6 +3,7 @@
 #include <iostream>
 #include <thread>
 #include <immintrin.h>
+#include "tsx.h"
 #define MAX_ITER 200
 #define POISON_POINTER_DELTA 0
 #define LIST_POISON1  ((void *) 0x00100100)
@@ -16,6 +17,8 @@ public:
 
 template <typename T, typename L, typename F, F T::*M>
 class LinkedList {
+private:
+    TransLock listLock;
 public:
     L head;
     LinkedList() {
@@ -43,52 +46,39 @@ public:
         return (T *)((uint64_t)nd- (uint64_t)(&(((T *)0)->*M)));
     }
 
-    int __listAdd(L *newp, L *prev, L *next) {
-        int cnt = 0, status;
+    void __listAdd(L *newp, L *prev, L *next) {
         newp->next = next;
         newp->prev = prev;
-        while (cnt < MAX_ITER) {
-            if ((status = _xbegin()) == _XBEGIN_STARTED) {
-                prev->next = newp;
-                next->prev = newp;
-                _xend();
-                //std::cout<<"inside, adding now"<<std::endl;
-                break;
-            }
-            cnt++;
-        }
-        return status;
+        listLock.lock();
+        prev->next = newp;
+        next->prev = newp;
+        listLock.unlock();
+        return;
     }
 
-    int listAddHead(L *newp) {
+    void listAddHead(L *newp) {
         return __listAdd(newp, &head, head.next);
     }
 
-    int listAddTail(L *newp) {
+    void listAddTail(L *newp) {
         return __listAdd(newp, head.prev, &head);
     }
 
     bool listDelete(L *entry) {
+        listLock.lock();
         if (entry->next == (L *)LIST_POISON1 &&
                 entry->prev == (L *)LIST_POISON2) {
-            std::cout<<"deleted twice!" <<std::endl;
+            //std::cout<<"deleted twice!" <<std::endl;
+            listLock.unlock();
             return false;
         }
 
-        int cnt = 0, status;
-        while (cnt < MAX_ITER) {
-            if ((status = _xbegin()) == _XBEGIN_STARTED) {
-                entry->prev->next = entry->next;
-                entry->next->prev = entry->prev;
-                _xend();
-                //std::cout<<"inside, deleting now"<<std::endl;
-                break;
-            }
-            cnt++;
-        }
+        entry->prev->next = entry->next;
+        entry->next->prev = entry->prev;
         entry->next = (L *)LIST_POISON1;
         entry->prev = (L *)LIST_POISON2;
-        return status == _XBEGIN_STARTED ? true : false;
+        listLock.unlock();
+        return true;
     }
 };
 
