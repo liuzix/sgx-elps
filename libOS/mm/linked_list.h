@@ -14,7 +14,7 @@ public:
     ListNode *next;
 };
 
-template <typename T, typename L, L T::*ln>
+template <typename T, typename L, typename F, F T::*M>
 class LinkedList {
 public:
     L head;
@@ -23,17 +23,27 @@ public:
         head.prev = &head;
     }
 
-    T* listEntry(L *nd) {
-        if (nd == &head) {
-            //std::cout<<"dont' access head"<<std::endl;
-            return (T *)0;
-        }
-        else
-            return (T *)((uint64_t)nd- (uint64_t)(&(((T *)0)->ln)));
+    L* begin() {
+        return head.next;
+    }
+
+    L* end() {
+        return &head;
+    }
+
+    L* next(L* curr) {
+        return curr->next;
+    }
+
+    L* prev(L* curr) {
+        return curr->prev;
+    }
+
+    T* listEntry(F *nd) {
+        return (T *)((uint64_t)nd- (uint64_t)(&(((T *)0)->*M)));
     }
 
     int __listAdd(L *newp, L *prev, L *next) {
-        //this 
         int cnt = 0, status;
         newp->next = next;
         newp->prev = prev;
@@ -58,7 +68,13 @@ public:
         return __listAdd(newp, head.prev, &head);
     }
 
-    int listDelete(L *entry) {
+    bool listDelete(L *entry) {
+        if (entry->next == (L *)LIST_POISON1 &&
+                entry->prev == (L *)LIST_POISON2) {
+            std::cout<<"deleted twice!" <<std::endl;
+            return false;
+        }
+
         int cnt = 0, status;
         while (cnt < MAX_ITER) {
             if ((status = _xbegin()) == _XBEGIN_STARTED) {
@@ -72,7 +88,7 @@ public:
         }
         entry->next = (L *)LIST_POISON1;
         entry->prev = (L *)LIST_POISON2;
-        return status;
+        return status == _XBEGIN_STARTED ? true : false;
     }
 };
 
