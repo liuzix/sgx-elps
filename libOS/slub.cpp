@@ -4,6 +4,7 @@
 #include "panic.h"
 #include "slub.h"
 #include "spin_lock.h"
+#include <libOS/tsx.h>
 #include "bitmap.h"
 
 //#define SLUB_DEBUG

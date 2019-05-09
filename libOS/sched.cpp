@@ -42,8 +42,10 @@ void Scheduler::enqueueTask(SchedEntity &se) {
     int cpu = get_cpu();
     eachQueue[cpu].qLock.lock();
     se.seLock.lock();
+    LIBOS_ASSERT(!se.onQueue);
     if(!se.running && !se.onQueue) {
         eachQueue[cpu].push_back(se);
+        se.refInc();
     }
     if (!se.onQueue)
         schedNotify();
@@ -57,8 +59,10 @@ void Scheduler::dequeueTask(SchedEntity &se) {
     auto qLock = &(se.queue->qLock);
     qLock->lock();
     se.seLock.lock();
+    LIBOS_ASSERT(se.onQueue);
     if (se.onQueue && !se.running) {
         (se.queue)->erase((se.queue)->iterator_to(se));
+        se.refDec();
     }
 
     if (se.onQueue)
@@ -121,6 +125,7 @@ void Scheduler::schedule() {
             queue = (*current)->queue;
             queue->qLock.lock();
             queue->push_back(**current);
+            current.get()->refInc();
             queue->qLock.unlock();
         }
     }
@@ -137,12 +142,17 @@ void Scheduler::schedule() {
 
     if (!(*eachQueue).empty()) {
 start_sched:
+        if (*current)
+            current.get()->refDec();
+
         *current = &(*eachQueue).front();
+
+        current.get()->refInc();
+
         current.get()->seLock.lock();
         current.get()->running = true;
         (*eachQueue).pop_front();
         current.get()->seLock.unlock();
-        //doubleLockThread(current.get()->thread, prev ? prev->thread : nullptr);
         (*eachQueue).qLock.unlock();
 
         /* decide if we do need a context switch */
@@ -151,8 +161,6 @@ start_sched:
         else
             enableInterrupt();
     } else {
-        //doubleLockThread(*current ? current.get()->thread : nullptr,
-        //        prev ? prev->thread : nullptr);
         /* if queue is empty, try to pull task from other queues*/
         loadBalance(cpu);
         if ((*eachQueue).size())
@@ -161,8 +169,9 @@ start_sched:
 
         /* decide if we do need a context switch */
         /* if it has already been idling */
-        //if (!*current) return;
-        //libos_print("sched: running idle");
+        if (*current)
+            current.get()->refDec();
+
         *current = idle.get();
         if (*current != prev)
             (*idle)->thread->jumpTo(prev ? prev->thread : nullptr);

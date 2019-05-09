@@ -90,6 +90,8 @@ void UserThread::terminate(int val) {
     }
 
     disableInterrupt();
+    // prepare for death
+    scheduler->current.get()->refInc();
     scheduler->dequeueTask(*scheduler->current.get());
     scheduler->schedule();
 }

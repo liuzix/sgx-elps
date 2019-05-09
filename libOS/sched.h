@@ -19,6 +19,9 @@ class UserThread;
 class SchedQueue;
 
 struct SchedEntity {
+private:
+    atomic_int refCount;
+public:
     int32_t ticket;
     UserThread *thread;
     SchedQueue *queue;
@@ -32,6 +35,15 @@ struct SchedEntity {
         thread = _t;
         timeSlot = 0;
         queue = nullptr;
+        refCount = 0;
+    }
+
+    void refInc() {
+//        refCount ++;
+    }
+
+    void refDec() {
+//        LIBOS_ASSERT(--refCount);
     }
 };
 

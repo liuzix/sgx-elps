@@ -43,30 +43,21 @@ void dumpWatchList() {
 */}
 /* this is called by the scheduler */
 void watchListCheck() {
-//    if (!watchListLock->try_lock()) return;
-    //libos_print("check watchlist, pending syscall %d", pendingCount.load());
     int cpu = get_cpu();
     auto it = scheduler->eachWatchList[cpu].begin();
-    //auto it = watchList->begin();
     while (it != scheduler->eachWatchList[cpu].end()) {
-    //while (it != watchList->end()) {
         if (it->waitOnDone(1)) {
             if (!it->owner)
                 __asm__("ud2");
             SchedEntity &se = it->owner->se;
+            se.refDec();
             it->owner = nullptr;
             it = scheduler->eachWatchList[cpu].erase(it);
-            //it = watchList->erase(it);
-            __sync_synchronize();
-            //libos_print("watchList: wake up %d", se.thread->id);
             scheduler->enqueueTask(se);
         } else {
-            //libos_print("watchList: %d is not ready", it->owner->id);
             it++;
         }
     }
-//    watchListLock->unlock();
-    //libos_print("end checking watchlist");
 }
 
 
@@ -74,16 +65,11 @@ void sleepWait(RequestBase *req) {
     int cpu = get_cpu();
     bool intFlag = disableInterrupt();
 
-//    watchListLock->lock();
-    //libos_print("sleepWait push");
     req->owner = scheduler->getCurrent()->get()->thread;
-    scheduler->eachWatchList[cpu].push_back(*req);
-//    watchList->push_back(*req);
-    //libos_print("sleepWait end push");
+    req->owner->se.refInc();
     scheduler->dequeueTask(*scheduler->current.get());
-//    watchListLock->unlock();
+    scheduler->eachWatchList[cpu].push_back(*req);
     if (!intFlag) enableInterrupt();
-    //libos_print("sleepWait: yield");
     scheduler->schedule();
 }
 
@@ -157,7 +143,6 @@ extern "C" unsigned long __async_syscall(unsigned int n, ...) {
         //unsafeFree(req);
         return -1;
     }
-    pendingCount++;
     requestQueue->push(req);
     //libos_print("[%d] pushed request",
     //        scheduler->getCurrent()->get()->thread->id);
