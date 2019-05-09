@@ -69,14 +69,42 @@ void Scheduler::dequeueTask(SchedEntity &se) {
     qLock->unlock();
 }
 
+/* the lock of eachQueue[cpu] is grabbed before this function*/
+void Scheduler::loadBalance(int cpu) {
+    for (int i = 0; i < MAX_NUM_CPU; i++) {
+        if (i == cpu) continue;
+        if (eachQueue[i].size() == 0) continue;
+        auto& src_q = eachQueue[i];
+        src_q.qLock.lock();
+
+        auto it = src_q.begin();
+        while (it != src_q.end()) {
+            it->seLock.lock();
+            if (!it->running) {
+                /* pull task from source queue*/
+                src_q.erase(it);
+                src_q.qLock.unlock();
+                eachQueue[cpu].push_back(*it);
+
+                /* change home queue of pulled task*/
+                it->queue = &eachQueue[cpu];
+                it->seLock.unlock();
+                return;
+            } else {
+                it->seLock.unlock();
+                it++;
+            }
+        }
+        src_q.qLock.unlock();
+    }
+}
+
 void Scheduler::schedule() {
+    int cpu = get_cpu();
     disableInterrupt();
     watchListCheck();
 
-//    int len;
-//    if ((len = (*eachQueue).size()) != 0)
-//    for (int i = 0; i < 2; i++)
-//        libos_print("=====[%d]=======LEN:[%d]===", i, eachQueue[i].size());
+//    libos_print("============LEN:[%d]===", eachQueue[cpu].size());
     if (*current && ++(*current)->timeSlot != MAXIMUM_SLOT) {
         return;
     }
@@ -108,6 +136,7 @@ void Scheduler::schedule() {
     (*eachQueue).qLock.lock();
 
     if (!(*eachQueue).empty()) {
+start_sched:
         *current = &(*eachQueue).front();
         current.get()->seLock.lock();
         current.get()->running = true;
@@ -124,6 +153,10 @@ void Scheduler::schedule() {
     } else {
         //doubleLockThread(*current ? current.get()->thread : nullptr,
         //        prev ? prev->thread : nullptr);
+        /* if queue is empty, try to pull task from other queues*/
+        loadBalance(cpu);
+        if ((*eachQueue).size())
+            goto start_sched;
         (*eachQueue).qLock.unlock();
 
         /* decide if we do need a context switch */

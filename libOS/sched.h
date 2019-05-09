@@ -43,6 +43,10 @@ list<SchedEntity, member_hook<SchedEntity, list_member_hook<>,
     TransLock qLock;
 };
 
+typedef list<RequestBase, member_hook<RequestBase, list_member_hook<>,
+                                      &RequestBase::watchListHook>, link_mode<normal_link>>
+    WatchList;
+
 class Scheduler {
   private:
 //    SpinLockNoTimer lock;
@@ -51,11 +55,13 @@ class Scheduler {
     void schedNotify();
   public:
     PerCPU<SchedQueue> eachQueue = PerCPU<SchedQueue>(1);
+    PerCPU<WatchList> eachWatchList = PerCPU<WatchList>(1);
     PerCPU<SchedEntity *> current;
     PerCPU<SchedulerRequest *> schedReqCache;
     void schedule();
     void enqueueTask(SchedEntity &se);
     void dequeueTask(SchedEntity &se);
+    void loadBalance(int cpu);
     void setIdle(function<int()>);
     size_t queueSize() { return queue.size(); };
     PerCPU<SchedEntity *>* getCurrent() { return &this->current; }
@@ -64,5 +70,6 @@ class Scheduler {
 extern Scheduler *scheduler;
 void scheduler_init();
 void watchListCheck();
+int get_cpu();
 
 #endif

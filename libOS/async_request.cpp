@@ -14,25 +14,25 @@
 
 using namespace std;
 
-typedef boost::intrusive::list<RequestBase, member_hook<RequestBase, list_member_hook<>,
-                                      &RequestBase::watchListHook>, link_mode<normal_link>>
-    WatchList;
+//typedef boost::intrusive::list<RequestBase, member_hook<RequestBase, list_member_hook<>,
+//                                      &RequestBase::watchListHook>, link_mode<normal_link>>
+//    WatchList;
 
-WatchList *watchList;
+//WatchList *watchList;
 std::atomic_int32_t ticket;
-SpinLock *watchListLock;
+//SpinLock *watchListLock;
 
 extern uint64_t *pjiffies;
 
 static atomic_int pendingCount;
 
 void initWatchList() {
-    watchListLock = new SpinLock;
-    watchList = new WatchList;
+//    watchListLock = new SpinLock;
+//    watchList = new WatchList;
 }
 
 void dumpWatchList() {
-    libos_print("dumping watchList");
+/*    libos_print("dumping watchList");
     for (auto &req: *watchList) {
         libos_print("Pending request type %d", req.requestType);
         if (req.requestType == SyscallRequest::typeTag) {
@@ -40,20 +40,23 @@ void dumpWatchList() {
             libos_print("Pending syscall: %d", sysReq->fm_list.syscall_num);
         }
     }
-}
+*/}
 /* this is called by the scheduler */
 void watchListCheck() {
-    if (!watchListLock->try_lock()) return;
+//    if (!watchListLock->try_lock()) return;
     //libos_print("check watchlist, pending syscall %d", pendingCount.load());
-    //libos_print("=================watchlist LEN[%d]\n", watchList->size());
-    auto it = watchList->begin();
-    while (it != watchList->end()) {
+    int cpu = get_cpu();
+    auto it = scheduler->eachWatchList[cpu].begin();
+    //auto it = watchList->begin();
+    while (it != scheduler->eachWatchList[cpu].end()) {
+    //while (it != watchList->end()) {
         if (it->waitOnDone(1)) {
             if (!it->owner)
                 __asm__("ud2");
             SchedEntity &se = it->owner->se;
             it->owner = nullptr;
-            it = watchList->erase(it);
+            it = scheduler->eachWatchList[cpu].erase(it);
+            //it = watchList->erase(it);
             __sync_synchronize();
             //libos_print("watchList: wake up %d", se.thread->id);
             scheduler->enqueueTask(se);
@@ -62,21 +65,23 @@ void watchListCheck() {
             it++;
         }
     }
-    watchListLock->unlock();
+//    watchListLock->unlock();
     //libos_print("end checking watchlist");
 }
 
 
 void sleepWait(RequestBase *req) {
+    int cpu = get_cpu();
     bool intFlag = disableInterrupt();
 
-    watchListLock->lock();
+//    watchListLock->lock();
     //libos_print("sleepWait push");
     req->owner = scheduler->getCurrent()->get()->thread;
-    watchList->push_back(*req);
+    scheduler->eachWatchList[cpu].push_back(*req);
+//    watchList->push_back(*req);
     //libos_print("sleepWait end push");
     scheduler->dequeueTask(*scheduler->current.get());
-    watchListLock->unlock();
+//    watchListLock->unlock();
     if (!intFlag) enableInterrupt();
     //libos_print("sleepWait: yield");
     scheduler->schedule();
