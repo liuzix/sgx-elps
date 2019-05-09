@@ -43,7 +43,7 @@ void dumpWatchList() {
 }
 /* this is called by the scheduler */
 void watchListCheck() {
-    watchListLock->lock();
+    if (!watchListLock->try_lock()) return;
     //libos_print("check watchlist, pending syscall %d", pendingCount.load());
     //libos_print("=================watchlist LEN[%d]\n", watchList->size());
     auto it = watchList->begin();

@@ -32,6 +32,24 @@ public:
         if (reenable) enableInterrupt();
 #endif
     }
+
+
+    bool try_lock() {
+        
+#if IS_LIBOS
+        bool localInterruptFlag = disableInterrupt();
+#endif
+        if (locked.test_and_set(std::memory_order_acquire)) {
+#if IS_LIBOS
+            if (!localInterruptFlag) enableInterrupt();
+#endif
+            return false;
+        }
+#if IS_LIBOS
+        interruptFlag = localInterruptFlag;
+#endif
+        return true;
+    }
 };
 
 using SpinLock = SpinLockNoTimer;

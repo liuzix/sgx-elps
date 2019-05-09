@@ -41,6 +41,7 @@ void Scheduler::schedNotify() {
 void Scheduler::enqueueTask(SchedEntity &se) {
     int cpu = get_cpu();
     eachQueue[cpu].qLock.lock();
+    se.seLock.lock();
     if(!se.running && !se.onQueue) {
         eachQueue[cpu].push_back(se);
     }
@@ -48,12 +49,14 @@ void Scheduler::enqueueTask(SchedEntity &se) {
         schedNotify();
     se.queue = &eachQueue[cpu];
     se.onQueue = true;
+    se.seLock.unlock();
     eachQueue[cpu].qLock.unlock();
 }
 
 void Scheduler::dequeueTask(SchedEntity &se) {
     auto qLock = &(se.queue->qLock);
     qLock->lock();
+    se.seLock.lock();
     if (se.onQueue && !se.running) {
         (se.queue)->erase((se.queue)->iterator_to(se));
     }
@@ -62,6 +65,7 @@ void Scheduler::dequeueTask(SchedEntity &se) {
         getSharedTLS()->numTotalThread->fetch_sub(1);
     se.queue = nullptr;
     se.onQueue = false;
+    se.seLock.unlock();
     qLock->unlock();
 }
 
@@ -80,21 +84,24 @@ void Scheduler::schedule() {
     SchedQueue *queue = nullptr;
     bool prev_lock = 0;
 
-    if (*current && (*current)->onQueue) {
+    if (*current) {
         (*current)->seLock.lock();
-        queue = (*current)->queue;
-        queue->qLock.lock();
         prev_lock = 1;
         //libos_print("===[%x]===", queue);
-        queue->push_back(**current);
+        if ((*current)->onQueue) {
+            LIBOS_ASSERT((*current)->queue);
+            queue = (*current)->queue;
+            queue->qLock.lock();
+            queue->push_back(**current);
+            queue->qLock.unlock();
+        }
     }
 
     SchedEntity *prev = *current;
-    if (prev)
+    if (prev) {
         prev->running = false;
-
+    }
     if (prev_lock) {
-        queue->qLock.unlock();
         (*current)->seLock.unlock();
     }
 
@@ -102,8 +109,10 @@ void Scheduler::schedule() {
 
     if (!(*eachQueue).empty()) {
         *current = &(*eachQueue).front();
+        current.get()->seLock.lock();
         current.get()->running = true;
         (*eachQueue).pop_front();
+        current.get()->seLock.unlock();
         //doubleLockThread(current.get()->thread, prev ? prev->thread : nullptr);
         (*eachQueue).qLock.unlock();
 

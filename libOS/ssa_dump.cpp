@@ -6,6 +6,7 @@
 #include "panic.h"
 #include "thread_local.h"
 #include "allocator.h"
+#include "sched.h"
 
 extern "C" int __eexit(int);
 ssa_gpr_t ssa_gpr_dump;
@@ -95,6 +96,7 @@ extern "C" void dump_ssa(uint64_t ptcs) {
     tcs_t *tcs = (tcs_t *)ptcs;
     ssa_gpr_t *ssa_gpr = (ssa_gpr_t *)((char *)tcs + 4096 + 4096 * SSAFRAME_SIZE - GPRSGX_SIZE);
     libos_panic("Ready to dump.");
+    libos_print("Local queue length = %d", scheduler->eachQueue.get().size());
     dumpWatchList();
     dump_ssa_gpr(ssa_gpr);
     do_backtrace((uint64_t *)ssa_gpr->bp, ssa_gpr->ip);

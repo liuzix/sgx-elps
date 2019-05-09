@@ -218,7 +218,7 @@ int main(int argc, char **argv, char **envp) {
     threadpool->addMainThread(thread);
 
 
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 1; i++) {
         threadpool->addWorkerThread(loader.makeWorkerThread());
     }
 

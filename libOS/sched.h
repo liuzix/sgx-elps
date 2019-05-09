@@ -7,6 +7,7 @@
 #include <chrono>
 #include <functional>
 #include <spin_lock.h>
+#include <libOS/tsx.h>
 
 #define MAXIMUM_SLOT 1
 
@@ -21,7 +22,7 @@ struct SchedEntity {
     int32_t ticket;
     UserThread *thread;
     SchedQueue *queue;
-    SpinLockNoTimer seLock;
+    TransLock seLock;
     list_member_hook<> member_hook_;
     set_member_hook<> set_member_hook_;
     bool onQueue;
@@ -39,7 +40,7 @@ list<SchedEntity, member_hook<SchedEntity, list_member_hook<>,
                                       &SchedEntity::member_hook_>, link_mode<normal_link>>
 {
   public:
-    SpinLockNoTimer qLock;
+    TransLock qLock;
 };
 
 class Scheduler {
@@ -47,9 +48,9 @@ class Scheduler {
 //    SpinLockNoTimer lock;
     PerCPU<SchedEntity *> idle;
     SchedQueue queue;
-    PerCPU<SchedQueue> eachQueue = PerCPU<SchedQueue>(1);
     void schedNotify();
   public:
+    PerCPU<SchedQueue> eachQueue = PerCPU<SchedQueue>(1);
     PerCPU<SchedEntity *> current;
     PerCPU<SchedulerRequest *> schedReqCache;
     void schedule();

@@ -106,7 +106,7 @@ void EnclaveThread::run() {
     sched_setscheduler(0, SCHED_FIFO, &sp);
     cpu_set_t  mask;
     CPU_ZERO(&mask);
-    CPU_SET(getSharedTLS()->threadID * 2, &mask);
+    CPU_SET(getSharedTLS()->threadID, &mask);
     sched_setaffinity(0, sizeof(mask), &mask);
 
     uint64_t cc1 = __rdtsc();
