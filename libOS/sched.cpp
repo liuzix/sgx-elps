@@ -39,6 +39,7 @@ void Scheduler::schedNotify() {
 }
 
 void Scheduler::enqueueTask(SchedEntity &se) {
+    bool interruptFlag = disableInterrupt();
     int cpu = get_cpu();
     eachQueue[cpu].qLock.lock();
     se.seLock.lock();
@@ -53,6 +54,9 @@ void Scheduler::enqueueTask(SchedEntity &se) {
     se.onQueue = true;
     se.seLock.unlock();
     eachQueue[cpu].qLock.unlock();
+
+    if (!interruptFlag)
+        enableInterrupt();
 }
 
 void Scheduler::dequeueTask(SchedEntity &se) {
@@ -89,7 +93,6 @@ void Scheduler::loadBalance(int cpu) {
                 src_q.erase(it);
                 src_q.qLock.unlock();
                 eachQueue[cpu].push_back(*it);
-
                 /* change home queue of pulled task*/
                 it->queue = &eachQueue[cpu];
                 it->seLock.unlock();
@@ -104,10 +107,10 @@ void Scheduler::loadBalance(int cpu) {
 }
 
 void Scheduler::schedule() {
-    int cpu = get_cpu();
     disableInterrupt();
     watchListCheck();
 
+    int cpu = get_cpu();
 //    libos_print("============LEN:[%d]===", eachQueue[cpu].size());
     if (*current && ++(*current)->timeSlot != MAXIMUM_SLOT) {
         return;

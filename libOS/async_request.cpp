@@ -32,15 +32,15 @@ void initWatchList() {
 }
 
 void dumpWatchList() {
-/*    libos_print("dumping watchList");
-    for (auto &req: *watchList) {
+    libos_print("dumping watchList");
+    for (auto &req: scheduler->eachWatchList.get()) {
         libos_print("Pending request type %d", req.requestType);
         if (req.requestType == SyscallRequest::typeTag) {
             auto sysReq = (SyscallRequest *)&req;
             libos_print("Pending syscall: %d", sysReq->fm_list.syscall_num);
         }
     }
-*/}
+}
 /* this is called by the scheduler */
 void watchListCheck() {
     int cpu = get_cpu();
@@ -53,6 +53,7 @@ void watchListCheck() {
             se.refDec();
             it->owner = nullptr;
             it = scheduler->eachWatchList[cpu].erase(it);
+            __sync_synchronize();
             scheduler->enqueueTask(se);
         } else {
             it++;
@@ -62,8 +63,8 @@ void watchListCheck() {
 
 
 void sleepWait(RequestBase *req) {
-    int cpu = get_cpu();
     bool intFlag = disableInterrupt();
+    int cpu = get_cpu();
 
     req->owner = scheduler->getCurrent()->get()->thread;
     req->owner->se.refInc();
@@ -75,7 +76,7 @@ void sleepWait(RequestBase *req) {
 
 extern "C" void __async_sleep(unsigned long ns) {
     //unsigned long count = ns;
-    //libos_print("sleep request for %ld ns, pending syscalls %d", ns, pendingCount.load());
+    //libos_print("sleep request for %ld ns", ns);
     auto req = Singleton<SleepRequest>::getRequest(ns); 
     requestQueue->push(req);
     sleepWait(req);

@@ -55,6 +55,7 @@ void syscallRequestHandler(SwapperManager *manager, SyscallRequest *req) {
         req->fm_list.syscall_num == SYS_EPOLL_PWAIT ) {
         epollCount++;
         //syscallConsole->info("new epoll_wait, now pending {}", epollCount.load());
+        assert(epollCount <= 10);
         boost::asio::post(ep_pool, std::bind(__epollRequestHandler, manager, req));
         return ;
     }

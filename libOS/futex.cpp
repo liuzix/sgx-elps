@@ -4,6 +4,7 @@
  */
 #include "futex.h"
 #include "panic.h"
+#include <atomic>
 #include <climits>
 #ifndef ENOSYS
 #define ENOSYS  38
@@ -13,6 +14,8 @@ SpinLockNoTimer futexHashLock;
 FutexHash *futexHash;
 FutexHash::bucket_type *futex_queue_buckets;
 
+atomic_int futex_counter;
+
 static inline FutexBucket* libos_get_bucket(uint32_t *addr) {
     futexHashLock.lock();
     auto fbit = futexHash->find(addr);
@@ -20,7 +23,7 @@ static inline FutexBucket* libos_get_bucket(uint32_t *addr) {
 
     if (fbit == futexHash->end()) {
         fb = new FutexBucket(addr);
-        //libos_print("Create new bucket for addr: 0x%lx.", (uint64_t)addr);
+        libos_print("Create new bucket for addr: 0x%lx.", (uint64_t)addr);
         futexHash->insert(*fb);
         futexHashLock.unlock();
         //libos_print("Finished creating bucket");
@@ -81,6 +84,8 @@ uint64_t libos_futex_wait(uint32_t *addr, unsigned int flags, uint32_t val,
     libos_futex_enqueue(fb);
 
     fb->lock.unlock();
+
+    futex_counter++;
     enableInterrupt();
     //libos_print("[%d] We are sleeping on addr: 0x%lx.",
     //        scheduler->getCurrent()->get()->thread->id, (uint64_t)addr);
@@ -90,6 +95,7 @@ uint64_t libos_futex_wait(uint32_t *addr, unsigned int flags, uint32_t val,
 
     /* Wake up */
     disableInterrupt();
+    futex_counter--;
     fb->lock.lock();
     /* Dequeued at wake up function */
     libos_futex_queue_unlock(fb);
@@ -116,12 +122,13 @@ uint64_t futex_wake(uint32_t *addr, unsigned int flags, uint32_t nr_wake, uint32
     fb = &*fbit;
     futexHashLock.unlock();
 
+    fb->lock.lock();
     if (!fb->waiters) {   /* This is atmoic read */
         //libos_print("No waiters in the bucket.");
+        fb->lock.unlock();
         return ret;
     }
 
-    fb->lock.lock();
 
     auto& q = fb->getQueue();
     auto it = q.begin();
