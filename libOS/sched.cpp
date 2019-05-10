@@ -78,8 +78,9 @@ void Scheduler::dequeueTask(SchedEntity &se) {
 }
 
 /* the lock of eachQueue[cpu] is grabbed before this function*/
-void Scheduler::loadBalance(int cpu) {
-    for (int i = 0; i < MAX_NUM_CPU; i++) {
+void Scheduler::loadBalance(int cpu, int cpu_num) {
+    if (cpu_num == 1) return;
+    for (int i = 0; i < cpu_num; i++) {
         if (i == cpu) continue;
         if (eachQueue[i].size() == 0) continue;
         auto& src_q = eachQueue[i];
@@ -106,23 +107,55 @@ void Scheduler::loadBalance(int cpu) {
     }
 }
 
+void Scheduler::loadBalance_sender(int cpu) {
+    if (eachQueue[cpu].size() < 3) return;
+
+    for (int i = 0; i < 4; i++) {
+        if (i == cpu) continue;
+        if (eachQueue[i].size() > eachQueue[cpu].size()) continue;
+        auto& dst_q = eachQueue[i];
+        auto& src_q = eachQueue[cpu];
+
+        auto it = src_q.begin();
+        while (it != src_q.end()) {
+            it->seLock.lock();
+            if (!it->running) {
+                /* pull task from source queue*/
+                src_q.erase(it);
+                dst_q.qLock.lock();
+                dst_q.push_back(*it);
+                dst_q.qLock.unlock();
+
+                /* change home queue of pulled task*/
+                it->queue = &dst_q;
+                it->seLock.unlock();
+                return;
+            } else {
+                it->seLock.unlock();
+                it++;
+            }
+        }
+        dst_q.qLock.unlock();
+    }
+}
+
 void Scheduler::schedule() {
     disableInterrupt();
     watchListCheck();
 
-    int cpu = get_cpu();
 //    libos_print("============LEN:[%d]===", eachQueue[cpu].size());
     if (*current && ++(*current)->timeSlot != MAXIMUM_SLOT) {
         return;
     }
     if (*current) (*current)->timeSlot = 0;
+    int cpu = get_cpu();
+    int cpu_num = getSharedTLS()->numKernelThreads;
     SchedQueue *queue = nullptr;
     bool prev_lock = 0;
 
     if (*current) {
         (*current)->seLock.lock();
         prev_lock = 1;
-        //libos_print("===[%x]===", queue);
         if ((*current)->onQueue) {
             LIBOS_ASSERT((*current)->queue);
             queue = (*current)->queue;
@@ -156,6 +189,8 @@ start_sched:
         current.get()->running = true;
         (*eachQueue).pop_front();
         current.get()->seLock.unlock();
+        //loadBalance_sender(cpu);
+        //doubleLockThread(current.get()->thread, prev ? prev->thread : nullptr);
         (*eachQueue).qLock.unlock();
 
         /* decide if we do need a context switch */
@@ -165,7 +200,9 @@ start_sched:
             enableInterrupt();
     } else {
         /* if queue is empty, try to pull task from other queues*/
-        loadBalance(cpu);
+        (*eachQueue).qLock.unlock();
+        loadBalance(cpu, cpu_num);
+        (*eachQueue).qLock.lock();
         if ((*eachQueue).size())
             goto start_sched;
         (*eachQueue).qLock.unlock();
