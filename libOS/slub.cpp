@@ -55,7 +55,7 @@ struct slab {
     char padding[24];
     
     /* second cache line */
-    Bitmap<OBJECTS_PER_SLAB> bitmap;
+    Bitmap<OBJECTS_PER_SLAB, 0> bitmap;
 } __attribute__((packed));
 
 struct slub_per_cpu {

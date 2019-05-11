@@ -180,7 +180,6 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
     requestQueue = ctrl_struct->requestQueue;
     initPanic(ctrl_struct->panic);
     libos_print("We are inside LibOS!");
-    libos_print("whosss are inside LibOS!");
 
     libos_print("aaargument number: %lx", ctrl_struct->mainArgs.argc);
     for (int ip = 0; ip < ctrl_struct->mainArgs.argc; ip++) {
@@ -193,10 +192,11 @@ extern "C" int __libOS_start(libOS_control_struct *ctrl_struct, uint64_t sp) {
     initUnsafeMalloc(ctrl_struct->mainArgs.unsafeHeapBase, ctrl_struct->mainArgs.unsafeHeapLength);
     writeToConsole("UnsafeMalloc intialization successful.");
     writeToConsole("ha?");
-    libos_print("gwing %d, %d", 1, 2);
     libos_print("UnsafeHeap base = 0x%lx, length = 0x%lx", ctrl_struct->mainArgs.unsafeHeapBase,
                 ctrl_struct->mainArgs.unsafeHeapLength);
 
+    libos_print("SafeHeap base = 0x%lx, length = 0x%lx", ctrl_struct->mainArgs.heapBase,
+                ctrl_struct->mainArgs.heapLength);
     mmap_init(ctrl_struct->mainArgs.heapBase, ctrl_struct->mainArgs.heapLength);
     initSafeMalloc(10 * 4096);
     libos_print("Safe malloc initialization successful");

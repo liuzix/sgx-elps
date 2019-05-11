@@ -155,15 +155,22 @@ int main(int argc, char **argv)
 	while (i--) {
 		jif = *pjiffies;
 		char *buf = (char *)malloc(i % 4096 * sizeof(unsigned int) + 1);
+		
+		
+		cout << "size: " << hex << (i % 4096 * sizeof(unsigned int) + 1)
+		     << "addr: " << hex << (uint64_t)buf << endl;
+		
+		*buf = 'e';
 		jif = *pjiffies - jif;
 		total += jif;
 		if (!buf)
 			std::cout << "malloc failed." << std::endl;
+		free(buf);
 	}
 	std::cout << "jif: " << total << std::endl;
 	return 0;
     vector<UserThread *> vSleepThreads;
-    int n = 3;
+    int n = 1;
     for (int i = 0; i < n; i++) {
         UserThread *t= new UserThread(std::bind(accessWork, i));
         vSleepThreads.push_back(t);

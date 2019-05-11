@@ -19,7 +19,7 @@ public:
         __atomic_store_n(&lockvar, 0, __ATOMIC_RELEASE | __ATOMIC_HLE_RELEASE);
         if (reenable) enableInterrupt();
     }
-};
+}__attribute__((packed));
 
 
 

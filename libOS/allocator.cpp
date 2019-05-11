@@ -12,7 +12,8 @@
 #include <iterator>
 #define MA_SIZE sizeof(MemoryArea)
 #define MIN_PRESERVE_SIZE 2 * MA_SIZE
-//#define ALLOCATOR_DEBUG
+#define ALLOCATOR_DEBUG
+#undef ALLOCATOR_DEBUG
 
 #ifdef IS_LIBOS
 Allocator *unsafeAllocator;
@@ -166,8 +167,10 @@ void *Allocator::memAlign(size_t alignment, size_t size) {
             break;
     }
     newAddr = (void *)newTmp;
+    /*
     MemoryArea *ma = (MemoryArea *) new ((void *)((size_t)newAddr - MA_SIZE))
         MemoryArea(len + (size_t)oldAddr - (size_t)newAddr, (size_t)newAddr - MA_SIZE);
+    */
     oldLen = (size_t)newAddr - MA_SIZE - (size_t)oldAddr;
     maOld->len = oldLen;
     listLock.lock();
