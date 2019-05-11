@@ -19,22 +19,22 @@ void *libos_mmap(void *base, size_t len) {
         return (void *)-1;
     }
 
-    pageManager->lock.lock();
+    //pageManager->lock.lock();
     if (!base) {
         ret = pageManager->allocPages(len / PAGE_SIZE);
-        pageManager->lock.unlock();
+        //pageManager->lock.unlock();
         libos_print("mmap addr: 0x%lx to 0x%lx", (uint64_t)ret, (uint64_t)ret + len);
         return ret;
     }
 
     bool successful = pageManager->explicitPage(base, len);
     if (successful) {
-        pageManager->lock.unlock();
+        //pageManager->lock.unlock();
         return base;
     }
     else {
         ret = pageManager->allocPages(len / PAGE_SIZE);
-        pageManager->lock.unlock();
+        //pageManager->lock.unlock();
         libos_print("mmap addr: 0x%lx to 0x%lx", (uint64_t)ret, (uint64_t)ret + len);
         return ret;
     }
