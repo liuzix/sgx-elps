@@ -12,7 +12,7 @@ extern "C" int __eexit(int);
 ssa_gpr_t ssa_gpr_dump;
 extern atomic_int futex_counter;
 
-void dumpWatchList();
+//void dumpWatchList();
 #ifdef HAS_COUT
 #define __print_ssa_gpr(reg, suffix) \
         std::cout << "reg: " << std::hex << ssa_gpr_dump.reg << suffix
@@ -100,7 +100,7 @@ extern "C" void dump_ssa(uint64_t ptcs) {
     libos_panic("Ready to dump.");
     libos_print("Local queue length = %d", scheduler->eachQueue.get().size());
     libos_print("Threading sleeping on futex = %d", futex_counter.load());
-    dumpWatchList();
+    //dumpWatchList();
     dump_ssa_gpr(ssa_gpr);
     do_backtrace((uint64_t *)ssa_gpr->bp, ssa_gpr->ip);
     dumpLock.unlock();

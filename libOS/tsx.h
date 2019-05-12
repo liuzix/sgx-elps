@@ -1,8 +1,7 @@
 #pragma once
 #include <spin_lock.h>
-#include "panic.h"
 #include <immintrin.h>
-
+#include "util.h"
 class TransLock {
     int lockvar = 0;
     bool interruptFlag;

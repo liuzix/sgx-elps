@@ -30,7 +30,7 @@ void initWatchList() {
 //    watchListLock = new SpinLock;
 //    watchList = new WatchList;
 }
-
+/*
 void dumpWatchList() {
     libos_print("dumping watchList");
     for (auto &req: scheduler->eachWatchList.get()) {
@@ -41,22 +41,28 @@ void dumpWatchList() {
         }
     }
 }
+*/
+
 /* this is called by the scheduler */
 void watchListCheck() {
     int cpu = get_cpu();
+    bool res;
     auto it = scheduler->eachWatchList[cpu].begin();
     while (it != scheduler->eachWatchList[cpu].end()) {
-        if (it->waitOnDone(1)) {
-            if (!it->owner)
+        auto rq = scheduler->eachWatchList[cpu].listEntry(it);
+        if (rq->waitOnDone(1)) {
+            if (!rq->owner)
                 __asm__("ud2");
-            SchedEntity &se = it->owner->se;
+            SchedEntity &se = rq->owner->se;
             se.refDec();
-            it->owner = nullptr;
-            it = scheduler->eachWatchList[cpu].erase(it);
+            rq->owner = nullptr;
+            it = scheduler->eachWatchList[cpu].next(it);
+            res = scheduler->eachWatchList[cpu].listDelete(&rq->watchListHook);
+            libos_print("watchList: Delete Result %d", res);
             __sync_synchronize();
             scheduler->enqueueTask(se);
         } else {
-            it++;
+            it = scheduler->eachWatchList[cpu].next(it);
         }
     }
 }
@@ -69,7 +75,7 @@ void sleepWait(RequestBase *req) {
     req->owner = scheduler->getCurrent()->get()->thread;
     req->owner->se.refInc();
     scheduler->dequeueTask(*scheduler->current.get());
-    scheduler->eachWatchList[cpu].push_back(*req);
+    scheduler->eachWatchList[cpu].listAddHead(&req->watchListHook);
     if (!intFlag) enableInterrupt();
     scheduler->schedule();
 }

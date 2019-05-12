@@ -1,8 +1,5 @@
 #ifndef INTRUSIVE_LIST_H
 #define INTRUSIVE_LIST_H
-#include <iostream>
-#include <thread>
-#include <immintrin.h>
 #include "tsx.h"
 #define MAX_ITER 200
 #define POISON_POINTER_DELTA 0

@@ -10,7 +10,7 @@
 #include <boost/intrusive/list.hpp>
 #include <syscall_format.h>
 #include "../libOS/allocator.h"
-
+#include "../libOS/linked_list.h"
 using namespace std;
 extern uint64_t __jiffies;
 class UserThread;
@@ -22,7 +22,8 @@ private:
 public:
     atomic_bool done = {false};
     UserThread *owner = nullptr;
-    boost::intrusive::list_member_hook<> watchListHook;
+    //boost::intrusive::list_member_hook<> watchListHook;
+    ListNode watchListHook;
     int requestType;
     bool waitOnAck(uint32_t cycles) {
         for (uint32_t i = 0; i < cycles; i++)
