@@ -54,11 +54,12 @@ list<SchedEntity, member_hook<SchedEntity, list_member_hook<>,
   public:
     TransLock qLock;
 };
-
+/*
 typedef list<RequestBase, member_hook<RequestBase, list_member_hook<>,
                                       &RequestBase::watchListHook>, link_mode<normal_link>>
     WatchList;
-
+*/
+typedef LinkedList<RequestBase, ListNode, ListNode, &RequestBase::watchListHook> WatchList;
 class Scheduler {
   private:
 //    SpinLockNoTimer lock;
