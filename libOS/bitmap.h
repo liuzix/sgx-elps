@@ -57,8 +57,10 @@ private:
                 word_end += 64;
             }
             _xend();
-        } else if (_XABORT_CODE(status) == _XABORT_EXPLICIT || _XABORT_CODE(status) == _XABORT_RETRY)
+        } else if (_XABORT_CODE(status) == _XABORT_EXPLICIT || _XABORT_CODE(status) == _XABORT_RETRY) {
+            libos_print("%s: abort!", __func__);
             return _XABORT_CODE(status);
+        }
 
         return status;
     }

@@ -23,19 +23,20 @@ void *libos_mmap(void *base, size_t len) {
     if (!base) {
         ret = pageManager->allocPages(len / PAGE_SIZE);
         //pageManager->lock.unlock();
-        libos_print("mmap addr: 0x%lx to 0x%lx", (uint64_t)ret, (uint64_t)ret + len);
+        libos_print("no base mmap addr: 0x%lx to 0x%lx", (uint64_t)ret, (uint64_t)ret + len * (len / PAGE_SIZE));
         return ret;
     }
 
     bool successful = pageManager->explicitPage(base, len);
     if (successful) {
         //pageManager->lock.unlock();
+        libos_print("mmap addr: 0x%lx to 0x%lx", (uint64_t)base, (uint64_t)base + len * (len / PAGE_SIZE));
         return base;
     }
     else {
         ret = pageManager->allocPages(len / PAGE_SIZE);
         //pageManager->lock.unlock();
-        libos_print("mmap addr: 0x%lx to 0x%lx", (uint64_t)ret, (uint64_t)ret + len);
+        libos_print("mmap addr: 0x%lx to 0x%lx", (uint64_t)ret, (uint64_t)ret + len * (len / PAGE_SIZE));
         return ret;
     }
 }
@@ -102,13 +103,13 @@ PageManager::PageManager(uint64_t base, size_t length) {
 int PageManager::splitAndGetBits(int from, int to) {
     int res = bitset[from].scan_and_set();
     if (res == -1) {
-        libos_print("%s: not found from: %d", __func__, from);
+        //libos_print("%s: not found from: %d", __func__, from);
         return res;
     }
 
-    libos_print("%s: set bit[%d]: %d", __func__, from, res);
+    //libos_print("%s: set bit[%d]: %d", __func__, from, res);
     for (int i = from - 1; i >= to; i--) {
-        libos_print("%s: unset i[%d]: %d", __func__, i, (res << (from - i)) + 1);
+        //libos_print("%s: unset i[%d]: %d", __func__, i, (res << (from - i)) + 1);
         bitset[i].unset((res << (from - i)) + 1);
     }
     return (res << (from - to));
@@ -128,7 +129,7 @@ void PageManager::mergeBits() {
 void *PageManager::buddyAllocPages(int nPages) {
     LIBOS_ASSERT(nPages <= BUDDY_THRESH_PAGE);
     int order = LOG(nPages);
-    //libos_print("request %d pages.", nPages);
+    libos_print("request %d pages.", nPages);
 
     if ((1UL << order) < (uint64_t)nPages)
         order++;
@@ -136,7 +137,7 @@ void *PageManager::buddyAllocPages(int nPages) {
     int res = bitset[order].scan_and_set();
 
     if (res != -1) {
-        libos_print("first: nPages:%d, bitset: %d, index: %d", nPages, order, res);
+        //libos_print("first: nPages:%d, bitset: %d, index: %d", nPages, order, res);
         return (char *)this->availableBase + res * PAGE_SIZE * (1UL << order);
     }
     int from = order + 1;
@@ -148,7 +149,7 @@ void *PageManager::buddyAllocPages(int nPages) {
             continue;
         }
 
-        libos_print("second: nPages:%d, bitset: %d, index: %d", nPages, order, res);
+        //libos_print("second: nPages:%d, bitset: %d, index: %d", nPages, order, res);
         return (char *)this->availableBase + res * PAGE_SIZE * (1UL << order);
     }
     libos_print("mmap failed, nPages = %d", nPages);

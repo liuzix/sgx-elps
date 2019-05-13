@@ -14,7 +14,7 @@ void malloc_rbtree_base::verify_tree(rbtree_node *node) {
         LIBOS_ASSERT(node->left != node->right);
         verify_tree(node->left);
     }
-    
+
     if (not_null(node->right)) {
         LIBOS_ASSERT(node->right->parent == node);
         LIBOS_ASSERT(node->left != node->right);
@@ -85,7 +85,7 @@ void malloc_rbtree_base::rotation_left(rbtree_node *p) {
     q->left = p;
     p->parent = q;
 
-    
+
     //verify_tree(root);
 }
 
@@ -95,7 +95,7 @@ void malloc_rbtree_base::rotation_right(rbtree_node *q) {
     p = q->left;
     LIBOS_ASSERT(not_null(p));
     b = p->right;
-        
+
     //q->set_left(b);
     q->left = b;
     if (not_null(b))
@@ -156,7 +156,7 @@ bool malloc_rbtree_base::__insert(rbtree_node *node) {
                     cur = cur->parent;
                     rotation_left(cur);
                 }
-                
+
                 /* Case : 3
                  * Cur is left child of its parent */
                 cur->parent->color = BLACK;
@@ -233,9 +233,9 @@ rbtree_node *malloc_rbtree_base::__lookup(malloc_rbtree_key_base *key) {
 
 rbtree_node *malloc_rbtree_base::__begin(rbtree_node *start) {
     rbtree_node *cur = start;
-    
+
     if (!not_null(cur)) return nullptr;
-    
+
     while (not_null(cur->left)) {
         cur = cur->left;
     }

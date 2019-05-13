@@ -22,6 +22,7 @@
 #define AUX_CNT 38
 
 using namespace std;
+struct object_header;
 
 DEFINE_LOGGER(main, spdlog::level::trace);
 /* Do we really need these 2 varibles when manager is global? */
@@ -218,7 +219,7 @@ int main(int argc, char **argv, char **envp) {
 
 
     for (int i = 0; i < 3; i++) {
-        threadpool->addWorkerThread(loader.makeWorkerThread());
+        //threadpool->addWorkerThread(loader.makeWorkerThread());
     }
 
     manager->prepareLaunch();

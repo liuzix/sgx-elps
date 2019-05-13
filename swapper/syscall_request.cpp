@@ -67,13 +67,14 @@ void syscallRequestHandler(SwapperManager *manager, SyscallRequest *req) {
                                           req->args[4].arg,
                                           req->args[5].arg);
     if (req->sys_ret == -1) {
-        syscallConsole->info("syscall failed, errno = {}", errno);
+        syscallConsole->info("syscall[{}] failed, errno = {}", req->fm_list.syscall_num, errno);
         req->sys_ret = -errno;
+        /*
         for (int i = 0; i < 6; i++) {
             syscallConsole->info("arg[{}] arg_content[{:x}]", i+1, req->args[i].arg);
             if (req->fm_list.sizes[i])
                 syscallConsole->info("buf: {}", (char*)req->args[i].arg);
-        }
+        }*/
     }
 
     //syscallConsole->info("----prefinish sysycall({})-----", req->fm_list.syscall_num);

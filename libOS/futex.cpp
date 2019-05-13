@@ -23,7 +23,7 @@ static inline FutexBucket* libos_get_bucket(uint32_t *addr) {
 
     if (fbit == futexHash->end()) {
         fb = new FutexBucket(addr);
-        libos_print("Create new bucket for addr: 0x%lx.", (uint64_t)addr);
+        //libos_print("Create new bucket for addr: 0x%lx.", (uint64_t)addr);
         futexHash->insert(*fb);
         futexHashLock.unlock();
         //libos_print("Finished creating bucket");
