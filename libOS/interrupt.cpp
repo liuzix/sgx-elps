@@ -14,8 +14,8 @@ extern "C" void do_interrupt(void *tcs) {
            //ssa_gpr->ip - getSharedTLS()->loadBias);
     //libos_print("no_interrupt_begin 0x%lx, end 0x%lx",
     //        (uint64_t)no_interrupt_begin, (uint64_t)no_interrupt_end);
-    if ((uint64_t)no_interrupt_begin <= ssa_gpr->ip
-            && ssa_gpr->ip < (uint64_t)no_interrupt_end) {
+    if (((uint64_t)no_interrupt_begin <= ssa_gpr->ip && ssa_gpr->ip < (uint64_t)no_interrupt_end)
+        || (ssa_gpr->ip >= (uint64_t)do_preempt && ssa_gpr->ip <= (uint64_t)do_preempt + 128)) {
 
         //libos_print("no interrupt zone, not injecting");
         __interrupt_exit();
@@ -74,11 +74,12 @@ __attribute__((naked)) void injectedFunc() {
            "no_interrupt_end:");
 }
 
-extern "C" void do_preempt() {
+extern "C" volatile void do_preempt() {
     //libos_print("preempt function injected!");
     void *xsave = scheduler->getCurrent()->get()->thread->xsaveRegion;
     __builtin_ia32_xsaveopt64(xsave, ~0);
     scheduler->schedule();
     __builtin_ia32_xrstor64(xsave, ~0);
+    return ;
     //libos_print("returning to: 0x%lx", readTLSField(preempt_rip));
 }

@@ -7,6 +7,7 @@
 #include "thread_local.h"
 #include "allocator.h"
 #include "sched.h"
+#include "user_thread.h"
 
 extern "C" int __eexit(int);
 ssa_gpr_t ssa_gpr_dump;
@@ -62,8 +63,10 @@ void print_ssa_gpr(void) {
     __print_ssa_gpr(bp_u, "\n");
     __print_ssa_gpr(fs, "\t");
     __print_ssa_gpr(gs, "\n");
-    uint64_t rip_in_file = ssa_gpr_dump.ip - getSharedTLS()->loadBias; 
+    uint64_t rip_in_file = ssa_gpr_dump.ip - getSharedTLS()->loadBias;
     libos_print("rip in file: 0x%lx", rip_in_file);
+    libos_print("preempt rip in file: 0x%lx, interrupt flag: %d", readTLSField(preempt_rip) - getSharedTLS()->loadBias,
+                                                                  (int)*((libOS_shared_tls *)readTLSField(libOS_data))->inInterrupt);
 #ifdef HAS_COUT
     std::cout << "exit_info.vector: " << ssa_gpr_dump.exit_info.vector << std::endl;
     std::cout << "exit_info.exit_type: " << ssa_gpr_dump.exit_info.exit_type << std::endl;
@@ -98,7 +101,19 @@ extern "C" void dump_ssa(uint64_t ptcs) {
     tcs_t *tcs = (tcs_t *)ptcs;
     ssa_gpr_t *ssa_gpr = (ssa_gpr_t *)((char *)tcs + 4096 + 4096 * SSAFRAME_SIZE - GPRSGX_SIZE);
     libos_panic("Ready to dump.");
-    libos_print("Local queue length = %d", scheduler->eachQueue.get().size());
+    size_t queue_len = scheduler->eachQueue.get().size();
+    libos_print("Local queue length = %d", queue_len);
+    libos_print("Current thread id: %d", (*(scheduler->current))->thread->id);
+    libos_print("-------- Local queue ---------");
+    while (queue_len) {
+        auto& t = scheduler->eachQueue.get().front();
+
+        libos_print("thread %d", t.thread->id);
+        scheduler->eachQueue.get().pop_front();
+        queue_len--;
+    }
+    libos_print("-------- Local queue end ---------");
+
     libos_print("Threading sleeping on futex = %d", futex_counter.load());
     //dumpWatchList();
     dump_ssa_gpr(ssa_gpr);

@@ -47,10 +47,12 @@ void Scheduler::enqueueTask(SchedEntity &se) {
     if(!se.running && !se.onQueue) {
         eachQueue[cpu].push_back(se);
         se.refInc();
-    }
+        se.queue = &eachQueue[cpu];
+    } else
+        se.queue = se.oldQueue;
     if (!se.onQueue)
         schedNotify();
-    se.queue = &eachQueue[cpu];
+    se.oldQueue = nullptr;
     se.onQueue = true;
     se.seLock.unlock();
     eachQueue[cpu].qLock.unlock();
@@ -71,40 +73,62 @@ void Scheduler::dequeueTask(SchedEntity &se) {
 
     if (se.onQueue)
         getSharedTLS()->numTotalThread->fetch_sub(1);
+    se.oldQueue = se.queue;
     se.queue = nullptr;
     se.onQueue = false;
     se.seLock.unlock();
     qLock->unlock();
 }
 
-/* the lock of eachQueue[cpu] is grabbed before this function*/
-void Scheduler::loadBalance(int cpu, int cpu_num) {
-    if (cpu_num == 1) return;
-    for (int i = 0; i < cpu_num; i++) {
-        if (i == cpu) continue;
-        if (eachQueue[i].size() == 0) continue;
-        auto& src_q = eachQueue[i];
-        src_q.qLock.lock();
+/* return the size of the destination queue */
 
+void Scheduler::loadBalance(int cpu, int cpu_num) {
+    auto& dst_q = eachQueue[cpu];
+
+    if (cpu_num == 1) return ;
+    for (int i = 0; i < cpu_num; i++) {
+        if (i == cpu || eachQueue[i].size() == 0) continue;
+        auto& src_q = eachQueue[i];
+
+        if (cpu > i) {
+            dst_q.qLock.lock();
+            src_q.qLock.lock();
+        } else {
+            src_q.qLock.lock();
+            dst_q.qLock.lock();
+        }
         auto it = src_q.begin();
         while (it != src_q.end()) {
             it->seLock.lock();
-            if (!it->running) {
+            if (!it->running && it->thread->contextGood) {
                 /* pull task from source queue*/
                 src_q.erase(it);
-                src_q.qLock.unlock();
                 eachQueue[cpu].push_back(*it);
                 /* change home queue of pulled task*/
                 it->queue = &eachQueue[cpu];
                 it->seLock.unlock();
-                return;
+                if (cpu > i) {
+                    src_q.qLock.unlock();
+                    dst_q.qLock.unlock();
+                } else {
+                    dst_q.qLock.unlock();
+                    src_q.qLock.unlock();
+                }
+                return ;
             } else {
                 it->seLock.unlock();
                 it++;
             }
         }
-        src_q.qLock.unlock();
+       if (cpu > i) {
+            src_q.qLock.unlock();
+            dst_q.qLock.unlock();
+        } else {
+            dst_q.qLock.unlock();
+            src_q.qLock.unlock();
+        }
     }
+
 }
 
 void Scheduler::loadBalance_sender(int cpu) {
@@ -174,8 +198,8 @@ void Scheduler::schedule() {
         (*current)->seLock.unlock();
     }
 
-    (*eachQueue).qLock.lock();
 
+    (*eachQueue).qLock.lock();
     if (!(*eachQueue).empty()) {
 start_sched:
         if (*current)
@@ -211,7 +235,6 @@ start_sched:
         /* if it has already been idling */
         if (*current)
             current.get()->refDec();
-
         *current = idle.get();
         if (*current != prev)
             (*idle)->thread->jumpTo(prev ? prev->thread : nullptr);

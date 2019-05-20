@@ -25,6 +25,7 @@ public:
     int32_t ticket;
     UserThread *thread;
     SchedQueue *queue;
+    SchedQueue *oldQueue;
     TransLock seLock;
     list_member_hook<> member_hook_;
     set_member_hook<> set_member_hook_;
