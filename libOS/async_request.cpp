@@ -154,10 +154,12 @@ extern "C" unsigned long __async_syscall(unsigned int n, ...) {
 //    req->blockOnDone();
 //    if (!req->waitOnDone(3000))
 
-    if (true || n == SYS_READ || n == SYS_WRITE || n == SYS_EPOLL_WAIT || n == SYS_EPOLL_PWAIT
-       || n == SYS_WRITEV || n == SYS_CLOSE || n == SYS_GETPID)
-        req->blockOnDone();
-    else
+    if (n == SYS_READ || n == SYS_WRITE || n == SYS_WRITEV || n == SYS_CLOSE || n == SYS_GETPID) {
+        if (!req->waitOnDone(0x50000)) {
+            libos_print("Syscall request %d timed out. Sleep wait now.", n);
+	    sleepWait(req);
+        }
+    } else
         sleepWait(req);
     //libos_print("return val: %ld", req->sys_ret);
     unsigned long ret = (unsigned long)req->sys_ret;

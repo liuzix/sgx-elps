@@ -15,7 +15,7 @@ extern "C" void do_interrupt(void *tcs) {
     //libos_print("no_interrupt_begin 0x%lx, end 0x%lx",
     //        (uint64_t)no_interrupt_begin, (uint64_t)no_interrupt_end);
     if (((uint64_t)no_interrupt_begin <= ssa_gpr->ip && ssa_gpr->ip < (uint64_t)no_interrupt_end)
-        || (ssa_gpr->ip >= (uint64_t)do_preempt && ssa_gpr->ip <= (uint64_t)do_preempt + 128)) {
+        || (ssa_gpr->ip >= (uint64_t)do_preempt && ssa_gpr->ip <= (uint64_t)do_preempt + 172)) {
 
         //libos_print("no interrupt zone, not injecting");
         __interrupt_exit();
