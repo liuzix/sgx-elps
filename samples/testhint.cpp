@@ -84,7 +84,7 @@ int accessWork(int tid) {
         hint((void *)((char *)addr + i));
         *((char *)addr + i) = 'e';
         j++;
-        int tt = 5000;
+        unsigned long tt = 0xffffffffffffffff;
         while (tt--);
         //jif = *pjiffies - jif;
         //libos_print("[%d] hint CPU cycles: %ld", tid, jif);
@@ -149,6 +149,7 @@ int main(int argc, char **argv)
        return -1;
     }
 */
+	/*
 	size_t i = 10000;
 	size_t jif = *pjiffies, total = 0;
 
@@ -162,6 +163,7 @@ int main(int argc, char **argv)
 	}
 	std::cout << "jif: " << total << std::endl;
 	return 0;
+	*/
     vector<UserThread *> vSleepThreads;
     int n = 3;
     for (int i = 0; i < n; i++) {

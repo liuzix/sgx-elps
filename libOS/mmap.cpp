@@ -38,7 +38,7 @@ void *libos_mmap(void *base, size_t len) {
 }
 
 void libos_munmap(void *base, size_t len) {
-    libos_print("munmap: 0x%lx, len = %d", base, len);
+    //libos_print("munmap: 0x%lx, len = %d", base, len);
     if (!pageManager) {
         libos_panic("mmap uninitialized!");
     }
@@ -154,6 +154,6 @@ bool PageManager::explicitPage(void *addr, int nPages) {
         this->setBit(start + i, true);
     }
 
-    libos_print("mmap: giving out page 0x%lx, len = 0x%lx", addr, nPages * 4096);
+    //libos_print("mmap: giving out page 0x%lx, len = 0x%lx", addr, nPages * 4096);
     return true;
 }

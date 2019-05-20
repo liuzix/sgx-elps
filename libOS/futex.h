@@ -62,10 +62,11 @@
     }
 
 #define get_user_val(uval, addr) \
-    {                           \
-        disableInterrupt();     \
+    {                                       \
+        bool intFlag = disableInterrupt();     \
         uval = *addr;           \
-        enableInterrupt();      \
+        if (!intFlag)           \
+            enableInterrupt();      \
     }
 
 using namespace boost;
@@ -82,7 +83,10 @@ public:
     std::atomic<int> waiters;
     uint32_t *waitAddr;
     unordered_set_member_hook<> member_hook_;
-    FutexBucket(uint32_t *a) { waitAddr = a; }
+    FutexBucket(uint32_t *a) {
+        waitAddr = a;
+        waiters = 0;
+    }
     FutexQueue& getQueue() { return q; }
     uint32_t *getWaitAddr() { return waitAddr; };
     void enqueue(SchedEntity &t) { q.push_back(t); }
@@ -94,12 +98,12 @@ public:
     }
     void remove(SchedEntity &se) {
         auto it = q.iterator_to(se);
-        libos_print("We are goona leave the sleep queue.");
+        //libos_print("We are goona leave the sleep queue.");
         if (it == q.end()) {
             libos_print("No such a thread: %d", se.thread->id);
             return ;
         }
-        libos_print("remove thread: %d", (*it).thread->id);
+        //libos_print("remove thread: %d", (*it).thread->id);
         q.erase(q.iterator_to(se));
     }
 
@@ -120,7 +124,7 @@ struct BucketHash {
     std::size_t operator()(FutexBucket const &t) const {
         boost::hash<uint32_t *> hasher;
         size_t res = hasher(t.waitAddr);
-        libos_print("[Hasher] 0x%lx -> 0x%lx", (uint64_t)t.waitAddr, res);
+        //libos_print("[Hasher] 0x%lx -> 0x%lx", (uint64_t)t.waitAddr, res);
         return res;
     }
 };

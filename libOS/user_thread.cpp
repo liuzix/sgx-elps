@@ -108,8 +108,14 @@ static inline uint64_t getFSReg() {
 
 void UserThread::jumpTo(UserThread *from) {
     //libos_print("switching to thread %d, from thread %d", this->id, from ? from->id: -1); 
-    while (!this->contextGood.exchange(false))
+    bool first = true;
+    while (!this->contextGood.exchange(false)) {
+        if (first && !this->se.running) {
+            libos_print("Context not good. running: %d", this->se.running);
+            first = false;
+        }
         __asm__ volatile ("pause");
+    }
 
     if (from) from->fs_base = getFSReg();
     setFSReg(this->fs_base);
@@ -158,7 +164,7 @@ extern "C" long __set_tid_address(int *tidptr) {
 }
 
 extern "C" int libos_clone(int (*fn)(void *), void *stack, void *arg, void *newtls, int *detach) {
-    libos_print("libos_clone!");
+    //libos_print("libos_clone!");
     auto userThread = new UserThread;
     userThread->fcxt = make_fcontext((char *)stack, STACK_SIZE, __clear_rbp);
     userThread->contextGood.store(true);

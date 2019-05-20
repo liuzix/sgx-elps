@@ -133,7 +133,7 @@ void *Allocator::malloc(size_t len) {
 
 #ifdef ALLOCATOR_DEBUG
 #ifdef IS_LIBOS
-    libos_print("cannot find chunck of size %d", len);
+    //libos_print("cannot find chunck of size %d", len);
 #else
     std::cout << "cannot find chunk of size " << len << std::endl;
     this->dump();

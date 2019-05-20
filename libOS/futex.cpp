@@ -23,7 +23,7 @@ static inline FutexBucket* libos_get_bucket(uint32_t *addr) {
 
     if (fbit == futexHash->end()) {
         fb = new FutexBucket(addr);
-        libos_print("Create new bucket for addr: 0x%lx.", (uint64_t)addr);
+        //libos_print("Create new bucket for addr: 0x%lx.", (uint64_t)addr);
         futexHash->insert(*fb);
         futexHashLock.unlock();
         //libos_print("Finished creating bucket");
@@ -41,15 +41,15 @@ static inline FutexBucket* libos_futex_queue_lock(uint32_t *addr) {
 
     fb = libos_get_bucket(addr);
 
-    fb->waiters++;
     fb->lock.lock();
+    fb->waiters++;
 
     return fb;
 }
 
 static inline void libos_futex_queue_unlock(FutexBucket *fb) {
-    fb->lock.unlock();
     fb->waiters--;
+    fb->lock.unlock();
 }
 
 static inline void libos_futex_enqueue(FutexBucket *fb) {
@@ -64,6 +64,13 @@ uint64_t libos_futex_wait(uint32_t *addr, unsigned int flags, uint32_t val,
     uint32_t uval;
     int ret = 0;
 
+/*
+    uint64_t ret_addr = (uint64_t)__builtin_return_address(4) - getSharedTLS()->loadBias;
+    uint64_t ret_addr2 = (uint64_t)__builtin_return_address(5) - getSharedTLS()->loadBias;
+    uint64_t ret_addr3 = (uint64_t)__builtin_return_address(6) - getSharedTLS()->loadBias;
+    libos_print("[%d] We are sleeping on addr: 0x%lx,  caller address 0x%lx->0x%lx->0x%lx.",
+            scheduler->getCurrent()->get()->thread->id, (uint64_t)addr, ret_addr, ret_addr2, ret_addr3);
+*/
     fb = libos_futex_queue_lock(addr);
     /* Should we disable interrupt in this macro? */
     get_user_val(uval, addr);
@@ -72,35 +79,43 @@ uint64_t libos_futex_wait(uint32_t *addr, unsigned int flags, uint32_t val,
      * There's no reason to reach here if get_user_val failed.
      * No additional actions are needed to check the result.
      */
+    int max_wait = 500000;
+    while (uval == val && max_wait--) {
+        get_user_val(uval, addr);
+        asm volatile("pause;");
+    }
 
     if (uval != val) {
         /* We are fine. No need to sleep. */
-        fb->lock.unlock();
+        libos_futex_queue_unlock(fb);
+        //libos_print("[%d]No need to sleep.", scheduler->getCurrent()->get()->thread->id);
         return ret;
     }
 
     /* Ready to sleep */
-    disableInterrupt();
+    bool intFlag = disableInterrupt();
     libos_futex_enqueue(fb);
 
+    //auto& q = fb->getQueue();
+    //int queue_len = q.size();
     fb->lock.unlock();
 
     futex_counter++;
-    enableInterrupt();
-    //libos_print("[%d] We are sleeping on addr: 0x%lx.",
-    //        scheduler->getCurrent()->get()->thread->id, (uint64_t)addr);
-    //libos_print("caller address 0x%lx",
-    //        (uint64_t)__builtin_return_address(3) - getSharedTLS()->loadBias);
+    if (!intFlag)
+        enableInterrupt();
+//    libos_print("caller address 0x%lx",
+//            (uint64_t)__builtin_return_address(3) - getSharedTLS()->loadBias);
     scheduler->schedule();
 
     /* Wake up */
-    disableInterrupt();
-    futex_counter--;
+    //libos_print("[%d]I am waken up.", scheduler->getCurrent()->get()->thread->id);
+    intFlag = disableInterrupt();
+    intFlag = futex_counter--;
     fb->lock.lock();
     /* Dequeued at wake up function */
     libos_futex_queue_unlock(fb);
-    //libos_print("I am waken up.");
-    enableInterrupt();
+    if (!intFlag)
+        enableInterrupt();
     return ret;
 }
 
@@ -109,11 +124,10 @@ uint64_t futex_wake(uint32_t *addr, unsigned int flags, uint32_t nr_wake, uint32
     auto fbit = futexHash->find(addr);
     FutexBucket *fb;
     int ret = 0;
-    
+
     /* 1 or ALL */
     if (nr_wake != 1)
         nr_wake = INT_MAX;
-    //libos_print("[futex_wake] Wake up on address: 0x%lx", (uint64_t)addr);
     if (fbit == futexHash->end()) {
         futexHashLock.unlock();
         //libos_print("No hash bucket found.");
@@ -122,9 +136,11 @@ uint64_t futex_wake(uint32_t *addr, unsigned int flags, uint32_t nr_wake, uint32
     fb = &*fbit;
     futexHashLock.unlock();
 
+    //libos_print("[%d][futex_wake] Wake up on address: 0x%lx, nr_waiters: %d",
+    //            scheduler->getCurrent()->get()->thread->id, (uint64_t)addr, (int)fb->waiters.load());
+
     fb->lock.lock();
-    if (!fb->waiters) {   /* This is atmoic read */
-        //libos_print("No waiters in the bucket.");
+    if (!fb->waiters.load()) {   /* This is atmoic read */
         fb->lock.unlock();
         return ret;
     }
@@ -132,6 +148,8 @@ uint64_t futex_wake(uint32_t *addr, unsigned int flags, uint32_t nr_wake, uint32
 
     auto& q = fb->getQueue();
     auto it = q.begin();
+    //int old_len = q.size();
+    //int last = -1;
 
     while (it != q.end() && ret < (int)nr_wake) {
         SchedEntity *t = &*it;
@@ -142,14 +160,18 @@ uint64_t futex_wake(uint32_t *addr, unsigned int flags, uint32_t nr_wake, uint32
          */
         it->refDec();
         it = q.erase(it);
+        //last = (*t).thread->id;
         scheduler->enqueueTask(*t);
         //libos_print("Enqueued thread: %d, queue len: %d", (*t).thread->id, scheduler->queueSize());
         ret++;
     }
 
+    //int new_len = q.size();
     fb->lock.unlock();
 
     /* We might want to relase the empty bucket here */
+    //libos_print("[%d]Wake up finish, %d threads, last one [%d] q->len: %d -> %d.",
+    //            scheduler->getCurrent()->get()->thread->id, ret, last, old_len, new_len);
     return ret;
 }
 
@@ -183,7 +205,7 @@ uint64_t futex_requeue(uint32_t *addr1, unsigned int flags, uint32_t *addr2,
         fb1->lock.lock();
     }
 
-    if (!fb1->waiters) {   /* This is atmoic read */
+    if (!fb1->waiters.load()) {   /* This is atmoic read */
         /* We cannot relase the bucket since the waiters still hold the reference */
         //libos_print("[futex_requeue] No waiters in the bucket.");
         if (addr1 > addr2) {

@@ -19,7 +19,7 @@
 #include "signature.h"
 
 #define UNSAFE_HEAP_LEN 0x10000000
-#define SAFE_HEAP_LEN (256 * 1024 * 1024)
+#define SAFE_HEAP_LEN (1024 * 1024 * 1024)
 #define AUX_CNT 38
 
 using namespace std;

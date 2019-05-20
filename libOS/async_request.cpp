@@ -149,7 +149,12 @@ extern "C" unsigned long __async_syscall(unsigned int n, ...) {
     //        scheduler->getCurrent()->get()->thread->id);
 //    req->blockOnDone();
 //    if (!req->waitOnDone(3000))
-    sleepWait(req);
+
+    if (true || n == SYS_READ || n == SYS_WRITE || n == SYS_EPOLL_WAIT || n == SYS_EPOLL_PWAIT
+       || n == SYS_WRITEV || n == SYS_CLOSE || n == SYS_GETPID)
+        req->blockOnDone();
+    else
+        sleepWait(req);
     //libos_print("return val: %ld", req->sys_ret);
     unsigned long ret = (unsigned long)req->sys_ret;
     req->fillEnclave(enclave_args);

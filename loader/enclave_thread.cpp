@@ -51,8 +51,11 @@ extern "C" uint64_t do_aex(uint64_t tcs) {
     int ret = 0;
 
     aexCounter++;
-    if (dumpFlag)
+    if (dumpFlag) {
+        if (!intFlag)
+            clear_interrupt(tcs);
         return 1;
+    }
     if (!intFlag) {
         if (dumpFlag) {
             console->debug("We decide to dump!");

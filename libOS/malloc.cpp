@@ -7,7 +7,7 @@
 #define EXPAND_FACTOR 10
 extern "C" void *malloc(size_t len) {
    if (len > 0x10000000) __asm__("ud2");
-   libos_print("malloc: len = %ld", len);
+   //libos_print("malloc: len = %ld", len);
    void *ret = safeAllocator->malloc(len);
    //libos_print("malloc: len = %ld, first try 0x%lx", len, ret);
    if (ret) return ret; 
@@ -33,7 +33,7 @@ extern "C" void free(void *ptr) {
 }
 
 extern "C" void *realloc(void *ptr, size_t newSize) {
-    libos_print("realloc!");
+    //libos_print("realloc!");
     void *newChunk = malloc(newSize);
     memcpy(newChunk, ptr, safeAllocator->getLen(ptr));
     return newChunk;
